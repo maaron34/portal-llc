@@ -3,6 +3,16 @@ import { ArrowRight } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { SERVICES } from "../data/services";
+import { useReveal } from "../utils/useReveal";
+
+function Reveal({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const { ref, visible } = useReveal();
+  return (
+    <div ref={ref} className={`reveal ${visible ? "visible" : ""} ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function Services() {
   return (
@@ -15,9 +25,9 @@ export default function Services() {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-portal-dark mb-4">
             Residential Concrete Services
           </h1>
-          <p className="text-xl text-portal-mid max-w-2xl mx-auto">
-            Everything from driveway replacements to foundation repairs. One
-            crew, start to finish.
+          <p className="text-xl text-portal-mid max-w-md mx-auto">
+            Everything from driveway replacements to foundation repairs.
+            One crew, start to finish.
           </p>
         </div>
       </section>
@@ -27,6 +37,7 @@ export default function Services() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="space-y-16">
             {SERVICES.map((service, idx) => (
+              <Reveal key={service.slug}>
               <Link
                 key={service.slug}
                 to={`/services/${service.slug}`}
@@ -46,6 +57,7 @@ export default function Services() {
                       src={service.heroImage}
                       alt={service.title}
                       className="w-full aspect-[3/2] object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                   </div>
                   <div className={idx % 2 === 1 ? "lg:order-1" : ""}>
@@ -73,6 +85,7 @@ export default function Services() {
                   </div>
                 </div>
               </Link>
+              </Reveal>
             ))}
           </div>
         </div>

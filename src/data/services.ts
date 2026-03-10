@@ -41,7 +41,7 @@ export const SERVICES: Service[] = [
       "/images/driveways/driveway_2_grey_house.jpeg",
       "/images/driveways/driveway_3_white_garage.jpeg",
       "/images/driveways/driveway_5_modern_garage.jpeg",
-      "/images/driveways/driveway_6_long walk.jpeg",
+      "/images/driveways/driveway_6_long_walk.jpeg",
       "/images/driveways/driveway_8_van.jpeg",
     ],
   },

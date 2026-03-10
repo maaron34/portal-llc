@@ -4,6 +4,25 @@ import SEO from "../components/SEO";
 import { PAGE_SEO, generateLocalBusinessSchema, generateFAQSchema } from "../data/seo";
 import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, FAQS } from "../data/content";
 import { SERVICE_BRIEF } from "../data/services";
+import { useReveal } from "../utils/useReveal";
+
+function Reveal({ children, className = "", delay = "" }: { children: React.ReactNode; className?: string; delay?: string }) {
+  const { ref, visible } = useReveal();
+  return (
+    <div ref={ref} className={`reveal ${visible ? "visible" : ""} ${delay} ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function RevealStagger({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const { ref, visible } = useReveal();
+  return (
+    <div ref={ref} className={`reveal-stagger ${visible ? "visible" : ""} ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -17,11 +36,11 @@ export default function Home() {
       <section className="relative min-h-[90vh] flex items-center">
         <div className="absolute inset-0">
           <img
-            src="/images/driveways/driveway_4_big_house.jpeg"
-            alt="Concrete driveway installation in Seattle"
+            src="/images/walkways-stairs/walkways_stairs_1_blue_house.jpeg"
+            alt="Concrete walkway and stairs installation in Seattle"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/85 via-portal-dark/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/65 to-portal-dark/20" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32">
           <div className="max-w-2xl">
@@ -39,13 +58,13 @@ export default function Home() {
                 {BUSINESS.reviewCount}+ five-star reviews
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
-              {BUSINESS.tagline}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
+              Seattle's Residential<br />
+              Concrete Experts
             </h1>
-            <p className="text-xl text-white/80 mb-8 leading-relaxed max-w-xl">
+            <p className="text-lg sm:text-xl text-white/80 mb-8 leading-relaxed max-w-lg">
               Driveways. Patios. Stairs. Retaining walls. Foundation work.
-              Serving West Seattle and surrounding neighborhoods for over{" "}
-              {BUSINESS.yearsInBusiness} years.
+              Serving Seattle neighborhoods for over {BUSINESS.yearsInBusiness} years.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -67,23 +86,23 @@ export default function Home() {
       </section>
 
       {/* Trust Bar */}
-      <section className="bg-portal-cream py-6 border-b border-portal-warm">
+      <section className="bg-portal-dark py-5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm font-semibold text-portal-gray">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm font-medium text-white/70 uppercase tracking-wide">
             <span className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-portal-accent" />
-              Licensed, Bonded & Insured
+              <CheckCircle size={16} className="text-portal-accent" />
+              Licensed & Insured
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-portal-accent" />
+              <CheckCircle size={16} className="text-portal-accent" />
               {BUSINESS.reviewCount}+ Five-Star Reviews
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-portal-accent" />
+              <CheckCircle size={16} className="text-portal-accent" />
               Free Estimates
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-portal-accent" />
+              <CheckCircle size={16} className="text-portal-accent" />
               {BUSINESS.founderYearsExperience}+ Years Experience
             </span>
           </div>
@@ -93,17 +112,15 @@ export default function Home() {
       {/* Services */}
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               What We Do
             </h2>
-            <p className="text-lg text-portal-mid max-w-2xl mx-auto">
-              From small repair jobs to complete driveway replacements, we handle
-              residential concrete projects of all sizes. Every job gets the same
-              attention to detail.
+            <p className="text-lg text-portal-mid max-w-xl mx-auto">
+              Residential concrete projects of all sizes. Every job gets the same attention to detail.
             </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          </Reveal>
+          <RevealStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SERVICE_BRIEF.map((service) => (
               <Link
                 key={service.slug + service.title}
@@ -115,8 +132,9 @@ export default function Home() {
                     src={service.image}
                     alt={service.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-portal-dark/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-portal-dark/80 via-portal-dark/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-5">
                     <h3 className="text-xl font-bold text-white mb-1">
                       {service.title}
@@ -128,8 +146,8 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-          <div className="text-center mt-10">
+          </RevealStagger>
+          <Reveal className="text-center mt-10">
             <Link
               to="/services"
               className="inline-flex items-center gap-2 text-portal-accent font-semibold no-underline hover:text-portal-accent-dark transition-colors"
@@ -137,17 +155,19 @@ export default function Home() {
               View All Services
               <ArrowRight size={18} />
             </Link>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Why Portal */}
       <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-14 text-center">
-            Why Homeowners Choose Portal
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <Reveal>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-14 text-center">
+              Why Homeowners Choose Portal
+            </h2>
+          </Reveal>
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {WHY_PORTAL.map((item) => (
               <div key={item.title}>
                 <h3 className="text-xl font-bold text-portal-dark mb-3">
@@ -158,14 +178,14 @@ export default function Home() {
                 </p>
               </div>
             ))}
-          </div>
+          </RevealStagger>
         </div>
       </section>
 
       {/* Reviews */}
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-3">
               {BUSINESS.reviewCount}+ Five-Star Reviews
             </h2>
@@ -181,8 +201,8 @@ export default function Home() {
             <p className="text-portal-mid">
               {BUSINESS.rating} average on Google
             </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          </Reveal>
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {REVIEWS.map((review) => (
               <blockquote
                 key={review.author}
@@ -205,27 +225,28 @@ export default function Home() {
                 </cite>
               </blockquote>
             ))}
-          </div>
+          </RevealStagger>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-12 text-center">
-            Frequently Asked Questions
-          </h2>
+          <Reveal>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-12 text-center">
+              Frequently Asked Questions
+            </h2>
+          </Reveal>
           <div className="space-y-6">
-            {FAQS.map((faq) => (
-              <div
-                key={faq.question}
-                className="bg-white rounded-xl p-6 sm:p-8"
-              >
-                <h3 className="text-lg font-bold text-portal-dark mb-3">
-                  {faq.question}
-                </h3>
-                <p className="text-portal-mid leading-relaxed">{faq.answer}</p>
-              </div>
+            {FAQS.map((faq, idx) => (
+              <Reveal key={faq.question} delay={idx < 3 ? `reveal-delay-${idx + 1}` : ""}>
+                <div className="bg-white rounded-xl p-6 sm:p-8">
+                  <h3 className="text-lg font-bold text-portal-dark mb-3">
+                    {faq.question}
+                  </h3>
+                  <p className="text-portal-mid leading-relaxed">{faq.answer}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -234,22 +255,26 @@ export default function Home() {
       {/* Service Areas */}
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
-            Serving Seattle and Surrounding Areas
-          </h2>
-          <p className="text-lg text-portal-mid mb-10">
-            Residential concrete services across the greater Seattle area.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {SERVICE_AREAS.map((area) => (
-              <span
-                key={area}
-                className="px-4 py-2 bg-portal-cream rounded-full text-sm font-medium text-portal-gray"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
+          <Reveal>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
+              Serving Seattle and Surrounding Areas
+            </h2>
+            <p className="text-lg text-portal-mid mb-10">
+              Residential concrete services across the greater Seattle area.
+            </p>
+          </Reveal>
+          <Reveal>
+            <div className="flex flex-wrap justify-center gap-3">
+              {SERVICE_AREAS.map((area) => (
+                <span
+                  key={area}
+                  className="px-4 py-2 bg-portal-cream rounded-full text-sm font-medium text-portal-gray"
+                >
+                  {area}
+                </span>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
