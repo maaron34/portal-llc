@@ -39,8 +39,9 @@ export default function Contact() {
             Get in Touch
           </h1>
           <p className="text-xl text-portal-mid max-w-2xl mx-auto">
-            Request an estimate or ask a question. We typically respond within 24
-            hours.
+            Request an estimate or ask a question. We start with a phone or video
+            estimate, then follow up with an on-site visit. We typically respond
+            within 24 hours.
           </p>
         </div>
       </section>

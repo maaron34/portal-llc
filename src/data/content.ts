@@ -7,7 +7,7 @@ export const BUSINESS = {
   url: "https://buildwithportal.com",
   hours: "Monday-Friday 7:30 AM - 5:00 PM, Saturday by appointment",
   license: "PORTAL*803D4",
-  reviewCount: 75,
+  reviewCount: 80,
   rating: 4.9,
   yearsInBusiness: 6,
   founderYearsExperience: 35,
