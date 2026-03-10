@@ -33,6 +33,9 @@ export const SERVICE_AREAS = [
   "Queen Anne",
   "Capitol Hill",
   "Central District",
+  "Wallingford",
+  "Greenwood",
+  "Columbia City",
 ] as const;
 
 export const REVIEWS = [
@@ -95,7 +98,7 @@ export const FAQS = [
   {
     question: "What areas do you serve?",
     answer:
-      "We serve West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, and the Central District.",
+      "We serve West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and Columbia City.",
   },
   {
     question: "What finishes are available?",

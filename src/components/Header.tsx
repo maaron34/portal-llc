@@ -20,7 +20,7 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 no-underline">
+          <Link to="/" className="flex items-center gap-4 no-underline">
             <img
               src="/images/brand/portal-logo.jpeg"
               alt="Portal LLC"
@@ -30,7 +30,7 @@ export default function Header() {
               <div className="text-lg font-bold text-portal-dark tracking-tight">
                 Portal LLC
               </div>
-              <div className="text-xs text-portal-mid -mt-0.5">
+              <div className="text-sm text-portal-mid -mt-0.5">
                 Residential Concrete
               </div>
             </div>

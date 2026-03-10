@@ -73,13 +73,17 @@ export const SERVICES: Service[] = [
       "/images/patios/patio_5_grey_tiles.jpeg",
       "/images/patios/patio_6_big_tiles.jpeg",
       "/images/patios/patio_7_overhang.jpeg",
+      "/images/stamped/stamped_decorative_2_rainy.jpeg",
+      "/images/stamped/stamped_decorative_3_textured.jpeg",
+      "/images/stamped/stamped_decorative_3_textured_curb_bump.jpeg",
+      "/images/stamped/stamped_decorative_4_glass_doorsjpeg.jpeg",
     ],
   },
   {
     slug: "walkways-stairs",
     title: "Walkways & Stairs",
     shortTitle: "Walkways & Stairs",
-    heroImage: "/images/walkways-stairs/walkways_stairs_10_green_stairs.jpeg",
+    heroImage: "/images/walkways-stairs/walkways_stairs_8_tiny_sauna.jpeg",
     intro:
       "Crumbling steps are a safety hazard and an eyesore. Cracked walkways make a bad first impression. We build and replace concrete walkways and stairs that hold up to Seattle's weather.",
     services: [
@@ -93,6 +97,11 @@ export const SERVICES: Service[] = [
       "/images/walkways-stairs/walkways_stairs_3_black_tiles_rain.jpeg",
       "/images/walkways-stairs/walkways_stairs_4_grey_siding.jpeg",
       "/images/walkways-stairs/walkways_stairs_5_wood_walk.jpeg",
+      "/images/walkways-stairs/walkways_stairs_8_tiny_sauna.jpeg",
+      "/images/walkways-stairs/walkways_stairs_9_garden_blocks.jpeg",
+      "/images/walkways-stairs/walkways_stairs_6_grass_bricks.jpeg",
+      "/images/walkways-stairs/walkways_stairs_7_grass_winding.jpeg",
+      "/images/walkways-stairs/walkways_stairs_11_grass_backyard_walk.jpeg",
       "/images/walkways-stairs/walkways_stairs_12_night_white_housejpeg.jpeg",
       "/images/walkways-stairs/walkways_stairs_15_down_stairs.jpeg",
     ],
@@ -114,7 +123,9 @@ export const SERVICES: Service[] = [
     galleryImages: [
       "/images/walls/walls_2_base.jpeg",
       "/images/walls/walls_3_wood_drop.jpeg",
+      "/images/walls/walls_4_joes.jpeg",
       "/images/walls/walls_5_blue_slope.jpeg",
+      "/images/walls/walls_6_orange_sweatshirt.jpeg",
       "/images/walls/walls_9_white_balconies.jpeg",
       "/images/walls/walls_10_step_down.jpeg",
       "/images/walls/walls_11_grass_long.jpeg",
@@ -137,8 +148,10 @@ export const SERVICES: Service[] = [
     ],
     note: "We coordinate with permits and inspections as needed.",
     galleryImages: [
-      "/images/walls/walls_12_new_steps.jpeg",
+      "/images/walls/walls_2_base.jpeg",
+      "/images/other/other_3_close_up.jpeg",
       "/images/team/team_3_job_site.jpeg",
+      "/images/other/other_4_bolt.jpeg",
     ],
   },
 ];
@@ -148,7 +161,7 @@ export const SERVICE_BRIEF = [
     title: "Driveways",
     description: "New pours, replacements, extensions, and repairs.",
     slug: "driveways",
-    image: "/images/driveways/driveway_4_big_house.jpeg",
+    image: "/images/driveways/driveway_1_grey_garage.jpeg",
   },
   {
     title: "Patios",
@@ -160,7 +173,7 @@ export const SERVICE_BRIEF = [
     title: "Walkways & Stairs",
     description: "Front walks, garden paths, steps, and stoops.",
     slug: "walkways-stairs",
-    image: "/images/walkways-stairs/walkways_stairs_10_green_stairs.jpeg",
+    image: "/images/walkways-stairs/walkways_stairs_8_tiny_sauna.jpeg",
   },
   {
     title: "Retaining Walls",
@@ -178,6 +191,6 @@ export const SERVICE_BRIEF = [
     title: "Concrete Repair",
     description: "Cracks, settling, and surface restoration.",
     slug: "driveways",
-    image: "/images/stamped/stamped_decorative_1_speckled_curb.jpeg",
+    image: "/images/walkways-stairs/walkways_stairs_9_garden_blocks.jpeg",
   },
 ];

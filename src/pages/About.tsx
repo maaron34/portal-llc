@@ -78,6 +78,7 @@ export default function About() {
                 "/images/team/team_4_backs.jpeg",
                 "/images/team/team_5_stairs.jpeg",
                 "/images/team/team_6_green_lines.jpeg",
+                "/images/other/other_2_seattle.jpeg",
               ].map((img, idx) => (
                 <div
                   key={idx}

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, ArrowRight, CheckCircle, Phone } from "lucide-react";
+import { Star, ArrowRight, CheckCircle, Phone, ShieldCheck, MessageSquare, HandCoins } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO, generateLocalBusinessSchema, generateFAQSchema } from "../data/seo";
 import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, FAQS } from "../data/content";
@@ -36,9 +36,9 @@ export default function Home() {
       <section className="relative min-h-[90vh] flex items-center">
         <div className="absolute inset-0">
           <img
-            src="/images/walkways-stairs/walkways_stairs_1_blue_house.jpeg"
-            alt="Concrete walkway and stairs installation in Seattle"
-            className="w-full h-full object-cover"
+            src="/images/driveways/driveway_4_big_house.jpeg"
+            alt="Concrete driveway at Seattle home"
+            className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/65 to-portal-dark/20" />
         </div>
@@ -117,7 +117,8 @@ export default function Home() {
               What We Do
             </h2>
             <p className="text-lg text-portal-mid max-w-xl mx-auto">
-              Residential concrete projects of all sizes. Every job gets the same attention to detail.
+              Residential concrete projects of all sizes.<br className="hidden sm:inline" />
+              {" "}Every job gets the same attention to detail.
             </p>
           </Reveal>
           <RevealStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -168,16 +169,23 @@ export default function Home() {
             </h2>
           </Reveal>
           <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {WHY_PORTAL.map((item) => (
-              <div key={item.title}>
-                <h3 className="text-xl font-bold text-portal-dark mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-portal-mid leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
-            ))}
+            {WHY_PORTAL.map((item, idx) => {
+              const icons = [ShieldCheck, MessageSquare, HandCoins];
+              const Icon = icons[idx] || ShieldCheck;
+              return (
+                <div key={item.title}>
+                  <div className="w-12 h-12 rounded-xl bg-portal-accent/10 flex items-center justify-center mb-4">
+                    <Icon size={24} className="text-portal-accent" />
+                  </div>
+                  <h3 className="text-xl font-bold text-portal-dark mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-portal-mid leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              );
+            })}
           </RevealStagger>
         </div>
       </section>
@@ -264,11 +272,11 @@ export default function Home() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {SERVICE_AREAS.map((area) => (
                 <span
                   key={area}
-                  className="px-4 py-2 bg-portal-cream rounded-full text-sm font-medium text-portal-gray"
+                  className="px-4 py-2.5 bg-portal-cream rounded-full text-sm font-medium text-portal-gray text-center"
                 >
                   {area}
                 </span>
