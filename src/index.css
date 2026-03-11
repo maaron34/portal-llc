@@ -63,15 +63,12 @@ body {
   transform: translateY(0);
 }
 
-/* Slow spin + color shift for footer swirl */
-@keyframes spin-color {
-  0% { transform: rotate(0deg); filter: invert(1) hue-rotate(0deg) brightness(2); }
-  25% { filter: invert(1) hue-rotate(90deg) brightness(2); }
-  50% { transform: rotate(180deg); filter: invert(1) hue-rotate(180deg) brightness(2); }
-  75% { filter: invert(1) hue-rotate(270deg) brightness(2); }
-  100% { transform: rotate(360deg); filter: invert(1) hue-rotate(360deg) brightness(2); }
+/* Slow spin for footer swirl */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.animate-spin-color {
-  animation: spin-color 20s linear infinite;
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
 }
