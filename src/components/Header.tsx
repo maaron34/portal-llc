@@ -21,7 +21,7 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 no-underline shrink-0">
+          <Link to="/" onClick={() => window.scrollTo({ top: 0 })} className="flex items-center gap-3 no-underline shrink-0">
             <img
               src="/images/brand/portal-logo.jpeg"
               alt="Portal LLC"
