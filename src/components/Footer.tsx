@@ -140,9 +140,9 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
           <img
-            src="/images/brand/swirlie-logo.png"
+            src="/images/brand/swirlie-gif-sm.gif"
             alt=""
-            className="h-12 w-12 opacity-40 invert animate-spin-slow"
+            className="h-10 w-10 opacity-50 invert"
           />
           <p className="text-white/40 text-sm">
             &copy; {new Date().getFullYear()} Portal LLC. All rights reserved.

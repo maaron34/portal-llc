@@ -49,6 +49,10 @@ export default function Reviews() {
               <span className="w-2 h-2 rounded-full bg-blue-500" />
               BuildZoom
             </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              NiceJob
+            </span>
           </div>
         </div>
       </section>
@@ -63,6 +67,8 @@ export default function Reviews() {
                   ? "bg-portal-accent"
                   : review.source === "HomeAdvisor"
                   ? "bg-amber-500"
+                  : review.source === "NiceJob"
+                  ? "bg-emerald-500"
                   : "bg-blue-500";
               return (
                 <Reveal key={review.author}>
