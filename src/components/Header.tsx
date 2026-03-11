@@ -31,8 +31,8 @@ export default function Header() {
               <div className="text-lg font-bold text-portal-dark tracking-tight">
                 Portal LLC
               </div>
-              <div className="text-sm text-portal-mid -mt-0.5">
-                Residential & Commercial Concrete
+              <div className="text-xs text-portal-mid -mt-0.5 leading-tight">
+                Residential & Commercial<br />Concrete
               </div>
             </div>
           </Link>
