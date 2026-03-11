@@ -43,6 +43,7 @@ export const SERVICES: Service[] = [
       "/images/driveways/driveway_5_modern_garage.jpeg",
       "/images/driveways/driveway_6_long_walk.jpeg",
       "/images/driveways/driveway_8_van.jpeg",
+      "/images/driveways/wix_driveway_broom.jpeg",
     ],
   },
   {
@@ -77,6 +78,8 @@ export const SERVICES: Service[] = [
       "/images/stamped/stamped_decorative_3_textured.jpeg",
       "/images/stamped/stamped_decorative_3_textured_curb_bump.jpeg",
       "/images/stamped/stamped_decorative_4_glass_doorsjpeg.jpeg",
+      "/images/stamped/wix_stamped_patio_1.jpeg",
+      "/images/stamped/wix_stamped_patio_2.jpeg",
     ],
   },
   {
@@ -104,6 +107,11 @@ export const SERVICES: Service[] = [
       "/images/walkways-stairs/walkways_stairs_11_grass_backyard_walk.jpeg",
       "/images/walkways-stairs/walkways_stairs_12_night_white_housejpeg.jpeg",
       "/images/walkways-stairs/walkways_stairs_15_down_stairs.jpeg",
+      "/images/walkways-stairs/wix_pretty_stairs.jpeg",
+      "/images/walkways-stairs/wix_more_pretty_stairs.jpeg",
+      "/images/walkways-stairs/wix_long_stairs.jpeg",
+      "/images/walkways-stairs/wix_overlay_walkway.jpeg",
+      "/images/walkways-stairs/wix_basement_stairs.jpeg",
     ],
   },
   {
@@ -152,6 +160,7 @@ export const SERVICES: Service[] = [
       "/images/other/other_3_close_up.jpeg",
       "/images/team/team_3_job_site.jpeg",
       "/images/other/other_4_bolt.jpeg",
+      "/images/team/wix_garage_pour.jpeg",
     ],
   },
 ];
