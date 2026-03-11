@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, ArrowRight, CheckCircle, ShieldCheck, MessageSquare, HandCoins } from "lucide-react";
+import { Star, ArrowRight, CheckCircle, ShieldCheck, MessageSquare, HandCoins, Instagram } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO, generateLocalBusinessSchema, generateFAQSchema } from "../data/seo";
 import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, SECTION_QUOTES, FAQS } from "../data/content";
@@ -352,15 +352,35 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Instagram */}
+      <section className="py-16 sm:py-20 bg-portal-dark">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <Reveal className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
+            <div className="text-center sm:text-left">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Check out our latest projects
+              </h3>
+              <p className="text-white/60 text-sm">
+                Follow us for before & afters, project updates, and behind-the-scenes.
+              </p>
+            </div>
+            <a
+              href={BUSINESS.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 border border-white/20 text-white font-semibold rounded-lg no-underline hover:bg-white/20 transition-colors"
+            >
+              <Instagram size={22} />
+              @portal.llc
+            </a>
+          </Reveal>
+        </div>
+      </section>
+
       {/* Service Areas */}
-      <section className="py-20 sm:py-28 bg-portal-cream">
+      <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <Reveal>
-            <img
-              src="/images/brand/portal-logo.jpeg"
-              alt="Portal LLC"
-              className="w-48 sm:w-64 h-auto rounded-lg mx-auto mb-8"
-            />
             <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic mb-6 max-w-2xl mx-auto">
               {BUSINESS.tagline}
             </p>
@@ -373,7 +393,7 @@ export default function Home() {
               {SERVICE_AREAS.map((area) => (
                 <span
                   key={area}
-                  className="px-4 py-2.5 bg-white rounded-full text-sm font-medium text-portal-gray text-center"
+                  className="px-4 py-2.5 bg-portal-cream rounded-full text-sm font-medium text-portal-gray text-center"
                 >
                   {area}
                 </span>

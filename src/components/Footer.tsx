@@ -39,9 +39,29 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-4">Portal LLC</h3>
             <p className="text-white/70 text-sm leading-relaxed mb-4">
-              Residential concrete contractor serving West Seattle and the
-              greater Seattle area. Licensed, bonded, and insured.
+              Residential and commercial concrete contractor serving West Seattle
+              and the greater Seattle area. Licensed, bonded, and insured.
             </p>
+            <div className="flex items-center gap-3 mb-4">
+              <a
+                href={BUSINESS.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white no-underline hover:bg-white/20 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram size={20} />
+              </a>
+              <a
+                href={BUSINESS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white no-underline hover:bg-white/20 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook size={20} />
+              </a>
+            </div>
             <p className="text-white/50 text-xs">
               WA License: {BUSINESS.license}
             </p>
@@ -99,28 +119,6 @@ export default function Footer() {
                 >
                   <Mail size={15} />
                   {BUSINESS.email}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={BUSINESS.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-white/70 text-sm no-underline hover:text-white transition-colors"
-                >
-                  <Instagram size={15} />
-                  @portal.llc
-                </a>
-              </li>
-              <li>
-                <a
-                  href={BUSINESS.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-white/70 text-sm no-underline hover:text-white transition-colors"
-                >
-                  <Facebook size={15} />
-                  Portal LLC
                 </a>
               </li>
               <li className="flex items-start gap-2 text-white/70 text-sm">
