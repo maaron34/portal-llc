@@ -65,18 +65,18 @@ export default function Home() {
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="max-w-xl">
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-3 mb-6">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    size={18}
+                    size={24}
                     className="text-amber-400 fill-amber-400"
                   />
                 ))}
               </div>
-              <span className="text-white/80 text-sm font-medium">
-                {BUSINESS.reviewCount}+ five-star reviews
+              <span className="text-white text-lg sm:text-xl font-bold">
+                Over {BUSINESS.reviewCount} Five-Star Reviews!
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
