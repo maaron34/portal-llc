@@ -8,6 +8,7 @@ export interface Service {
   extras?: { title: string; items: string[] };
   process?: { title: string; steps: string[] };
   note?: string;
+  beforeAfterImages?: { before: string; after: string; label: string }[];
   galleryImages: string[];
 }
 
@@ -190,14 +191,16 @@ export const SERVICES: Service[] = [
       ],
     },
     note: "Reconditioning works best on structurally sound concrete with surface-level wear. We'll always be honest about whether reconditioning or replacement is the right call for your situation.",
+    beforeAfterImages: [
+      { before: "/images/before-after/before-stairs.jpeg", after: "/images/before-after/after-stairs.jpeg", label: "Entry stairs" },
+      { before: "/images/before-after/before-stairs2.jpeg", after: "/images/before-after/after-stairs2.jpeg", label: "Front steps" },
+      { before: "/images/before-after/before-stairs3.jpeg", after: "/images/before-after/after-stairs3.jpeg", label: "Staircase" },
+      { before: "/images/before-after/before-stairs4.jpeg", after: "/images/before-after/after-stairs4.jpeg", label: "Side stairs" },
+    ],
     galleryImages: [
-      "/images/before-after/before-stairs.jpeg",
       "/images/before-after/after-stairs.jpeg",
-      "/images/before-after/before-stairs2.jpeg",
       "/images/before-after/after-stairs2.jpeg",
-      "/images/before-after/before-stairs3.jpeg",
       "/images/before-after/after-stairs3.jpeg",
-      "/images/before-after/before-stairs4.jpeg",
       "/images/before-after/after-stairs4.jpeg",
     ],
   },

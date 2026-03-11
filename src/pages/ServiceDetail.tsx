@@ -141,15 +141,15 @@ export default function ServiceDetail() {
             <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-8">
               {slug === "reconditioning" ? "Before & After" : `${service.title} Gallery`}
             </h2>
-            {slug === "reconditioning" ? (
+            {service.beforeAfterImages ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {Array.from({ length: Math.floor(service.galleryImages.length / 2) }).map((_, idx) => (
+                {service.beforeAfterImages.map((pair, idx) => (
                   <div key={idx} className="grid grid-cols-2 gap-3">
                     <div>
                       <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
                         <img
-                          src={service.galleryImages[idx * 2]}
-                          alt={`Before reconditioning ${idx + 1}`}
+                          src={pair.before}
+                          alt={`Before - ${pair.label}`}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -158,8 +158,8 @@ export default function ServiceDetail() {
                     <div>
                       <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
                         <img
-                          src={service.galleryImages[idx * 2 + 1]}
-                          alt={`After reconditioning ${idx + 1}`}
+                          src={pair.after}
+                          alt={`After - ${pair.label}`}
                           className="w-full h-full object-cover"
                         />
                       </div>

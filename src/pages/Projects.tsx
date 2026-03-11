@@ -60,7 +60,10 @@ export default function Projects() {
             {categories.map((cat) => (
               <button
                 key={cat.value}
-                onClick={() => setFilter(cat.value)}
+                onClick={() => {
+                  setFilter(cat.value);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer transition-colors ${
                   filter === cat.value
                     ? "bg-portal-accent text-white"
