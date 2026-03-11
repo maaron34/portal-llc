@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
@@ -11,6 +11,14 @@ export default function Projects() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const galleryRef = useRef<HTMLElement>(null);
+  const shouldScrollRef = useRef(false);
+
+  useEffect(() => {
+    if (shouldScrollRef.current) {
+      shouldScrollRef.current = false;
+      galleryRef.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+  }, [filter]);
 
   const allProjects = SERVICES.flatMap((service) =>
     service.galleryImages.map((img, idx) => ({
@@ -62,8 +70,8 @@ export default function Projects() {
               <button
                 key={cat.value}
                 onClick={() => {
+                  shouldScrollRef.current = true;
                   setFilter(cat.value);
-                  galleryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
                 className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer transition-colors ${
                   filter === cat.value
