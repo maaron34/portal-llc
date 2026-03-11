@@ -140,7 +140,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
           <img
-            src="/images/brand/swirlie-logo.webp"
+            src="/images/brand/swirlie-logo.png"
             alt=""
             className="h-12 w-12 opacity-40 invert animate-spin-slow"
           />

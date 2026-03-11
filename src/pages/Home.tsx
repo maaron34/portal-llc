@@ -375,7 +375,7 @@ export default function Home() {
           <Reveal>
             <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6">
               <img
-                src="/images/brand/swirlie-logo.webp"
+                src="/images/brand/swirlie-logo.png"
                 alt="Portal LLC"
                 className="h-14 sm:h-18 w-auto opacity-80 shrink-0"
               />
