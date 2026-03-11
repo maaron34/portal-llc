@@ -373,13 +373,11 @@ export default function Home() {
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <Reveal>
-            <div className="inline-block bg-white rounded-2xl p-4 mb-6 shadow-sm">
-              <img
-                src="/images/brand/portal-logo.jpeg"
-                alt="Portal LLC"
-                className="h-20 sm:h-28 w-auto"
-              />
-            </div>
+            <img
+              src="/images/brand/swirlie-logo.webp"
+              alt="Portal LLC"
+              className="h-16 sm:h-20 w-auto mx-auto mb-4 opacity-80"
+            />
             <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic mb-6 max-w-2xl mx-auto">
               {BUSINESS.tagline}
             </p>

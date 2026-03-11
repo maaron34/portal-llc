@@ -138,8 +138,15 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/10 text-center text-white/40 text-sm">
-          &copy; {new Date().getFullYear()} Portal LLC. All rights reserved.
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
+          <img
+            src="/images/brand/swirlie-logo.webp"
+            alt=""
+            className="h-12 w-12 opacity-40 animate-spin-slow invert"
+          />
+          <p className="text-white/40 text-sm">
+            &copy; {new Date().getFullYear()} Portal LLC. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
