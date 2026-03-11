@@ -139,22 +139,51 @@ export default function ServiceDetail() {
         <section className="py-16 sm:py-24 bg-portal-cream">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-8">
-              {service.title} Gallery
+              {slug === "reconditioning" ? "Before & After" : `${service.title} Gallery`}
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {service.galleryImages.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="aspect-[4/3] rounded-xl overflow-hidden"
-                >
-                  <img
-                    src={img}
-                    alt={`${service.title} project ${idx + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-              ))}
-            </div>
+            {slug === "reconditioning" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {Array.from({ length: Math.floor(service.galleryImages.length / 2) }).map((_, idx) => (
+                  <div key={idx} className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                        <img
+                          src={service.galleryImages[idx * 2]}
+                          alt={`Before reconditioning ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-sm font-semibold text-portal-mid text-center uppercase tracking-wide">Before</p>
+                    </div>
+                    <div>
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                        <img
+                          src={service.galleryImages[idx * 2 + 1]}
+                          alt={`After reconditioning ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-sm font-semibold text-portal-accent text-center uppercase tracking-wide">After</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {service.galleryImages.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="aspect-[4/3] rounded-xl overflow-hidden"
+                  >
+                    <img
+                      src={img}
+                      alt={`${service.title} project ${idx + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

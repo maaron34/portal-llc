@@ -1,6 +1,6 @@
 export const BUSINESS = {
   name: "Portal LLC",
-  tagline: "Seattle's Residential Concrete Experts",
+  tagline: "Elevated concrete craftsmanship for Seattle residences and businesses",
   phone: "(206) 419-3880",
   phoneHref: "tel:+12064193880",
   email: "chris@buildwithportal.com",
@@ -37,7 +37,6 @@ export const SERVICE_AREAS = [
   "Central District",
   "Wallingford",
   "Greenwood",
-  "Columbia City",
 ] as const;
 
 export const REVIEWS = [
@@ -106,6 +105,25 @@ export const WHY_PORTAL = [
   },
 ] as const;
 
+export const SECTION_QUOTES = [
+  {
+    text: "The professionalism and quality were top notch!",
+    author: "Raam W.",
+  },
+  {
+    text: "Portal was the most professional by far. Fair price, great communication, beautiful finished product.",
+    author: "Sarah K.",
+  },
+  {
+    text: "Chris really knows his stuff. Highly recommend.",
+    author: "Linda M.",
+  },
+  {
+    text: "Consistent quality and a crew that actually cares about doing things right.",
+    author: "Karen P.",
+  },
+] as const;
+
 export const FAQS = [
   {
     question: "How much does a concrete driveway cost in Seattle?",
@@ -130,7 +148,7 @@ export const FAQS = [
   {
     question: "What areas do you serve?",
     answer:
-      "We serve all Seattle neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and Columbia City.",
+      "We serve all Seattle neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and many more.",
   },
   {
     question: "What finishes are available?",

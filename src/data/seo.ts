@@ -51,9 +51,9 @@ export const PAGE_SEO: Record<string, PageSEO> = {
     canonical: "https://buildwithportal.com/services/foundation-work",
   },
   reconditioning: {
-    title: "Concrete Reconditioning Seattle | Surface Restoration | Portal LLC",
+    title: "Concrete Repair & Reconditioning Seattle | Portal LLC",
     description:
-      "Restore worn, stained, or chipped concrete without full replacement. Polymer-modified patching, broom finish overlay, color stain, and sealer. Free estimates in Seattle.",
+      "Concrete repair and reconditioning in Seattle. Crack repair, surface restoration, polymer-modified Ardex patching, broom finish overlay, color stain, and sealer. Free estimates.",
     canonical: "https://buildwithportal.com/services/reconditioning",
   },
   projects: {

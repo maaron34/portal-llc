@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
-import { Star, ArrowRight, CheckCircle, Phone, ShieldCheck, MessageSquare, HandCoins } from "lucide-react";
+import { Star, ArrowRight, CheckCircle, ShieldCheck, MessageSquare, HandCoins } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO, generateLocalBusinessSchema, generateFAQSchema } from "../data/seo";
-import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, FAQS } from "../data/content";
+import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, SECTION_QUOTES, FAQS } from "../data/content";
 import { SERVICE_BRIEF } from "../data/services";
 import { useReveal } from "../utils/useReveal";
+
+const BEFORE_AFTER = [
+  { before: "/images/before-after/before-stairs.jpeg", after: "/images/before-after/after-stairs.jpeg", label: "Entry stairs" },
+  { before: "/images/before-after/before-stairs2.jpeg", after: "/images/before-after/after-stairs2.jpeg", label: "Front steps" },
+  { before: "/images/before-after/before-stairs3.jpeg", after: "/images/before-after/after-stairs3.jpeg", label: "Staircase" },
+  { before: "/images/before-after/before-stairs4.jpeg", after: "/images/before-after/after-stairs4.jpeg", label: "Side stairs" },
+];
 
 function Reveal({ children, className = "", delay = "" }: { children: React.ReactNode; className?: string; delay?: string }) {
   const { ref, visible } = useReveal();
@@ -24,6 +31,18 @@ function RevealStagger({ children, className = "" }: { children: React.ReactNode
   );
 }
 
+function SectionQuote({ quote }: { quote: typeof SECTION_QUOTES[number] }) {
+  return (
+    <div className="flex items-center justify-center gap-3 mb-10">
+      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
+      <p className="text-portal-mid italic text-center max-w-lg">
+        "{quote.text}" <span className="text-portal-accent font-medium not-italic">- {quote.author}</span>
+      </p>
+      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -32,18 +51,28 @@ export default function Home() {
         schema={[generateLocalBusinessSchema(), generateFAQSchema()]}
       />
 
-      {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center">
-        <div className="absolute inset-0">
+      {/* Hero - split layout */}
+      <section className="relative min-h-[90vh] flex items-center bg-portal-dark overflow-hidden">
+        {/* Mobile: image as background */}
+        <div className="absolute inset-0 lg:hidden">
           <img
             src="/images/hero-stairs.jpeg"
             alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-bottom"
+            className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/65 to-portal-dark/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/70 to-portal-dark/30" />
         </div>
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32">
-          <div className="max-w-2xl">
+        {/* Desktop: image on right */}
+        <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-[50%]">
+          <img
+            src="/images/hero-stairs.jpeg"
+            alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark via-portal-dark/40 to-transparent" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
+          <div className="max-w-xl">
             <div className="flex items-center gap-2 mb-6">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -59,8 +88,8 @@ export default function Home() {
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
-              Seattle's Residential<br />
-              Concrete Experts
+              Seattle's Concrete<br />
+              Experts
             </h1>
             <p className="text-base sm:text-lg text-white/80 mb-8 leading-relaxed max-w-lg">
               Driveways. Patios. Stairs. Retaining walls. Foundations. Serving Seattle neighborhoods for over {BUSINESS.yearsInBusiness} years.
@@ -111,16 +140,17 @@ export default function Home() {
       {/* Services */}
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <Reveal className="text-center mb-14">
+          <Reveal className="text-center mb-4">
+            <SectionQuote quote={SECTION_QUOTES[0]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               What We Do
             </h2>
             <p className="text-lg text-portal-mid max-w-xl mx-auto">
-              Residential concrete projects of all sizes.<br className="hidden sm:inline" />
-              {" "}Every job gets the same attention to detail.
+              Residential and commercial concrete projects of all sizes.{" "}
+              Every job gets the same attention to detail.
             </p>
           </Reveal>
-          <RevealStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <RevealStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
             {SERVICE_BRIEF.map((service) => (
               <Link
                 key={service.slug + service.title}
@@ -159,10 +189,63 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Portal */}
+      {/* Before & After - Repair & Reconditioning */}
       <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <Reveal className="text-center mb-14">
+            <SectionQuote quote={SECTION_QUOTES[1]} />
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
+              Concrete Repair & Reconditioning
+            </h2>
+            <p className="text-lg text-portal-mid max-w-2xl mx-auto">
+              We start by removing all the damaged concrete, repair cracks and gaps with multiple coats of polymer-modified Concrete Patch by Ardex, follow that up with a broom finish overlay of polymer-modified Concrete Dressing by Ardex, and finish it off with multiple coats of color stain and sealer.
+            </p>
+          </Reveal>
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {BEFORE_AFTER.map((pair, idx) => (
+              <div key={idx} className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                    <img
+                      src={pair.before}
+                      alt={`${pair.label} before`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-portal-mid text-center uppercase tracking-wide">Before</p>
+                </div>
+                <div>
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                    <img
+                      src={pair.after}
+                      alt={`${pair.label} after`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-portal-accent text-center uppercase tracking-wide">After</p>
+                </div>
+              </div>
+            ))}
+          </RevealStagger>
+          <Reveal className="text-center mt-10">
+            <Link
+              to="/services/reconditioning"
+              className="inline-flex items-center gap-2 text-portal-accent font-semibold no-underline hover:text-portal-accent-dark transition-colors"
+            >
+              Learn About Our Reconditioning Process
+              <ArrowRight size={18} />
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Why Portal */}
+      <section className="py-20 sm:py-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal>
+            <SectionQuote quote={SECTION_QUOTES[2]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-14 text-center">
               Why Homeowners Choose Portal
             </h2>
@@ -190,7 +273,7 @@ export default function Home() {
       </section>
 
       {/* Reviews */}
-      <section className="py-20 sm:py-28">
+      <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-3">
@@ -213,7 +296,7 @@ export default function Home() {
             {REVIEWS.slice(0, 3).map((review) => (
               <blockquote
                 key={review.author}
-                className="bg-portal-cream rounded-xl p-8"
+                className="bg-white rounded-xl p-8"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -246,9 +329,10 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 sm:py-28 bg-portal-cream">
+      <section className="py-20 sm:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Reveal>
+            <SectionQuote quote={SECTION_QUOTES[3]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-12 text-center">
               Frequently Asked Questions
             </h2>
@@ -256,7 +340,7 @@ export default function Home() {
           <div className="space-y-6">
             {FAQS.map((faq, idx) => (
               <Reveal key={faq.question} delay={idx < 3 ? `reveal-delay-${idx + 1}` : ""}>
-                <div className="bg-white rounded-xl p-6 sm:p-8">
+                <div className="bg-portal-cream rounded-xl p-6 sm:p-8">
                   <h3 className="text-lg font-bold text-portal-dark mb-3">
                     {faq.question}
                   </h3>
@@ -269,49 +353,36 @@ export default function Home() {
       </section>
 
       {/* Service Areas */}
-      <section className="py-20 sm:py-28">
+      <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <Reveal>
             <img
               src="/images/brand/portal-logo.jpeg"
               alt="Portal LLC"
-              className="w-40 sm:w-56 h-auto rounded-lg mx-auto mb-8"
+              className="w-48 sm:w-64 h-auto rounded-lg mx-auto mb-8"
             />
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
+            <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic mb-6 max-w-2xl mx-auto">
+              {BUSINESS.tagline}
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-10">
               Serving Seattle and Surrounding Areas
             </h2>
-            <p className="text-lg text-portal-mid mb-10">
-              Residential concrete services across the greater Seattle area.
-            </p>
           </Reveal>
           <Reveal>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {SERVICE_AREAS.map((area) => (
                 <span
                   key={area}
-                  className="px-4 py-2.5 bg-portal-cream rounded-full text-sm font-medium text-portal-gray text-center"
+                  className="px-4 py-2.5 bg-white rounded-full text-sm font-medium text-portal-gray text-center"
                 >
                   {area}
                 </span>
               ))}
             </div>
+            <p className="text-portal-mid mt-6">
+              ...and many more neighborhoods across the greater Seattle area.
+            </p>
           </Reveal>
-        </div>
-      </section>
-
-      {/* Quick Contact */}
-      <section className="py-16 bg-portal-dark">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-white/70 text-lg mb-4">
-            Questions? Call us directly.
-          </p>
-          <a
-            href={BUSINESS.phoneHref}
-            className="inline-flex items-center gap-3 text-3xl sm:text-4xl font-bold text-white no-underline hover:text-portal-accent transition-colors"
-          >
-            <Phone size={32} />
-            {BUSINESS.phone}
-          </a>
         </div>
       </section>
     </>

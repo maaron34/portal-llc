@@ -32,7 +32,7 @@ export default function Header() {
                 Portal LLC
               </div>
               <div className="text-sm text-portal-mid -mt-0.5">
-                Residential Concrete
+                Residential & Commercial Concrete
               </div>
             </div>
           </Link>

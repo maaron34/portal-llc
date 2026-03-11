@@ -57,7 +57,7 @@ export default function Footer() {
                 { to: "/services/walkways-stairs", label: "Walkways & Stairs" },
                 { to: "/services/retaining-walls", label: "Retaining Walls" },
                 { to: "/services/foundation-work", label: "Foundations" },
-                { to: "/services/reconditioning", label: "Reconditioning" },
+                { to: "/services/reconditioning", label: "Repair & Reconditioning" },
               ].map((link) => (
                 <li key={link.to}>
                   <Link
