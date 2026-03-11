@@ -13,7 +13,7 @@ export const BUSINESS = {
   founderYearsExperience: 35,
   founder: "Chris Hildebrand",
   instagram: "https://www.instagram.com/portal.llc/",
-  googleReviews: "https://www.google.com/maps/place/Portal+LLC/@47.5621,-122.3868,17z/data=!4m8!3m7!1s0x54904199e1004fff:0xbcfa0c3e3c39af04!8m2!3d47.5621!4d-122.3868!9m1!1b1!16s%2Fg%2F11t1fhv3qb",
+  googleReviews: "https://www.google.com/search?q=seattle+concrete+company+portal+llc&udm=1#lkt=LocalPoiReviews&rlimm=9627521390244705406",
   address: {
     city: "West Seattle",
     state: "WA",
