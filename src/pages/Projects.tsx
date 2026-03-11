@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
@@ -10,6 +10,7 @@ type FilterType = "all" | string;
 export default function Projects() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const galleryRef = useRef<HTMLElement>(null);
 
   const allProjects = SERVICES.flatMap((service) =>
     service.galleryImages.map((img, idx) => ({
@@ -62,7 +63,7 @@ export default function Projects() {
                 key={cat.value}
                 onClick={() => {
                   setFilter(cat.value);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  galleryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
                 className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer transition-colors ${
                   filter === cat.value
@@ -78,7 +79,7 @@ export default function Projects() {
       </section>
 
       {/* Gallery */}
-      <section className="py-12 sm:py-20">
+      <section ref={galleryRef} className="py-12 sm:py-20 scroll-mt-32 sm:scroll-mt-36">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filtered.map((project, idx) => (
