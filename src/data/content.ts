@@ -1,6 +1,6 @@
 export const BUSINESS = {
   name: "Portal LLC",
-  tagline: "Elevated concrete craftsmanship for Seattle residences and businesses",
+  tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
   phone: "(206) 419-3880",
   phoneHref: "tel:+12064193880",
   email: "chris@buildwithportal.com",
