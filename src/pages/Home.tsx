@@ -60,8 +60,8 @@ export default function Home() {
             alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
             className="w-full h-full object-cover object-center lg:object-contain lg:object-right"
           />
-          {/* Overlay gradient - heavier on left for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark from-5% via-portal-dark/85 via-40% to-portal-dark/30 lg:from-portal-dark lg:from-10% lg:via-portal-dark/70 lg:via-45% lg:to-transparent" />
+          {/* Overlay gradient - soft fade for text readability, no solid black */}
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/60 via-35% to-portal-dark/20 lg:from-portal-dark/80 lg:via-portal-dark/40 lg:via-40% lg:to-transparent" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="max-w-xl">

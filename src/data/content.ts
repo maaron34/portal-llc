@@ -112,7 +112,7 @@ export const REVIEWS = [
     text: "The job at hand was on steep terrain, in need of demolition, creative redesign and construction. Chris gave me a very reasonable bid. He and his crew did more than promised. They were fast, efficient, very helpful and communicative. Really nice guys who aren't just a crew, they're a tribe - they really get along and work well together and it shows!",
     author: "James G.",
     rating: 5,
-    source: "HomeAdvisor",
+    source: "BuildZoom",
   },
   {
     text: "Chris and his team did a great job building a custom walkway from our driveway to the back door. They were very attentive to our asks to shape the walkway to flow more gently around bushes and helped advise on durable finishing options.",
@@ -154,7 +154,7 @@ export const REVIEWS = [
     text: "Chris and his team were brought on as a sub contractor for my basement finishing project. The scope of work was a basement entry way with concrete stairs, retaining wall on two sides, and sump pump. The job included digging through very difficult earth by hand. The result was an incredibly well done entry way to my newly finished basement. Great people, price, and workmanship.",
     author: "Brandon S.",
     rating: 5,
-    source: "HomeAdvisor",
+    source: "BuildZoom",
   },
   {
     text: "We were very impressed with Chris and his team. The cost to have an old driveway demolished and a new concrete driveway, retaining wall, and steps added was quite reasonable. They did a beautiful job! The front of the house has never looked better. Done on time with no unexpected expense.",
