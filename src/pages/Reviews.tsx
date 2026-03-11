@@ -34,7 +34,7 @@ export default function Reviews() {
             {BUSINESS.reviewCount}+ Five-Star Reviews
           </h1>
           <p className="text-xl text-portal-mid max-w-lg mx-auto">
-            {BUSINESS.rating} average rating on Google. Here's what our customers say.
+            {BUSINESS.rating} average rating on Google.<br />Here's what our customers say.
           </p>
           <div className="flex items-center justify-center gap-6 mt-6 text-sm text-portal-mid">
             <span className="flex items-center gap-1.5">
