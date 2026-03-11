@@ -82,6 +82,9 @@ export default function About() {
                 "/images/team/team_4_backs.jpeg",
                 "/images/team/team_6_green_lines.jpeg",
                 "/images/team/wix_garage_pour.jpeg",
+                "/images/team/chris_team4.jpeg",
+                "/images/team/wix_team_grinding.jpeg",
+                "/images/team/wix_team_pushing.jpeg",
               ].map((img, idx) => (
                 <div
                   key={idx}

@@ -41,7 +41,7 @@ export default function Contact() {
           <p className="text-xl text-portal-mid max-w-2xl mx-auto">
             Request an estimate or ask a question. We start with a phone or video
             estimate, then follow up with an on-site visit. We typically respond
-            within 24 hours.
+            within 24 hours and are available to start within 2 weeks.
           </p>
         </div>
       </section>

@@ -5,6 +5,24 @@ import { BUSINESS, SERVICE_AREAS } from "../data/content";
 export default function Footer() {
   return (
     <footer className="bg-portal-dark text-white">
+      {/* Photo Strip */}
+      <div className="grid grid-cols-2 h-48 sm:h-64">
+        <div className="overflow-hidden">
+          <img
+            src="/images/other/other_1_half_pipe.jpeg"
+            alt="Custom concrete half pipe"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="overflow-hidden">
+          <img
+            src="/images/other/wix_skate_ramp.jpeg"
+            alt="Custom concrete skate ramp"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+
       {/* CTA Band */}
       <div className="bg-portal-accent">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
@@ -12,7 +30,7 @@ export default function Footer() {
             Ready to start your project?
           </h2>
           <p className="text-white/90 mb-6 text-lg">
-            Get a free estimate - we typically respond within 24 hours.
+            Get a free estimate - we typically respond within 24 hours and are available to start within 2 weeks.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
