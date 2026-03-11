@@ -62,6 +62,12 @@ export const PAGE_SEO: Record<string, PageSEO> = {
       "Family-owned residential concrete contractor based in West Seattle. Founded by Chris Hildebrand with 35+ years in construction. Licensed, bonded, insured.",
     canonical: "https://buildwithportal.com/about",
   },
+  reviews: {
+    title: "Customer Reviews | Portal LLC Seattle Concrete Contractor",
+    description:
+      "Read 80+ five-star reviews from Portal LLC customers. See why Seattle homeowners trust us for driveways, patios, walkways, retaining walls, and foundation work.",
+    canonical: "https://buildwithportal.com/reviews",
+  },
   contact: {
     title: "Contact Portal LLC | Free Concrete Estimate Seattle",
     description:

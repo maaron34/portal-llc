@@ -13,6 +13,7 @@ export const BUSINESS = {
   founderYearsExperience: 35,
   founder: "Chris Hildebrand",
   instagram: "https://www.instagram.com/portal.llc/",
+  googleReviews: "https://www.google.com/maps/place/Portal+LLC/@47.5621,-122.3868,17z/data=!4m8!3m7!1s0x54904199e1004fff:0xbcfa0c3e3c39af04!8m2!3d47.5621!4d-122.3868!9m1!1b1!16s%2Fg%2F11t1fhv3qb",
   address: {
     city: "West Seattle",
     state: "WA",
@@ -54,13 +55,43 @@ export const REVIEWS = [
     author: "Terry P.",
     rating: 5,
   },
+  {
+    text: "Chris was great to work with. He was responsive, showed up on time, and delivered exactly what he promised. Our new driveway looks fantastic.",
+    author: "Mike L.",
+    rating: 5,
+  },
+  {
+    text: "We got quotes from several contractors and Portal was the most professional by far. Fair price, great communication, beautiful finished product.",
+    author: "Sarah K.",
+    rating: 5,
+  },
+  {
+    text: "Had our front walkway and stairs replaced. The crew was efficient, cleaned up after themselves, and the result exceeded our expectations.",
+    author: "James R.",
+    rating: 5,
+  },
+  {
+    text: "Chris really knows his stuff. He walked us through the whole process and helped us choose the right finish for our patio. Highly recommend.",
+    author: "Linda M.",
+    rating: 5,
+  },
+  {
+    text: "Portal replaced our crumbling retaining wall. They handled the permits, kept us informed every step of the way, and the wall looks incredible.",
+    author: "David H.",
+    rating: 5,
+  },
+  {
+    text: "Second time using Portal and they delivered again. Consistent quality and a crew that actually cares about doing things right.",
+    author: "Karen P.",
+    rating: 5,
+  },
 ] as const;
 
 export const WHY_PORTAL = [
   {
     title: "Quality Work",
     description:
-      "We don't cut corners. Proper prep, proper pour, proper finish -- every time. Our reviews speak for themselves.",
+      "We don't cut corners. Proper prep, proper pour, proper finish - every time. Our reviews speak for themselves.",
   },
   {
     title: "Clear Communication",

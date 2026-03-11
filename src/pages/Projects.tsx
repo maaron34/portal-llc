@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { SERVICES } from "../data/services";
@@ -7,6 +8,7 @@ type FilterType = "all" | string;
 
 export default function Projects() {
   const [filter, setFilter] = useState<FilterType>("all");
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   const allProjects = SERVICES.flatMap((service) =>
     service.galleryImages.map((img, idx) => ({
@@ -26,6 +28,13 @@ export default function Projects() {
     { value: "all", label: "All Projects" },
     ...SERVICES.map((s) => ({ value: s.slug, label: s.shortTitle })),
   ];
+
+  const openLightbox = (idx: number) => setLightboxIdx(idx);
+  const closeLightbox = () => setLightboxIdx(null);
+  const prev = () =>
+    setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : filtered.length - 1));
+  const next = () =>
+    setLightboxIdx((i) => (i !== null && i < filtered.length - 1 ? i + 1 : 0));
 
   return (
     <>
@@ -69,9 +78,10 @@ export default function Projects() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filtered.map((project, idx) => (
-              <div
+              <button
                 key={`${project.src}-${idx}`}
-                className="aspect-square rounded-xl overflow-hidden group"
+                onClick={() => openLightbox(idx)}
+                className="aspect-square rounded-xl overflow-hidden group cursor-pointer border-none p-0 bg-transparent"
               >
                 <img
                   src={project.src}
@@ -79,7 +89,7 @@ export default function Projects() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
-              </div>
+              </button>
             ))}
           </div>
           {filtered.length === 0 && (
@@ -89,6 +99,51 @@ export default function Projects() {
           )}
         </div>
       </section>
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 text-white/80 hover:text-white bg-transparent border-none cursor-pointer z-10"
+            aria-label="Close"
+          >
+            <X size={32} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prev();
+            }}
+            className="absolute left-4 text-white/80 hover:text-white bg-transparent border-none cursor-pointer z-10"
+            aria-label="Previous"
+          >
+            <ChevronLeft size={40} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              next();
+            }}
+            className="absolute right-4 text-white/80 hover:text-white bg-transparent border-none cursor-pointer z-10"
+            aria-label="Next"
+          >
+            <ChevronRight size={40} />
+          </button>
+          <img
+            src={filtered[lightboxIdx].src}
+            alt={filtered[lightboxIdx].alt}
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/60 text-sm">
+            {lightboxIdx + 1} / {filtered.length}
+          </div>
+        </div>
+      )}
     </>
   );
 }

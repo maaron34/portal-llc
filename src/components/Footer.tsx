@@ -12,7 +12,7 @@ export default function Footer() {
             Ready to start your project?
           </h2>
           <p className="text-white/90 mb-6 text-lg">
-            Get a free estimate -- we typically respond within 24 hours.
+            Get a free estimate - we typically respond within 24 hours.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link

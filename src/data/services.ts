@@ -18,7 +18,7 @@ export const SERVICES: Service[] = [
     shortTitle: "Driveways",
     heroImage: "/images/driveways/driveway_4_big_house.jpeg",
     intro:
-      "Your driveway is the first thing people see. It also takes a beating -- vehicles, weather, tree roots, settling soil. When it's time for a new pour or a full replacement, we handle the job from demo to finish.",
+      "Your driveway is the first thing people see. It also takes a beating - vehicles, weather, tree roots, settling soil. When it's time for a new pour or a full replacement, we handle the job from demo to finish.",
     services: [
       "New driveway installation",
       "Driveway replacement",
@@ -28,12 +28,12 @@ export const SERVICES: Service[] = [
     process: {
       title: "Our Process",
       steps: [
-        "Estimate visit -- we walk the site and provide a written quote",
-        "Scheduling -- typically 2-4 weeks out",
-        "Demo -- remove existing concrete or prep the area",
-        "Base prep -- grade, compact, prepare substrate",
+        "Estimate visit - we walk the site and provide a written quote",
+        "Scheduling - typically 2-4 weeks out",
+        "Demo - remove existing concrete or prep the area",
+        "Base prep - grade, compact, prepare substrate",
         "Pour & finish",
-        "Cure -- typically 7 days before vehicle traffic",
+        "Cure - typically 7 days before vehicle traffic",
       ],
     },
     galleryImages: [
@@ -112,7 +112,7 @@ export const SERVICES: Service[] = [
     shortTitle: "Retaining Walls",
     heroImage: "/images/walls/walls_7_retaining_wall.jpeg",
     intro:
-      "Seattle's hills create beautiful views -- and challenging yards. Retaining walls hold back soil, prevent erosion, and create usable flat space on sloped properties.",
+      "Seattle's hills create beautiful views - and challenging yards. Retaining walls hold back soil, prevent erosion, and create usable flat space on sloped properties.",
     services: [
       "Structural retaining walls",
       "Yard leveling",

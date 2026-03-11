@@ -211,7 +211,7 @@ export default function Home() {
             </p>
           </Reveal>
           <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {REVIEWS.map((review) => (
+            {REVIEWS.slice(0, 3).map((review) => (
               <blockquote
                 key={review.author}
                 className="bg-portal-cream rounded-xl p-8"
@@ -229,11 +229,20 @@ export default function Home() {
                   "{review.text}"
                 </p>
                 <cite className="text-sm font-semibold text-portal-dark not-italic">
-                  -- {review.author}
+                  - {review.author}
                 </cite>
               </blockquote>
             ))}
           </RevealStagger>
+          <Reveal className="text-center mt-10">
+            <Link
+              to="/reviews"
+              className="inline-flex items-center gap-2 text-portal-accent font-semibold no-underline hover:text-portal-accent-dark transition-colors"
+            >
+              Read All Reviews
+              <ArrowRight size={18} />
+            </Link>
+          </Reveal>
         </div>
       </section>
 

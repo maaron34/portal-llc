@@ -40,7 +40,7 @@ export default function About() {
               </p>
               <p>
                 We're not the biggest concrete company in Seattle, and we're fine
-                with that. We do residential work -- your driveway, your backyard
+                with that. We do residential work - your driveway, your backyard
                 patio, your front steps. We're not bidding on highway projects.
               </p>
               <p>
