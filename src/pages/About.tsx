@@ -19,7 +19,7 @@ export default function About() {
               className="h-28 sm:h-40 w-auto"
             />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-portal-dark">
+          <h1 className="text-2xl sm:text-3xl font-bold text-portal-dark">
             About Portal
           </h1>
         </div>
