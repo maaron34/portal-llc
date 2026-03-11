@@ -10,18 +10,14 @@ export default function About() {
       <SEO seo={PAGE_SEO.about} />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 sm:pt-36 sm:pb-20 bg-portal-cream">
+      <section className="pt-24 pb-10 sm:pt-32 sm:pb-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-block bg-white rounded-2xl p-5 mb-6 shadow-sm">
-            <img
-              src="/images/brand/portal-logo.jpeg"
-              alt="Portal LLC"
-              className="h-28 sm:h-40 w-auto"
-            />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-portal-dark">
-            About Portal
-          </h1>
+          <h1 className="sr-only">About Portal</h1>
+          <img
+            src="/images/brand/portal-logo.jpeg"
+            alt="Portal LLC"
+            className="h-40 sm:h-56 lg:h-72 w-auto mx-auto"
+          />
         </div>
       </section>
 
