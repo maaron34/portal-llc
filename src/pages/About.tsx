@@ -12,11 +12,13 @@ export default function About() {
       {/* Hero */}
       <section className="pt-28 pb-16 sm:pt-36 sm:pb-20 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <img
-            src="/images/brand/portal-logo.jpeg"
-            alt="Portal LLC"
-            className="h-24 sm:h-32 w-auto rounded-xl mx-auto mb-4"
-          />
+          <div className="inline-block bg-white rounded-2xl p-4 mb-6 shadow-sm">
+            <img
+              src="/images/brand/portal-logo.jpeg"
+              alt="Portal LLC"
+              className="h-20 sm:h-28 w-auto"
+            />
+          </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-portal-dark">
             About Portal
           </h1>
