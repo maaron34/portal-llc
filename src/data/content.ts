@@ -13,7 +13,7 @@ export const BUSINESS = {
   founderYearsExperience: 35,
   founder: "Chris Hildebrand",
   instagram: "https://www.instagram.com/portal.llc/",
-  facebook: "https://www.facebook.com/portal.llc",
+  facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
   address: {
     city: "West Seattle",
     state: "WA",
