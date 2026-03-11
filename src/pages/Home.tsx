@@ -58,10 +58,10 @@ export default function Home() {
           <img
             src="/images/hero-stairs.jpeg"
             alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-center lg:object-contain lg:object-[70%_center]"
+            className="w-full h-full object-cover object-[center_40%]"
           />
           {/* Overlay gradient - fade from dark on left into the image */}
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/95 via-portal-dark/70 via-30% to-portal-dark/10 lg:from-portal-dark lg:from-5% lg:via-portal-dark/60 lg:via-35% lg:to-transparent lg:to-55%" />
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/95 via-portal-dark/60 via-40% to-portal-dark/10" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="max-w-xl">
