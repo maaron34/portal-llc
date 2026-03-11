@@ -142,8 +142,8 @@ export const SERVICES: Service[] = [
   },
   {
     slug: "foundation-work",
-    title: "Foundation Work",
-    shortTitle: "Foundation Work",
+    title: "Foundations",
+    shortTitle: "Foundations",
     heroImage: "/images/walls/walls_2_base.jpeg",
     intro:
       "A solid foundation is everything. Whether you need repairs to an existing foundation, a new slab for an ADU, or a garage foundation, we handle the job with precision.",
@@ -191,7 +191,7 @@ export const SERVICE_BRIEF = [
     image: "/images/walls/walls_7_retaining_wall.jpeg",
   },
   {
-    title: "Foundation Work",
+    title: "Foundations",
     description: "Repairs, ADU foundations, and garage slabs.",
     slug: "foundation-work",
     image: "/images/walls/walls_2_base.jpeg",
