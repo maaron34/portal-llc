@@ -373,14 +373,16 @@ export default function Home() {
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <Reveal>
-            <img
-              src="/images/brand/swirlie-logo.webp"
-              alt="Portal LLC"
-              className="h-16 sm:h-20 w-auto mx-auto mb-4 opacity-80"
-            />
-            <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic mb-6 max-w-2xl mx-auto">
-              {BUSINESS.tagline}
-            </p>
+            <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6">
+              <img
+                src="/images/brand/swirlie-logo.webp"
+                alt="Portal LLC"
+                className="h-14 sm:h-18 w-auto opacity-80 shrink-0"
+              />
+              <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic text-left">
+                {BUSINESS.tagline}
+              </p>
+            </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-10">
               Serving Seattle and Surrounding Areas
             </h2>
