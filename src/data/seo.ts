@@ -9,13 +9,13 @@ export interface PageSEO {
 
 export const PAGE_SEO: Record<string, PageSEO> = {
   home: {
-    title: "Portal LLC | Seattle's Residential Concrete Experts",
+    title: "Portal LLC | Seattle Concrete Contractor | Residential & Commercial",
     description:
-      "Portal LLC is a residential concrete contractor serving West Seattle and the greater Seattle area. Driveways, patios, walkways, stairs, retaining walls, and foundations. 100+ five-star reviews.",
+      "Portal LLC is a residential and commercial concrete contractor serving Seattle. Driveways, patios, walkways, stairs, retaining walls, foundations, and concrete repair. 100+ five-star reviews.",
     canonical: "https://buildwithportal.com",
   },
   services: {
-    title: "Residential Concrete Services | Portal LLC Seattle",
+    title: "Concrete Services Seattle | Residential & Commercial | Portal LLC",
     description:
       "Everything from driveway replacements to foundation repairs. One crew, start to finish. Serving Seattle neighborhoods including West Seattle, Ballard, Capitol Hill, and more.",
     canonical: "https://buildwithportal.com/services",
