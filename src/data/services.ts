@@ -88,7 +88,7 @@ export const SERVICES: Service[] = [
     slug: "walkways-stairs",
     title: "Walkways & Stairs",
     shortTitle: "Walkways & Stairs",
-    heroImage: "/images/walkways-stairs/walkways_stairs_8_tiny_sauna.jpeg",
+    heroImage: "/images/walkways-stairs/walkways_stairs_1_blue_house.jpeg",
     intro:
       "Crumbling steps are a safety hazard and an eyesore. Cracked walkways make a bad first impression. We build and replace concrete walkways and stairs that hold up to Seattle's weather.",
     services: [
