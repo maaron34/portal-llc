@@ -62,8 +62,8 @@ export default function Home() {
               Seattle's Residential<br />
               Concrete Experts
             </h1>
-            <p className="text-lg sm:text-xl text-white/80 mb-8 leading-relaxed max-w-lg">
-              Driveways. Patios. Stairs. Retaining walls. Foundation work. Serving Seattle neighborhoods for over {BUSINESS.yearsInBusiness} years.
+            <p className="text-base sm:text-lg text-white/80 mb-8 leading-relaxed max-w-lg">
+              Driveways. Patios. Stairs. Retaining walls. Foundations. Serving Seattle neighborhoods for over {BUSINESS.yearsInBusiness} years.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
