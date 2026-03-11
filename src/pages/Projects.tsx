@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
+import { BUSINESS } from "../data/content";
 import { SERVICES } from "../data/services";
 
 type FilterType = "all" | string;
@@ -91,6 +92,17 @@ export default function Projects() {
                 />
               </button>
             ))}
+            <a
+              href={BUSINESS.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="aspect-square rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3 bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 no-underline hover:opacity-90 transition-opacity"
+            >
+              <Instagram size={40} className="text-white" />
+              <span className="text-white font-semibold text-sm text-center px-4">
+                See more on Instagram
+              </span>
+            </a>
           </div>
           {filtered.length === 0 && (
             <p className="text-center text-portal-mid py-20">
