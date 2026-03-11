@@ -273,6 +273,11 @@ export default function Home() {
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <Reveal>
+            <img
+              src="/images/brand/portal-logo.jpeg"
+              alt="Portal LLC"
+              className="w-24 sm:w-32 h-auto rounded-lg mx-auto mb-8"
+            />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               Serving Seattle and Surrounding Areas
             </h2>
