@@ -360,7 +360,7 @@ export default function Home() {
               href={BUSINESS.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 border border-white/20 text-white font-semibold rounded-lg no-underline hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white font-semibold rounded-lg no-underline hover:opacity-90 transition-opacity"
             >
               <Instagram size={22} />
               @portal.llc
