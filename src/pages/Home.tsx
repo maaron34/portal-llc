@@ -38,7 +38,7 @@ export default function Home() {
           <img
             src="/images/hero-stairs.jpeg"
             alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-bottom"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/65 to-portal-dark/20" />
         </div>
