@@ -170,7 +170,7 @@ export const SERVICE_BRIEF = [
     title: "Driveways",
     description: "New pours, replacements, extensions, and repairs.",
     slug: "driveways",
-    image: "/images/driveways/driveway_1_grey_garage.jpeg",
+    image: "/images/driveways/driveway_4_big_house.jpeg",
   },
   {
     title: "Patios",
