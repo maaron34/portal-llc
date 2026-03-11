@@ -734,4 +734,9 @@ export const FAQS = [
     answer:
       "We offer broom finish (standard, slip-resistant), smooth trowel finish, exposed aggregate, and stamped/decorative concrete. We'll help you choose the best option for your project.",
   },
+  {
+    question: "How soon can you get started?",
+    answer:
+      "We typically respond to estimate requests within 24 hours and are available to start most projects within 2 weeks. Timelines can vary depending on the season and project scope, but we'll give you a clear start date up front.",
+  },
 ] as const;
