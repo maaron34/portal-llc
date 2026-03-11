@@ -142,7 +142,7 @@ export default function Footer() {
           <img
             src="/images/brand/swirlie-logo.webp"
             alt=""
-            className="h-12 w-12 opacity-40 animate-spin-slow invert"
+            className="h-12 w-12 opacity-50 animate-spin-color"
           />
           <p className="text-white/40 text-sm">
             &copy; {new Date().getFullYear()} Portal LLC. All rights reserved.
