@@ -5,15 +5,6 @@ import { BUSINESS, SERVICE_AREAS } from "../data/content";
 export default function Footer() {
   return (
     <footer className="bg-portal-dark text-white">
-      {/* Photo Strip */}
-      <div className="h-48 sm:h-64 overflow-hidden">
-        <img
-          src="/images/other/other_1_half_pipe.jpeg"
-          alt="Custom concrete half pipe"
-          className="w-full h-full object-cover"
-        />
-      </div>
-
       {/* CTA Band */}
       <div className="bg-portal-accent">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
@@ -39,6 +30,15 @@ export default function Footer() {
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Photo Strip */}
+      <div className="h-48 sm:h-64 overflow-hidden">
+        <img
+          src="/images/other/other_1_half_pipe.jpeg"
+          alt="Custom concrete half pipe"
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Footer Content */}
