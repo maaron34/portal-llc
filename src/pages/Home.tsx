@@ -51,25 +51,17 @@ export default function Home() {
         schema={[generateLocalBusinessSchema(), generateFAQSchema()]}
       />
 
-      {/* Hero - split layout */}
+      {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center bg-portal-dark overflow-hidden">
-        {/* Mobile: image as background */}
-        <div className="absolute inset-0 lg:hidden">
+        {/* Full image as background - contain on desktop so nothing is cropped */}
+        <div className="absolute inset-0">
           <img
             src="/images/hero-stairs.jpeg"
             alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-center lg:object-contain lg:object-right"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/70 to-portal-dark/30" />
-        </div>
-        {/* Desktop: image on right */}
-        <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-[50%]">
-          <img
-            src="/images/hero-stairs.jpeg"
-            alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark via-portal-dark/40 to-transparent" />
+          {/* Overlay gradient - heavier on left for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark from-5% via-portal-dark/85 via-40% to-portal-dark/30 lg:from-portal-dark lg:from-10% lg:via-portal-dark/70 lg:via-45% lg:to-transparent" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="max-w-xl">
