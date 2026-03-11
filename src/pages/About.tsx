@@ -10,15 +10,25 @@ export default function About() {
       <SEO seo={PAGE_SEO.about} />
 
       {/* Hero */}
-      <section className="pt-24 pb-10 sm:pt-32 sm:pb-14">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <h1 className="sr-only">About Portal</h1>
+      <section className="relative pt-20">
+        <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden">
           <img
-            src="/images/brand/portal-logo.jpeg"
-            alt="Portal LLC"
-            className="h-40 sm:h-56 lg:h-72 w-auto mx-auto"
+            src="/images/other/wix_skate_ramp.jpeg"
+            alt="Custom concrete skate ramp by Portal LLC"
+            className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-portal-dark/50" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
+              <img
+                src="/images/brand/portal-logo.jpeg"
+                alt="Portal LLC"
+                className="h-16 sm:h-24 lg:h-32 w-auto"
+              />
+            </div>
+          </div>
         </div>
+        <h1 className="sr-only">About Portal</h1>
       </section>
 
       {/* Content */}
