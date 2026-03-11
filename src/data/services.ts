@@ -44,6 +44,8 @@ export const SERVICES: Service[] = [
       "/images/driveways/driveway_6_long_walk.jpeg",
       "/images/driveways/driveway_8_van.jpeg",
       "/images/driveways/wix_driveway_broom.jpeg",
+      "/images/driveways/IMG_3538.jpeg",
+      "/images/driveways/IMG_3541.jpeg",
     ],
   },
   {
@@ -163,6 +165,42 @@ export const SERVICES: Service[] = [
       "/images/team/wix_garage_pour.jpeg",
     ],
   },
+  {
+    slug: "reconditioning",
+    title: "Concrete Reconditioning",
+    shortTitle: "Reconditioning",
+    heroImage: "/images/before-after/after-stairs2.jpeg",
+    intro:
+      "Not every concrete surface needs to be torn out and replaced. If your existing concrete is structurally sound but looks worn, stained, or chipped, we can recondition it - restoring the look and extending the life of your investment.",
+    services: [
+      "Surface preparation and cleaning",
+      "Polymer-modified Ardex patching",
+      "Broom finish overlay",
+      "Color stain application",
+      "Concrete sealer",
+    ],
+    process: {
+      title: "Our Reconditioning Process",
+      steps: [
+        "Assessment - we evaluate whether reconditioning is the right fit or if replacement is needed",
+        "Surface prep - clean, repair cracks, and prepare the existing surface",
+        "Patch and overlay - apply polymer-modified Ardex patch for a smooth, uniform surface",
+        "Broom finish - apply a slip-resistant broom finish texture",
+        "Color and seal - stain to your preferred color and apply protective sealer",
+      ],
+    },
+    note: "Reconditioning works best on structurally sound concrete with surface-level wear. We'll always be honest about whether reconditioning or replacement is the right call for your situation.",
+    galleryImages: [
+      "/images/before-after/before-stairs.jpeg",
+      "/images/before-after/after-stairs.jpeg",
+      "/images/before-after/before-stairs2.jpeg",
+      "/images/before-after/after-stairs2.jpeg",
+      "/images/before-after/before-stairs3.jpeg",
+      "/images/before-after/after-stairs3.jpeg",
+      "/images/before-after/before-stairs4.jpeg",
+      "/images/before-after/after-stairs4.jpeg",
+    ],
+  },
 ];
 
 export const SERVICE_BRIEF = [
@@ -197,9 +235,9 @@ export const SERVICE_BRIEF = [
     image: "/images/walls/walls_2_base.jpeg",
   },
   {
-    title: "Concrete Repair",
-    description: "Cracks, settling, and surface restoration.",
-    slug: "driveways",
-    image: "/images/walkways-stairs/walkways_stairs_9_garden_blocks.jpeg",
+    title: "Reconditioning",
+    description: "Restore worn concrete without full replacement.",
+    slug: "reconditioning",
+    image: "/images/before-after/after-stairs2.jpeg",
   },
 ];

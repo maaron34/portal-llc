@@ -11,7 +11,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
   home: {
     title: "Portal LLC | Seattle's Residential Concrete Experts",
     description:
-      "Portal LLC is a residential concrete contractor serving West Seattle and the greater Seattle area. Driveways, patios, walkways, stairs, retaining walls, and foundations. 80+ five-star reviews.",
+      "Portal LLC is a residential concrete contractor serving West Seattle and the greater Seattle area. Driveways, patios, walkways, stairs, retaining walls, and foundations. 100+ five-star reviews.",
     canonical: "https://buildwithportal.com",
   },
   services: {
@@ -50,10 +50,16 @@ export const PAGE_SEO: Record<string, PageSEO> = {
       "Residential foundation repairs, crack sealing, ADU foundations, and garage slabs in Seattle. Licensed, bonded, insured. Free estimates.",
     canonical: "https://buildwithportal.com/services/foundation-work",
   },
+  reconditioning: {
+    title: "Concrete Reconditioning Seattle | Surface Restoration | Portal LLC",
+    description:
+      "Restore worn, stained, or chipped concrete without full replacement. Polymer-modified patching, broom finish overlay, color stain, and sealer. Free estimates in Seattle.",
+    canonical: "https://buildwithportal.com/services/reconditioning",
+  },
   projects: {
     title: "Our Work | Concrete Projects Gallery | Portal LLC Seattle",
     description:
-      "See our completed concrete projects across Seattle. Driveways, patios, walkways, stairs, retaining walls, and more. 80+ five-star reviews.",
+      "See our completed concrete projects across Seattle. Driveways, patios, walkways, stairs, retaining walls, and more. 100+ five-star reviews.",
     canonical: "https://buildwithportal.com/projects",
   },
   about: {
@@ -65,7 +71,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
   reviews: {
     title: "Customer Reviews | Portal LLC Seattle Concrete Contractor",
     description:
-      "Read 80+ five-star reviews from Portal LLC customers. See why Seattle homeowners trust us for driveways, patios, walkways, retaining walls, and foundation work.",
+      "Read 100+ five-star reviews from Portal LLC customers. See why Seattle homeowners trust us for driveways, patios, walkways, retaining walls, and foundation work.",
     canonical: "https://buildwithportal.com/reviews",
   },
   contact: {
@@ -135,7 +141,7 @@ export function generateLocalBusinessSchema() {
       })),
     },
     image: BUSINESS.url + "/images/brand/portal-logo.jpeg",
-    sameAs: [BUSINESS.instagram],
+    sameAs: [BUSINESS.instagram, BUSINESS.facebook],
     priceRange: "$$",
   };
 }

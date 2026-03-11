@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, Mail, Instagram, Clock } from "lucide-react";
+import { Phone, Mail, Instagram, Facebook, Clock } from "lucide-react";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 
 export default function Footer() {
@@ -57,6 +57,7 @@ export default function Footer() {
                 { to: "/services/walkways-stairs", label: "Walkways & Stairs" },
                 { to: "/services/retaining-walls", label: "Retaining Walls" },
                 { to: "/services/foundation-work", label: "Foundations" },
+                { to: "/services/reconditioning", label: "Reconditioning" },
               ].map((link) => (
                 <li key={link.to}>
                   <Link
@@ -109,6 +110,17 @@ export default function Footer() {
                 >
                   <Instagram size={15} />
                   @portal.llc
+                </a>
+              </li>
+              <li>
+                <a
+                  href={BUSINESS.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-white/70 text-sm no-underline hover:text-white transition-colors"
+                >
+                  <Facebook size={15} />
+                  Portal LLC
                 </a>
               </li>
               <li className="flex items-start gap-2 text-white/70 text-sm">

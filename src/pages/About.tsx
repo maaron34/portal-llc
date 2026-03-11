@@ -73,10 +73,13 @@ export default function About() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
+                "/images/team/chris_team1.jpeg",
+                "/images/team/chris_team3.jpeg",
                 "/images/team/team_2_jackhammer.jpeg",
                 "/images/team/team_3_job_site.jpeg",
-                "/images/team/team_4_backs.jpeg",
                 "/images/team/team_5_stairs.jpeg",
+                "/images/team/chris_team2.jpeg",
+                "/images/team/team_4_backs.jpeg",
                 "/images/team/team_6_green_lines.jpeg",
                 "/images/team/wix_garage_pour.jpeg",
               ].map((img, idx) => (

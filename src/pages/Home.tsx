@@ -36,8 +36,8 @@ export default function Home() {
       <section className="relative min-h-[90vh] flex items-center">
         <div className="absolute inset-0">
           <img
-            src="/images/stamped/wix_stamped_patio_2.jpeg"
-            alt="Stamped concrete patio with pergola in Seattle"
+            src="/images/hero-stairs.jpeg"
+            alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
             className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/90 via-portal-dark/65 to-portal-dark/20" />

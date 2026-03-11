@@ -7,13 +7,13 @@ export const BUSINESS = {
   url: "https://buildwithportal.com",
   hours: "Monday-Friday 7:30 AM - 5:00 PM, Saturday by appointment",
   license: "PORTAL*803D4",
-  reviewCount: 80,
+  reviewCount: 100,
   rating: 4.9,
   yearsInBusiness: 6,
   founderYearsExperience: 35,
   founder: "Chris Hildebrand",
   instagram: "https://www.instagram.com/portal.llc/",
-  googleReviews: "https://www.google.com/search?q=seattle+concrete+company+portal+llc&udm=1#lkt=LocalPoiReviews&rlimm=9627521390244705406",
+  facebook: "https://www.facebook.com/portal.llc",
   address: {
     city: "West Seattle",
     state: "WA",
@@ -21,6 +21,7 @@ export const BUSINESS = {
 } as const;
 
 export const SERVICE_AREAS = [
+  "All Seattle Neighborhoods",
   "West Seattle",
   "Burien",
   "White Center",
@@ -129,7 +130,7 @@ export const FAQS = [
   {
     question: "What areas do you serve?",
     answer:
-      "We serve West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and Columbia City.",
+      "We serve all Seattle neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and Columbia City.",
   },
   {
     question: "What finishes are available?",

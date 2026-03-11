@@ -1,4 +1,4 @@
-import { Star, ExternalLink } from "lucide-react";
+import { Star } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, REVIEWS } from "../data/content";
@@ -66,17 +66,10 @@ export default function Reviews() {
             ))}
           </div>
 
-          {/* Google Reviews CTA */}
           <Reveal className="text-center mt-14">
-            <a
-              href={BUSINESS.googleReviews}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-portal-accent text-white font-semibold rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
-            >
-              See All Reviews on Google
-              <ExternalLink size={18} />
-            </a>
+            <p className="text-portal-mid">
+              These reviews are from Google, BuildZoom, and HomeAdvisor.
+            </p>
           </Reveal>
         </div>
       </section>
