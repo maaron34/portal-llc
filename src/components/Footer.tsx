@@ -6,15 +6,15 @@ export default function Footer() {
   return (
     <footer className="bg-portal-dark text-white">
       {/* Photo Strip */}
-      <div className="grid grid-cols-2 h-48 sm:h-64">
-        <div className="overflow-hidden">
+      <div className="h-48 sm:h-64 overflow-hidden sm:grid sm:grid-cols-2">
+        <div className="h-full overflow-hidden">
           <img
             src="/images/other/other_1_half_pipe.jpeg"
             alt="Custom concrete half pipe"
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="overflow-hidden">
+        <div className="hidden sm:block h-full overflow-hidden">
           <img
             src="/images/other/wix_skate_ramp.jpeg"
             alt="Custom concrete skate ramp"
