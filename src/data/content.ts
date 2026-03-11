@@ -21,7 +21,6 @@ export const BUSINESS = {
 } as const;
 
 export const SERVICE_AREAS = [
-  "All Seattle Neighborhoods",
   "West Seattle",
   "Burien",
   "White Center",
@@ -37,6 +36,7 @@ export const SERVICE_AREAS = [
   "Central District",
   "Wallingford",
   "Greenwood",
+  "Columbia City",
 ] as const;
 
 export const REVIEWS = [
