@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
-import { Phone, Star, Shield, Clock, Award, CheckCircle } from "lucide-react";
+import {
+  Phone,
+  Star,
+  Shield,
+  Clock,
+  Award,
+  CheckCircle,
+  ExternalLink,
+} from "lucide-react";
 import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
@@ -14,6 +22,7 @@ type FormData = {
   ownerStatus: string;
   timeline: string;
   budget: string;
+  message: string;
 };
 
 function isQualifiedLead(data: FormData): boolean {
@@ -22,6 +31,7 @@ function isQualifiedLead(data: FormData): boolean {
   const timelineOk =
     data.timeline === "asap" || data.timeline === "1-3-months";
   const budgetOk =
+    data.budget === "" ||
     data.budget === "3k-8k" ||
     data.budget === "8k-15k" ||
     data.budget === "15k-plus" ||
@@ -96,7 +106,7 @@ const TIMELINE_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { value: "", label: "Select..." },
+  { value: "", label: "Prefer not to say" },
   { value: "under-3k", label: "Under $3K" },
   { value: "3k-8k", label: "$3K - $8K" },
   { value: "8k-15k", label: "$8K - $15K" },
@@ -104,20 +114,29 @@ const BUDGET_OPTIONS = [
   { value: "not-sure", label: "Not sure yet" },
 ];
 
-function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
+function LeadForm({
+  onSubmit,
+  defaultProjectType,
+}: {
+  onSubmit: (data: FormData) => void;
+  defaultProjectType: string;
+}) {
   const [formState, setFormState] = useState<FormData>({
     name: "",
     phone: "",
     email: "",
     address: "",
-    projectType: "",
+    projectType: defaultProjectType,
     ownerStatus: "",
     timeline: "",
     budget: "",
+    message: "",
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     setFormState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -184,23 +203,22 @@ function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
         />
       </div>
 
-      <div>
-        <label className={labelClass}>What type of project?</label>
-        <select
-          name="projectType"
-          value={formState.projectType}
-          onChange={handleChange}
-          className={selectClass}
-        >
-          {PROJECT_TYPES.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>What type of project?</label>
+          <select
+            name="projectType"
+            value={formState.projectType}
+            onChange={handleChange}
+            className={selectClass}
+          >
+            {PROJECT_TYPES.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className={labelClass}>Do you own this home?</label>
           <select
@@ -216,8 +234,11 @@ function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>When to start?</label>
+          <label className={labelClass}>When are you looking to start?</label>
           <select
             name="timeline"
             value={formState.timeline}
@@ -232,7 +253,10 @@ function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
           </select>
         </div>
         <div>
-          <label className={labelClass}>Estimated budget?</label>
+          <label className={labelClass}>
+            Estimated budget{" "}
+            <span className="font-normal text-portal-mid">(optional)</span>
+          </label>
           <select
             name="budget"
             value={formState.budget}
@@ -248,6 +272,21 @@ function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
         </div>
       </div>
 
+      <div>
+        <label className={labelClass}>
+          Anything else about your project?{" "}
+          <span className="font-normal text-portal-mid">(optional)</span>
+        </label>
+        <textarea
+          name="message"
+          rows={3}
+          placeholder="Tell us about the project, timeline, or any questions you have."
+          value={formState.message}
+          onChange={handleChange}
+          className={`${inputClass} placeholder:text-portal-warm resize-y`}
+        />
+      </div>
+
       <button
         type="submit"
         className="w-full px-8 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg border-none cursor-pointer hover:bg-portal-accent-dark transition-colors"
@@ -255,7 +294,7 @@ function LeadForm({ onSubmit }: { onSubmit: (data: FormData) => void }) {
         Get Your Free Estimate
       </button>
       <p className="text-center text-sm text-portal-mid">
-        We typically respond within one business day.
+        We typically respond within a couple hours.
       </p>
     </form>
   );
@@ -292,6 +331,7 @@ export default function LandingPage() {
         `Homeowner: ${data.ownerStatus || "Not specified"}`,
         `Timeline: ${data.timeline || "Not specified"}`,
         `Budget: ${data.budget || "Not specified"}`,
+        ...(data.message ? [`\nAdditional Details:\n${data.message}`] : []),
         ``,
         `Source: Landing Page - ${page.headline}`,
       ].join("\n")
@@ -300,6 +340,10 @@ export default function LandingPage() {
     window.location.href = `mailto:${BUSINESS.email}?subject=${subject}&body=${body}`;
     setSubmitted(true);
   };
+
+  // Show first 3 reviews in the grid, use the rest in the sidebar callout rotation
+  const gridReviews = page.reviews.slice(0, 3);
+  const extraReviews = page.reviews.slice(3);
 
   return (
     <>
@@ -389,8 +433,8 @@ export default function LandingPage() {
                   },
                   {
                     step: "2",
-                    title: "We call you within one business day",
-                    desc: "Chris or a team member will discuss your project and answer questions.",
+                    title: "Chris calls you back ASAP",
+                    desc: "Usually within a couple hours, always within 24 hours.",
                   },
                   {
                     step: "3",
@@ -440,6 +484,28 @@ export default function LandingPage() {
                   - {page.reviews[0].author}
                 </p>
               </div>
+
+              {/* Link to full site */}
+              <div className="mt-6 flex items-center gap-4 text-sm">
+                <a
+                  href={`${BUSINESS.url}/reviews`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-portal-accent font-semibold no-underline hover:text-portal-accent-dark transition-colors"
+                >
+                  See all {BUSINESS.reviewCount}+ reviews
+                  <ExternalLink size={14} />
+                </a>
+                <a
+                  href={BUSINESS.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-portal-mid no-underline hover:text-portal-dark transition-colors"
+                >
+                  Visit our website
+                  <ExternalLink size={14} />
+                </a>
+              </div>
             </div>
 
             {/* Right: Form */}
@@ -471,9 +537,13 @@ export default function LandingPage() {
                     Get Your Free Estimate
                   </h2>
                   <p className="text-sm text-portal-mid mb-5">
-                    No obligation. We respond within one business day.
+                    No obligation. Chris typically responds within a couple
+                    hours.
                   </p>
-                  <LeadForm onSubmit={handleFormSubmit} />
+                  <LeadForm
+                    onSubmit={handleFormSubmit}
+                    defaultProjectType={page.defaultProjectType}
+                  />
                 </div>
               )}
             </div>
@@ -488,7 +558,7 @@ export default function LandingPage() {
             What Seattle Homeowners Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {page.reviews.map((review, i) => (
+            {gridReviews.map((review, i) => (
               <div
                 key={i}
                 className="bg-white rounded-xl p-6 shadow-sm border border-portal-light"
@@ -511,6 +581,43 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          {extraReviews.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              {extraReviews.map((review, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl p-6 shadow-sm border border-portal-light"
+                >
+                  <div className="flex gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        size={16}
+                        className="text-yellow-500 fill-yellow-500"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-portal-gray text-sm leading-relaxed mb-3">
+                    "{review.text}"
+                  </p>
+                  <p className="text-portal-dark font-semibold text-sm">
+                    {review.author}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="text-center mt-6">
+            <a
+              href={`${BUSINESS.url}/reviews`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-portal-accent font-semibold text-sm no-underline hover:text-portal-accent-dark transition-colors"
+            >
+              See all {BUSINESS.reviewCount}+ reviews
+              <ExternalLink size={14} />
+            </a>
+          </div>
         </div>
       </section>
 
@@ -518,7 +625,7 @@ export default function LandingPage() {
       <section className="py-12 sm:py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark text-center mb-8">
-            Recent Work
+            {page.galleryTitle}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {page.galleryImages.map((img, i) => (
@@ -545,7 +652,7 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-white/80 mb-6 text-lg">
-            Call us directly or scroll up to fill out the estimate form.
+            Call Chris directly or scroll up to fill out the estimate form.
           </p>
           <a
             href={BUSINESS.phoneHref}
