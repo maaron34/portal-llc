@@ -212,7 +212,7 @@ export default function Contact() {
                     <div>
                       <div className="font-semibold">Service Area</div>
                       <div className="text-sm text-portal-mid">
-                        {SERVICE_AREAS.join(", ")}
+                        All Seattle and Seattle-adjacent neighborhoods including {SERVICE_AREAS.join(", ")}, and more
                       </div>
                     </div>
                   </div>

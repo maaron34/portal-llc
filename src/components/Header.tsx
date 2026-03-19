@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Instagram, Facebook } from "lucide-react";
 import { BUSINESS } from "../data/content";
 
 const NAV_LINKS = [
@@ -23,7 +23,7 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" onClick={() => window.scrollTo({ top: 0 })} className="flex items-center gap-3 no-underline shrink-0">
             <img
-              src="/images/brand/portal-logo.jpeg"
+              src="/images/brand/portal-logo-new.jpeg"
               alt="Portal LLC"
               className="h-10 sm:h-12 w-auto rounded"
             />
@@ -55,8 +55,26 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* CTA + Mobile Toggle */}
+          {/* Social + CTA + Mobile Toggle */}
           <div className="flex items-center gap-3 shrink-0">
+            <a
+              href={BUSINESS.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-portal-gray hover:text-portal-accent transition-colors"
+              aria-label="Instagram"
+            >
+              <Instagram size={18} />
+            </a>
+            <a
+              href={BUSINESS.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-portal-gray hover:text-portal-accent transition-colors"
+              aria-label="Facebook"
+            >
+              <Facebook size={18} />
+            </a>
             <a
               href={BUSINESS.phoneHref}
               className="hidden sm:flex items-center gap-2 text-sm font-semibold text-portal-accent no-underline hover:text-portal-accent-dark transition-colors whitespace-nowrap"
@@ -106,6 +124,26 @@ export default function Header() {
               <Phone size={18} />
               {BUSINESS.phone}
             </a>
+            <div className="flex items-center gap-4 py-3 px-3">
+              <a
+                href={BUSINESS.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-portal-gray hover:text-portal-accent transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram size={20} />
+              </a>
+              <a
+                href={BUSINESS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-portal-gray hover:text-portal-accent transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook size={20} />
+              </a>
+            </div>
             <Link
               to="/contact"
               onClick={() => setMobileOpen(false)}

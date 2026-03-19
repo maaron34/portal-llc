@@ -48,8 +48,8 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-4">Portal LLC</h3>
             <p className="text-white/70 text-sm leading-relaxed mb-4">
-              Residential and commercial concrete contractor serving West Seattle
-              and the greater Seattle area. Licensed, bonded, and insured.
+              Residential and commercial concrete contractor serving Seattle
+              and surrounding neighborhoods. Licensed, bonded, and insured.
             </p>
             <div className="flex items-center gap-3 mb-4">
               <a
@@ -87,6 +87,7 @@ export default function Footer() {
                 { to: "/services/retaining-walls", label: "Retaining Walls" },
                 { to: "/services/foundation-work", label: "Foundations" },
                 { to: "/services/reconditioning", label: "Repair & Reconditioning" },
+                { to: "/year-round", label: "All-Season Concrete" },
               ].map((link) => (
                 <li key={link.to}>
                   <Link
@@ -103,8 +104,8 @@ export default function Footer() {
           {/* Service Areas */}
           <div>
             <h3 className="text-lg font-bold mb-4">Service Areas</h3>
-            <p className="text-white/70 text-sm leading-relaxed">
-              {SERVICE_AREAS.join(" · ")}
+            <p className="text-white/70 text-sm leading-relaxed mb-2">
+              All Seattle neighborhoods including {SERVICE_AREAS.join(" · ")} + all Seattle-adjacent neighborhoods
             </p>
           </div>
 

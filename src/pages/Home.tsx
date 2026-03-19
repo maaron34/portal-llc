@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, ArrowRight, CheckCircle, ShieldCheck, MessageSquare, HandCoins, Instagram } from "lucide-react";
+import { Star, ArrowRight, CheckCircle, ShieldCheck, MessageSquare, HandCoins, Instagram, CloudRain } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO, generateLocalBusinessSchema, generateFAQSchema } from "../data/seo";
 import { BUSINESS, REVIEWS, WHY_PORTAL, SERVICE_AREAS, SECTION_QUOTES, FAQS } from "../data/content";
@@ -53,15 +53,15 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center bg-portal-dark overflow-hidden">
-        {/* Full image as background - contain on desktop so nothing is cropped */}
+        {/* Full image as background */}
         <div className="absolute inset-0">
           <img
             src="/images/hero-stairs.jpeg"
-            alt="Multi-level concrete stairs with retaining wall planters in West Seattle"
-            className="w-full h-full object-cover object-[center_40%]"
+            alt="Multi-level concrete stairs with retaining wall planters by Portal LLC in Seattle"
+            className="w-full h-full object-cover object-[70%_30%] lg:object-contain lg:object-right"
           />
-          {/* Overlay gradient - fade from dark on left into the image */}
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/95 via-portal-dark/60 via-40% to-portal-dark/10" />
+          {/* Overlay gradient - dark on left for text readability, fades into image */}
+          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/95 via-portal-dark/70 via-45% to-portal-dark/20 sm:via-40% sm:to-portal-dark/10" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="max-w-xl">
@@ -84,7 +84,7 @@ export default function Home() {
               Experts
             </h1>
             <p className="text-base sm:text-lg text-white/80 mb-8 leading-relaxed max-w-lg">
-              Driveways. Patios. Stairs. Retaining walls. Foundations. Serving Seattle neighborhoods for over {BUSINESS.yearsInBusiness} years.
+              Driveways. Patios. Stairs. Retaining walls. Foundations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -101,6 +101,19 @@ export default function Home() {
                 View Our Work
               </Link>
             </div>
+            {/* Year-round callout */}
+            <Link
+              to="/year-round"
+              className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg no-underline hover:bg-white/20 transition-colors group"
+            >
+              <CloudRain size={18} className="text-portal-accent shrink-0" />
+              <span className="text-white/90 text-sm">
+                We pour concrete year-round, rain or shine.{" "}
+                <span className="text-portal-accent font-semibold group-hover:underline">
+                  Learn how
+                </span>
+              </span>
+            </Link>
           </div>
         </div>
       </section>
@@ -336,7 +349,17 @@ export default function Home() {
                   <h3 className="text-lg font-bold text-portal-dark mb-3">
                     {faq.question}
                   </h3>
-                  <p className="text-portal-mid leading-relaxed">{faq.answer}</p>
+                  <p className="text-portal-mid leading-relaxed">
+                    {faq.answer}
+                    {faq.question.includes("rain") && (
+                      <>
+                        {" "}
+                        <Link to="/year-round" className="text-portal-accent font-semibold hover:text-portal-accent-dark transition-colors">
+                          Learn more about our all-weather process.
+                        </Link>
+                      </>
+                    )}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -383,9 +406,12 @@ export default function Home() {
                 {BUSINESS.tagline}
               </p>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-10">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               Serving Seattle and Surrounding Areas
             </h2>
+            <p className="text-lg text-portal-mid mb-10">
+              All Seattle and Seattle-adjacent neighborhoods including
+            </p>
           </Reveal>
           <Reveal>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
@@ -399,7 +425,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-portal-mid mt-6">
-              ...and many more neighborhoods across the greater Seattle area.
+              + all Seattle-adjacent neighborhoods
             </p>
           </Reveal>
         </div>

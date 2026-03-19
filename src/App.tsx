@@ -10,6 +10,7 @@ import Projects from "./pages/Projects";
 import About from "./pages/About";
 import Reviews from "./pages/Reviews";
 import Contact from "./pages/Contact";
+import YearRound from "./pages/YearRound";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,6 +34,7 @@ function AppRoutes() {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/year-round" element={<YearRound />} />
         </Routes>
       </main>
       <Footer />

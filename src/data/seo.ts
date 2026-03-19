@@ -65,7 +65,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
   about: {
     title: "About Portal LLC | Seattle Concrete Contractor",
     description:
-      "Family-owned residential concrete contractor based in West Seattle. Founded by Chris Hildebrand with 35+ years in construction. Licensed, bonded, insured.",
+      "Family-owned residential concrete contractor serving Seattle and surrounding neighborhoods. Founded by Chris Hildebrand with 35+ years in construction. Licensed, bonded, insured.",
     canonical: "https://buildwithportal.com/about",
   },
   reviews: {
@@ -79,6 +79,12 @@ export const PAGE_SEO: Record<string, PageSEO> = {
     description:
       "Request a free estimate or ask a question. We typically respond within 24 hours. Call (206) 419-3880 or fill out our contact form.",
     canonical: "https://buildwithportal.com/contact",
+  },
+  yearRound: {
+    title: "Year-Round Concrete Work in Seattle | Portal LLC",
+    description:
+      "Portal LLC pours concrete year-round in Seattle, even during rainy winters. Learn how we use tent structures and insulated blankets to deliver high-quality results in any season.",
+    canonical: "https://buildwithportal.com/year-round",
   },
 };
 
@@ -140,7 +146,7 @@ export function generateLocalBusinessSchema() {
         },
       })),
     },
-    image: BUSINESS.url + "/images/brand/portal-logo.jpeg",
+    image: BUSINESS.url + "/images/brand/portal-logo-new.jpeg",
     sameAs: [BUSINESS.instagram, BUSINESS.facebook],
     priceRange: "$$",
   };

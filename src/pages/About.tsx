@@ -21,7 +21,7 @@ export default function About() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
               <img
-                src="/images/brand/portal-logo.jpeg"
+                src="/images/brand/portal-logo-new.jpeg"
                 alt="Portal LLC"
                 className="h-16 sm:h-24 lg:h-32 w-auto"
               />
@@ -97,7 +97,6 @@ export default function About() {
                 "/images/team/wix_garage_pour.jpeg",
                 "/images/team/chris_team4.jpeg",
                 "/images/team/wix_team_grinding.jpeg",
-                "/images/team/wix_team_pushing.jpeg",
               ].map((img, idx) => (
                 <div
                   key={idx}

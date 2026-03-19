@@ -15,7 +15,7 @@ export const BUSINESS = {
   instagram: "https://www.instagram.com/portal.llc/",
   facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
   address: {
-    city: "West Seattle",
+    city: "Seattle",
     state: "WA",
   },
 } as const;
@@ -727,7 +727,7 @@ export const FAQS = [
   {
     question: "What areas do you serve?",
     answer:
-      "We serve all Seattle neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, and many more.",
+      "We serve all Seattle and Seattle-adjacent neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, Columbia City, and more.",
   },
   {
     question: "What finishes are available?",
@@ -738,5 +738,10 @@ export const FAQS = [
     question: "How soon can you get started?",
     answer:
       "We typically respond to estimate requests within 24 hours and are available to start most projects within 2 weeks. Timelines can vary depending on the season and project scope, but we'll give you a clear start date up front.",
+  },
+  {
+    question: "Can you pour concrete in the rain or during winter?",
+    answer:
+      "Yes. We work year-round in Seattle. 90% of a concrete project is prep work that can happen in any weather. For the actual pour, we build temporary tent structures to keep rain off the concrete. In cold snaps, insulated blankets protect the cure. Winter is actually a great time to book because our schedule is more flexible and we can start sooner.",
   },
 ] as const;
