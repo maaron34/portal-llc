@@ -21,7 +21,6 @@ type FormData = {
   projectType: string;
   ownerStatus: string;
   timeline: string;
-  budget: string;
   message: string;
 };
 
@@ -30,13 +29,7 @@ function isQualifiedLead(data: FormData): boolean {
     data.ownerStatus === "yes" || data.ownerStatus === "property-manager";
   const timelineOk =
     data.timeline === "asap" || data.timeline === "1-3-months";
-  const budgetOk =
-    data.budget === "" ||
-    data.budget === "3k-8k" ||
-    data.budget === "8k-15k" ||
-    data.budget === "15k-plus" ||
-    data.budget === "not-sure";
-  return ownerOk && timelineOk && budgetOk;
+  return ownerOk && timelineOk;
 }
 
 function firePixelEvents(data: FormData) {
@@ -51,7 +44,6 @@ function firePixelEvents(data: FormData) {
       (window as any).fbq("trackCustom", "QualifiedLead", {
         projectType: data.projectType,
         timeline: data.timeline,
-        budget: data.budget,
       });
     }
     // GA4 custom event
@@ -59,7 +51,6 @@ function firePixelEvents(data: FormData) {
       (window as any).gtag("event", "qualified_lead", {
         project_type: data.projectType,
         timeline: data.timeline,
-        budget: data.budget,
       });
     }
   }
@@ -105,14 +96,7 @@ const TIMELINE_OPTIONS = [
   { value: "exploring", label: "Just exploring options" },
 ];
 
-const BUDGET_OPTIONS = [
-  { value: "", label: "Prefer not to say" },
-  { value: "under-3k", label: "Under $3K" },
-  { value: "3k-8k", label: "$3K - $8K" },
-  { value: "8k-15k", label: "$8K - $15K" },
-  { value: "15k-plus", label: "$15K+" },
-  { value: "not-sure", label: "Not sure yet" },
-];
+// Budget removed from form per feedback -- captures via conversation instead
 
 function LeadForm({
   onSubmit,
@@ -129,7 +113,6 @@ function LeadForm({
     projectType: defaultProjectType,
     ownerStatus: "",
     timeline: "",
-    budget: "",
     message: "",
   });
 
@@ -236,40 +219,20 @@ function LeadForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>When are you looking to start?</label>
-          <select
-            name="timeline"
-            value={formState.timeline}
-            onChange={handleChange}
-            className={selectClass}
-          >
-            {TIMELINE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>
-            Estimated budget{" "}
-            <span className="font-normal text-portal-mid">(optional)</span>
-          </label>
-          <select
-            name="budget"
-            value={formState.budget}
-            onChange={handleChange}
-            className={selectClass}
-          >
-            {BUDGET_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className={labelClass}>Ideal start date?</label>
+        <select
+          name="timeline"
+          value={formState.timeline}
+          onChange={handleChange}
+          className={selectClass}
+        >
+          {TIMELINE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -330,7 +293,6 @@ export default function LandingPage() {
         `Project Type: ${data.projectType || "Not specified"}`,
         `Homeowner: ${data.ownerStatus || "Not specified"}`,
         `Timeline: ${data.timeline || "Not specified"}`,
-        `Budget: ${data.budget || "Not specified"}`,
         ...(data.message ? [`\nAdditional Details:\n${data.message}`] : []),
         ``,
         `Source: Landing Page - ${page.headline}`,
@@ -383,6 +345,18 @@ export default function LandingPage() {
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">
             {page.headline}
           </h1>
+          <div className="flex items-center justify-center gap-1 mb-4">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                size={22}
+                className="text-yellow-400 fill-yellow-400"
+              />
+            ))}
+            <span className="ml-2 text-white/90 font-semibold text-base">
+              {BUSINESS.reviewCount}+ Five-Star Reviews
+            </span>
+          </div>
           <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8">
             {page.subheadline}
           </p>
@@ -433,7 +407,7 @@ export default function LandingPage() {
                   },
                   {
                     step: "2",
-                    title: "Chris calls you back ASAP",
+                    title: "We call you back ASAP",
                     desc: "Usually within a couple hours, always within 24 hours.",
                   },
                   {
@@ -537,7 +511,7 @@ export default function LandingPage() {
                     Get Your Free Estimate
                   </h2>
                   <p className="text-sm text-portal-mid mb-5">
-                    No obligation. Chris typically responds within a couple
+                    No obligation. We typically respond within a couple
                     hours.
                   </p>
                   <LeadForm
@@ -652,7 +626,14 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-white/80 mb-6 text-lg">
-            Call Chris directly or scroll up to fill out the estimate form.
+            Call us directly or{" "}
+            <a
+              href="#estimate-form"
+              className="text-portal-accent underline hover:text-white transition-colors"
+            >
+              request an estimate online
+            </a>
+            .
           </p>
           <a
             href={BUSINESS.phoneHref}
