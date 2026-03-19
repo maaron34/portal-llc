@@ -357,7 +357,7 @@ export default function LandingPage() {
               {BUSINESS.reviewCount}+ Five-Star Reviews
             </span>
           </div>
-          <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 whitespace-pre-line">
             {page.subheadline}
           </p>
           <a

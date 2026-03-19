@@ -18,7 +18,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
     slug: "driveways",
     headline: "Seattle's Most Trusted Driveway Contractor",
     subheadline:
-      "New concrete driveways built right, start to finish. Same crew, owner on site, every time.",
+      "New concrete driveways built right, start to finish.\nSame crew, owner on site, every time.",
     heroImage: "/images/driveways/driveway_4_big_house.jpeg",
     galleryTitle: "Recent Driveway Work",
     defaultProjectType: "driveway",
