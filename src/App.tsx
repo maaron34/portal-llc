@@ -11,6 +11,7 @@ import About from "./pages/About";
 import Reviews from "./pages/Reviews";
 import Contact from "./pages/Contact";
 import YearRound from "./pages/YearRound";
+import LandingPage from "./pages/LandingPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -24,20 +25,33 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
-      <Header />
-      <main className="min-h-screen">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:slug" element={<ServiceDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/year-round" element={<YearRound />} />
-        </Routes>
-      </main>
-      <Footer />
+      <Routes>
+        {/* Landing pages - no header/footer navigation */}
+        <Route path="/lp/:slug" element={<LandingPage />} />
+
+        {/* Main site with header/footer */}
+        <Route
+          path="*"
+          element={
+            <>
+              <Header />
+              <main className="min-h-screen">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/services/:slug" element={<ServiceDetail />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/reviews" element={<Reviews />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/year-round" element={<YearRound />} />
+                </Routes>
+              </main>
+              <Footer />
+            </>
+          }
+        />
+      </Routes>
     </>
   );
 }
