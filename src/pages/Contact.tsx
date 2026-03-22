@@ -111,7 +111,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-portal-dark mb-1.5">
-                      Address or Neighborhood
+                      Address
                     </label>
                     <input
                       type="text"

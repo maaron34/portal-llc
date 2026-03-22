@@ -104,12 +104,12 @@ export default function Home() {
             {/* Year-round callout */}
             <Link
               to="/year-round"
-              className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg no-underline hover:bg-white/20 transition-colors group"
+              className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-amber-500/20 backdrop-blur-sm border border-amber-400/50 rounded-lg no-underline hover:bg-amber-500/30 transition-colors group"
             >
-              <CloudRain size={18} className="text-portal-accent shrink-0" />
+              <CloudRain size={18} className="text-amber-400 shrink-0" />
               <span className="text-white/90 text-sm">
                 We pour concrete year-round, rain or shine.{" "}
-                <span className="text-portal-accent font-semibold group-hover:underline">
+                <span className="text-amber-400 font-semibold group-hover:underline">
                   Learn how
                 </span>
               </span>

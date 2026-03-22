@@ -174,7 +174,7 @@ function LeadForm({
       </div>
 
       <div>
-        <label className={labelClass}>Address or Neighborhood *</label>
+        <label className={labelClass}>Address *</label>
         <input
           type="text"
           name="address"
