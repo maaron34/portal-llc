@@ -25,11 +25,9 @@ type FormData = {
 };
 
 function isQualifiedLead(data: FormData): boolean {
-  const ownerOk =
-    data.ownerStatus === "yes" || data.ownerStatus === "property-manager";
   const timelineOk =
     data.timeline === "asap" || data.timeline === "1-3-months";
-  return ownerOk && timelineOk;
+  return timelineOk;
 }
 
 function firePixelEvents(data: FormData) {
@@ -80,13 +78,6 @@ const PROJECT_TYPES = [
   { value: "foundation", label: "Foundation" },
   { value: "repair", label: "Repair / Reconditioning" },
   { value: "other", label: "Other" },
-];
-
-const OWNER_OPTIONS = [
-  { value: "", label: "Select..." },
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
-  { value: "property-manager", label: "I'm a property manager" },
 ];
 
 const TIMELINE_OPTIONS = [
@@ -179,44 +170,27 @@ function LeadForm({
           type="text"
           name="address"
           required
-          placeholder="e.g., West Seattle, Ballard, Capitol Hill"
+          placeholder="Street address"
           value={formState.address}
           onChange={handleChange}
           className={`${inputClass} placeholder:text-portal-warm`}
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>What type of project?</label>
-          <select
-            name="projectType"
-            value={formState.projectType}
-            onChange={handleChange}
-            className={selectClass}
-          >
-            {PROJECT_TYPES.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Do you own this home?</label>
-          <select
-            name="ownerStatus"
-            value={formState.ownerStatus}
-            onChange={handleChange}
-            className={selectClass}
-          >
-            {OWNER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className={labelClass}>What type of project?</label>
+        <select
+          name="projectType"
+          value={formState.projectType}
+          onChange={handleChange}
+          className={selectClass}
+        >
+          {PROJECT_TYPES.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -236,13 +210,11 @@ function LeadForm({
       </div>
 
       <div>
-        <label className={labelClass}>
-          Anything else about your project?{" "}
-          <span className="font-normal text-portal-mid">(optional)</span>
-        </label>
+        <label className={labelClass}>Describe your project *</label>
         <textarea
           name="message"
           rows={3}
+          required
           placeholder="Tell us about the project, timeline, or any questions you have."
           value={formState.message}
           onChange={handleChange}
@@ -256,9 +228,6 @@ function LeadForm({
       >
         Get Your Free Estimate
       </button>
-      <p className="text-center text-sm text-portal-mid">
-        We typically respond within a couple hours.
-      </p>
     </form>
   );
 }
@@ -291,7 +260,6 @@ export default function LandingPage() {
         `Email: ${data.email}`,
         `Address: ${data.address}`,
         `Project Type: ${data.projectType || "Not specified"}`,
-        `Homeowner: ${data.ownerStatus || "Not specified"}`,
         `Timeline: ${data.timeline || "Not specified"}`,
         ...(data.message ? [`\nAdditional Details:\n${data.message}`] : []),
         ``,
@@ -340,7 +308,7 @@ export default function LandingPage() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${page.heroImage})` }}
         />
-        <div className="absolute inset-0 bg-portal-dark/70" />
+        <div className="absolute inset-0 bg-portal-dark/40" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center text-white">
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">
             {page.headline}
@@ -511,8 +479,7 @@ export default function LandingPage() {
                     Get Your Free Estimate
                   </h2>
                   <p className="text-sm text-portal-mid mb-5">
-                    No obligation. We typically respond within a couple
-                    hours.
+                    No obligation.
                   </p>
                   <LeadForm
                     onSubmit={handleFormSubmit}

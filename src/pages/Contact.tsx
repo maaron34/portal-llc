@@ -116,7 +116,7 @@ export default function Contact() {
                     <input
                       type="text"
                       name="neighborhood"
-                      placeholder="e.g., West Seattle, Ballard, Capitol Hill"
+                      placeholder="Street address"
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm"
                     />
                   </div>

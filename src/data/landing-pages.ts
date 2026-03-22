@@ -16,7 +16,7 @@ export interface LandingPageData {
 export const LANDING_PAGES: Record<string, LandingPageData> = {
   driveways: {
     slug: "driveways",
-    headline: "Seattle's Most Trusted Driveway Contractor",
+    headline: "Seattle's Most Trusted Driveway\u00A0Contractor",
     subheadline:
       "New concrete driveways built right, start to finish.\nSame crew, owner on site, every time.",
     heroImage: "/images/driveways/driveway_4_big_house.jpeg",
@@ -70,7 +70,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
   },
   patios: {
     slug: "patios",
-    headline: "Seattle's Most Trusted Patio Contractor",
+    headline: "Seattle's Most Trusted Patio\u00A0Contractor",
     subheadline:
       "Extend your living space outdoors. Custom patios poured to last, with the finish options you want.",
     heroImage: "/images/patios/patio_3_fountain.jpeg",
@@ -123,7 +123,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
   },
   stairs: {
     slug: "stairs",
-    headline: "Seattle's Most Trusted Stairs & Walkway Contractor",
+    headline: "Seattle's Most Trusted Stairs & Walkway\u00A0Contractor",
     subheadline:
       "Crumbling stairs are a safety hazard. We replace and repair walkways and stairs across Seattle.",
     heroImage: "/images/walkways-stairs/walkways_stairs_1_blue_house.jpeg",
@@ -177,7 +177,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
   },
   estimate: {
     slug: "estimate",
-    headline: "Seattle's Most Trusted Concrete Contractor",
+    headline: "Seattle's Most Trusted Concrete\u00A0Contractor",
     subheadline:
       "Tell us about your project and we will call you back within a couple hours. No pressure, no obligation.",
     heroImage: "/images/team/team_3_job_site.jpeg",
