@@ -1,4 +1,4 @@
-import { BUSINESS, REVIEWS, SERVICE_AREAS, FAQS } from "./content";
+import { BUSINESS, SERVICE_AREAS, FAQS } from "./content";
 import { SERVICES } from "./services";
 
 export interface PageSEO {
@@ -122,18 +122,6 @@ export function generateLocalBusinessSchema() {
       reviewCount: BUSINESS.reviewCount,
       bestRating: 5,
     },
-    review: REVIEWS.map((r) => ({
-      "@type": "Review",
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: r.rating,
-      },
-      author: {
-        "@type": "Person",
-        name: r.author,
-      },
-      reviewBody: r.text,
-    })),
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Residential Concrete Services",
