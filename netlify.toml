@@ -2,6 +2,25 @@
   command = "npm run build"
   publish = "dist"
 
+# Force www -> non-www (301 permanent redirect)
+[[redirects]]
+  from = "https://www.buildwithportal.com/*"
+  to = "https://buildwithportal.com/:splat"
+  status = 301
+  force = true
+
+# Redirect old Wix URLs to relevant new pages
+[[redirects]]
+  from = "/service-page/ready-mixed-concrete-delivery"
+  to = "/services"
+  status = 301
+
+[[redirects]]
+  from = "/service-page/*"
+  to = "/services"
+  status = 301
+
+# SPA catch-all (must be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"
