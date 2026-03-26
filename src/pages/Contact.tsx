@@ -43,6 +43,12 @@ export default function Contact() {
 
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          (window as any).gtag("event", "generate_lead", {
+            event_category: "form",
+            event_label: "contact_page",
+          });
+        }
         setSubmitted(true);
       } else {
         setError("Something went wrong. Please call or email us directly.");
