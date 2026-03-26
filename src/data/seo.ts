@@ -91,7 +91,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
 export function generateLocalBusinessSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "ConcreteContractor",
+    "@type": ["HomeAndConstructionBusiness", "LocalBusiness"],
     "@id": BUSINESS.url,
     name: BUSINESS.name,
     description: PAGE_SEO.home.description,
@@ -162,7 +162,7 @@ export function generateServiceSchema(service: (typeof SERVICES)[number]) {
     name: service.title,
     description: service.intro,
     provider: {
-      "@type": "ConcreteContractor",
+      "@type": "HomeAndConstructionBusiness",
       name: BUSINESS.name,
       url: BUSINESS.url,
     },
