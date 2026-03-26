@@ -4,28 +4,54 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 
+const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
+
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError("");
+
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // Build mailto body
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const phone = formData.get("phone") as string;
     const neighborhood = formData.get("neighborhood") as string;
     const message = formData.get("message") as string;
 
-    const subject = encodeURIComponent(`Website Inquiry from ${name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nNeighborhood: ${neighborhood}\n\nProject Details:\n${message}`
-    );
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `Website Inquiry from ${name}`,
+          from_name: "Portal LLC Website",
+          name,
+          email,
+          phone: phone || "Not provided",
+          address: neighborhood || "Not provided",
+          message,
+        }),
+      });
 
-    window.location.href = `mailto:${BUSINESS.email}?subject=${subject}&body=${body}`;
-    setSubmitted(true);
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        setError("Something went wrong. Please call or email us directly.");
+      }
+    } catch {
+      setError("Something went wrong. Please call or email us directly.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -58,15 +84,8 @@ export default function Contact() {
                     Thanks for reaching out!
                   </h2>
                   <p className="text-green-700">
-                    Your email client should have opened with the message. If
-                    not, please email us directly at{" "}
-                    <a
-                      href={`mailto:${BUSINESS.email}`}
-                      className="underline"
-                    >
-                      {BUSINESS.email}
-                    </a>{" "}
-                    or call{" "}
+                    We received your message and will get back to you within
+                    24 hours. You can also reach us at{" "}
                     <a href={BUSINESS.phoneHref} className="underline">
                       {BUSINESS.phone}
                     </a>
@@ -132,11 +151,15 @@ export default function Contact() {
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm resize-y"
                     />
                   </div>
+                  {error && (
+                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-8 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg border-none cursor-pointer hover:bg-portal-accent-dark transition-colors"
+                    disabled={submitting}
+                    className="w-full sm:w-auto px-8 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg border-none cursor-pointer hover:bg-portal-accent-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Send Message
+                    {submitting ? "Sending..." : "Send Message"}
                   </button>
                 </form>
               )}

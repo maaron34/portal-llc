@@ -13,6 +13,8 @@ import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
 
+const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
+
 type FormData = {
   name: string;
   phone: string;
@@ -92,9 +94,13 @@ const TIMELINE_OPTIONS = [
 function LeadForm({
   onSubmit,
   defaultProjectType,
+  submitting,
+  error,
 }: {
   onSubmit: (data: FormData) => void;
   defaultProjectType: string;
+  submitting?: boolean;
+  error?: string;
 }) {
   const [formState, setFormState] = useState<FormData>({
     name: "",
@@ -222,11 +228,15 @@ function LeadForm({
         />
       </div>
 
+      {error && (
+        <p className="text-red-600 text-sm font-medium">{error}</p>
+      )}
       <button
         type="submit"
-        className="w-full px-8 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg border-none cursor-pointer hover:bg-portal-accent-dark transition-colors"
+        disabled={submitting}
+        className="w-full px-8 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg border-none cursor-pointer hover:bg-portal-accent-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Get Your Free Estimate
+        {submitting ? "Sending..." : "Get Your Free Estimate"}
       </button>
     </form>
   );
@@ -235,6 +245,8 @@ function LeadForm({
 export default function LandingPage() {
   const { slug } = useParams<{ slug: string }>();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const page = slug ? LANDING_PAGES[slug] : null;
 
   if (!page) {
@@ -245,30 +257,43 @@ export default function LandingPage() {
     );
   }
 
-  const handleFormSubmit = (data: FormData) => {
+  const handleFormSubmit = async (data: FormData) => {
+    setSubmitting(true);
+    setError("");
+
     // Fire pixel events based on MQL qualification
     firePixelEvents(data);
 
-    // Build mailto as fallback (same pattern as Contact page)
-    const subject = encodeURIComponent(
-      `Estimate Request from ${data.name} - ${page.headline}`
-    );
-    const body = encodeURIComponent(
-      [
-        `Name: ${data.name}`,
-        `Phone: ${data.phone}`,
-        `Email: ${data.email}`,
-        `Address: ${data.address}`,
-        `Project Type: ${data.projectType || "Not specified"}`,
-        `Timeline: ${data.timeline || "Not specified"}`,
-        ...(data.message ? [`\nAdditional Details:\n${data.message}`] : []),
-        ``,
-        `Source: Landing Page - ${page.headline}`,
-      ].join("\n")
-    );
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `Estimate Request from ${data.name} - ${page.headline}`,
+          from_name: "Portal LLC Website",
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          address: data.address,
+          project_type: data.projectType || "Not specified",
+          timeline: data.timeline || "Not specified",
+          message: data.message || "No additional details",
+          source: `Landing Page - ${page.headline}`,
+        }),
+      });
 
-    window.location.href = `mailto:${BUSINESS.email}?subject=${subject}&body=${body}`;
-    setSubmitted(true);
+      const result = await res.json();
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        setError("Something went wrong. Please call us directly.");
+      }
+    } catch {
+      setError("Something went wrong. Please call us directly.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Show first 3 reviews in the grid, use the rest in the sidebar callout rotation
@@ -462,8 +487,8 @@ export default function LandingPage() {
                     Request Received!
                   </h2>
                   <p className="text-green-700 mb-4">
-                    Your email client should have opened with the estimate
-                    request. If not, please contact us directly:
+                    We'll get back to you within 24 hours. You can also
+                    reach us directly:
                   </p>
                   <a
                     href={BUSINESS.phoneHref}
@@ -484,6 +509,8 @@ export default function LandingPage() {
                   <LeadForm
                     onSubmit={handleFormSubmit}
                     defaultProjectType={page.defaultProjectType}
+                    submitting={submitting}
+                    error={error}
                   />
                 </div>
               )}
