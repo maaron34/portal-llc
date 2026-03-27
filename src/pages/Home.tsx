@@ -57,7 +57,7 @@ export default function Home() {
         <div className="absolute inset-0">
           <img
             src="/images/hero-stairs.jpeg"
-            alt="Multi-level concrete stairs with retaining wall planters by Portal LLC in Seattle"
+            alt="Multi-level concrete stairs with retaining wall planters by Portal in Seattle"
             className="w-full h-full object-cover object-[70%_30%] lg:object-contain lg:object-right"
           />
           {/* Overlay gradient - dark on left for text readability, fades into image */}
@@ -399,7 +399,7 @@ export default function Home() {
             <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6">
               <img
                 src="/images/brand/swirlie-logo.png"
-                alt="Portal LLC"
+                alt="Portal"
                 className="h-14 sm:h-18 w-auto opacity-80 shrink-0"
               />
               <p className="text-xl sm:text-2xl font-semibold text-portal-accent italic text-left">

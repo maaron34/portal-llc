@@ -9,81 +9,81 @@ export interface PageSEO {
 
 export const PAGE_SEO: Record<string, PageSEO> = {
   home: {
-    title: "Portal LLC | Seattle Concrete Contractor | Residential & Commercial",
+    title: "Portal | Seattle Concrete Contractor | Residential & Commercial",
     description:
-      "Portal LLC is a residential and commercial concrete contractor serving Seattle. Driveways, patios, walkways, stairs, retaining walls, foundations, and concrete repair. 100+ five-star reviews.",
+      "Portal is a residential and commercial concrete contractor serving Seattle. Driveways, patios, walkways, stairs, retaining walls, foundations, and concrete repair. 100+ five-star reviews.",
     canonical: "https://buildwithportal.com",
   },
   services: {
-    title: "Concrete Services Seattle | Residential & Commercial | Portal LLC",
+    title: "Concrete Services Seattle | Residential & Commercial | Portal",
     description:
       "Everything from driveway replacements to foundation repairs. One crew, start to finish. Serving Seattle neighborhoods including West Seattle, Ballard, Capitol Hill, and more.",
     canonical: "https://buildwithportal.com/services",
   },
   driveways: {
-    title: "Concrete Driveways Seattle | Installation & Replacement | Portal LLC",
+    title: "Concrete Driveways Seattle | Installation & Replacement | Portal",
     description:
       "New driveway installation, full replacements, extensions, and repairs for Seattle homes. From small single-car driveways to 5,000+ sq ft. Free estimates.",
     canonical: "https://buildwithportal.com/services/driveways",
   },
   patios: {
-    title: "Concrete Patios Seattle | Installation & Design | Portal LLC",
+    title: "Concrete Patios Seattle | Installation & Design | Portal",
     description:
       "Custom concrete patios for Seattle homes. Broom finish, exposed aggregate, and stamped options. New installations and replacements. Free estimates.",
     canonical: "https://buildwithportal.com/services/patios",
   },
   "walkways-stairs": {
-    title: "Concrete Walkways & Stairs Seattle | Portal LLC",
+    title: "Concrete Walkways & Stairs Seattle | Portal",
     description:
       "Concrete walkway and stair installation and replacement in Seattle. Front walks, garden paths, entry stairs, and stoops. Built to handle Seattle weather.",
     canonical: "https://buildwithportal.com/services/walkways-stairs",
   },
   "retaining-walls": {
-    title: "Retaining Walls Seattle | Concrete Retaining Wall Contractor | Portal LLC",
+    title: "Retaining Walls Seattle | Concrete Retaining Wall Contractor | Portal",
     description:
       "Poured concrete retaining walls for Seattle's hillside properties. Erosion control, yard leveling, and structural walls. Permits and engineering coordinated.",
     canonical: "https://buildwithportal.com/services/retaining-walls",
   },
   "foundation-work": {
-    title: "Foundation Work Seattle | Repair & ADU Foundations | Portal LLC",
+    title: "Foundation Work Seattle | Repair & ADU Foundations | Portal",
     description:
       "Residential foundation repairs, crack sealing, ADU foundations, and garage slabs in Seattle. Licensed, bonded, insured. Free estimates.",
     canonical: "https://buildwithportal.com/services/foundation-work",
   },
   reconditioning: {
-    title: "Concrete Repair & Reconditioning Seattle | Portal LLC",
+    title: "Concrete Repair & Reconditioning Seattle | Portal",
     description:
       "Concrete repair and reconditioning in Seattle. Crack repair, surface restoration, polymer-modified Ardex patching, broom finish overlay, color stain, and sealer. Free estimates.",
     canonical: "https://buildwithportal.com/services/reconditioning",
   },
   projects: {
-    title: "Our Work | Concrete Projects Gallery | Portal LLC Seattle",
+    title: "Our Work | Concrete Projects Gallery | Portal Seattle",
     description:
       "See our completed concrete projects across Seattle. Driveways, patios, walkways, stairs, retaining walls, and more. 100+ five-star reviews.",
     canonical: "https://buildwithportal.com/projects",
   },
   about: {
-    title: "About Portal LLC | Seattle Concrete Contractor",
+    title: "About Portal | Seattle Concrete Contractor",
     description:
       "Family-owned residential concrete contractor serving Seattle and surrounding neighborhoods. Founded by Chris Hildebrand with 35+ years in construction. Licensed, bonded, insured.",
     canonical: "https://buildwithportal.com/about",
   },
   reviews: {
-    title: "Customer Reviews | Portal LLC Seattle Concrete Contractor",
+    title: "Customer Reviews | Portal Seattle Concrete Contractor",
     description:
-      "Read 100+ five-star reviews from Portal LLC customers. See why Seattle homeowners trust us for driveways, patios, walkways, retaining walls, and foundation work.",
+      "Read 100+ five-star reviews from Portal customers. See why Seattle homeowners trust us for driveways, patios, walkways, retaining walls, and foundation work.",
     canonical: "https://buildwithportal.com/reviews",
   },
   contact: {
-    title: "Contact Portal LLC | Free Concrete Estimate Seattle",
+    title: "Contact Portal | Free Concrete Estimate Seattle",
     description:
       "Request a free estimate or ask a question. We typically respond within 24 hours. Call (206) 829-6396 or fill out our contact form.",
     canonical: "https://buildwithportal.com/contact",
   },
   yearRound: {
-    title: "Year-Round Concrete Work in Seattle | Portal LLC",
+    title: "Year-Round Concrete Work in Seattle | Portal",
     description:
-      "Portal LLC pours concrete year-round in Seattle, even during rainy winters. Learn how we use tent structures and insulated blankets to deliver high-quality results in any season.",
+      "Portal pours concrete year-round in Seattle, even during rainy winters. Learn how we use tent structures and insulated blankets to deliver high-quality results in any season.",
     canonical: "https://buildwithportal.com/year-round",
   },
 };

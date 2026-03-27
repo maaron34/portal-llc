@@ -62,7 +62,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
     ],
     seo: {
       title:
-        "Seattle Driveway Replacement - Free Estimate | Portal LLC",
+        "Seattle Driveway Replacement - Free Estimate | Portal",
       description:
         "New concrete driveways for Seattle homes. Owner on every job site, 100+ five-star reviews, free estimates. Call (206) 829-6396.",
       canonical: "https://buildwithportal.com/lp/driveways",
@@ -115,7 +115,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
       "/images/stamped/stamped_decorative_2_rainy.jpeg",
     ],
     seo: {
-      title: "Seattle Concrete Patios - Free Estimate | Portal LLC",
+      title: "Seattle Concrete Patios - Free Estimate | Portal",
       description:
         "Custom concrete patios for Seattle homes. Broom finish, exposed aggregate, stamped options. Owner on every job, 100+ five-star reviews. Call (206) 829-6396.",
       canonical: "https://buildwithportal.com/lp/patios",
@@ -169,7 +169,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
     ],
     seo: {
       title:
-        "Seattle Concrete Stairs & Walkway Repair - Free Estimate | Portal LLC",
+        "Seattle Concrete Stairs & Walkway Repair - Free Estimate | Portal",
       description:
         "Concrete stair replacement and walkway repair in Seattle. Fix crumbling steps before they become a hazard. 100+ five-star reviews. Call (206) 829-6396.",
       canonical: "https://buildwithportal.com/lp/stairs",
@@ -222,9 +222,9 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
       "/images/walls/walls_7_retaining_wall.jpeg",
     ],
     seo: {
-      title: "Free Concrete Estimate Seattle | Portal LLC",
+      title: "Free Concrete Estimate Seattle | Portal",
       description:
-        "Get a free concrete estimate from Portal LLC. Driveways, patios, stairs, retaining walls, foundations. 100+ five-star reviews. Call (206) 829-6396.",
+        "Get a free concrete estimate from Portal. Driveways, patios, stairs, retaining walls, foundations. 100+ five-star reviews. Call (206) 829-6396.",
       canonical: "https://buildwithportal.com/lp/estimate",
     },
   },

@@ -14,7 +14,7 @@ export default function About() {
         <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden">
           <img
             src="/images/other/wix_skate_ramp.jpeg"
-            alt="Custom concrete skate ramp by Portal LLC"
+            alt="Custom concrete skate ramp by Portal"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-portal-dark/50" />
@@ -22,7 +22,7 @@ export default function About() {
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
               <img
                 src="/images/brand/portal-logo-new.jpeg"
-                alt="Portal LLC"
+                alt="Portal"
                 className="h-16 sm:h-24 lg:h-32 w-auto"
               />
             </div>
@@ -37,7 +37,7 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
             <div className="lg:col-span-3 space-y-6 text-portal-gray leading-relaxed text-lg">
               <p>
-                Portal LLC is a residential concrete contractor based in West
+                Portal is a residential concrete contractor based in West
                 Seattle. We specialize in driveways, patios, walkways, stairs,
                 and retaining walls for homeowners throughout Seattle.
               </p>
@@ -65,7 +65,7 @@ export default function About() {
             <div className="lg:col-span-2">
               <img
                 src="/images/team/team_1_rainbow_warrior.jpeg"
-                alt="Portal LLC team at work"
+                alt="Portal team at work"
                 className="w-full rounded-xl mb-6"
               />
               <div className="bg-portal-cream rounded-xl p-6">
@@ -104,7 +104,7 @@ export default function About() {
                 >
                   <img
                     src={img}
-                    alt={`Portal LLC crew at work ${idx + 1}`}
+                    alt={`Portal crew at work ${idx + 1}`}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />

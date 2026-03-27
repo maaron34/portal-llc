@@ -13,7 +13,7 @@ export default function YearRound() {
         <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden bg-portal-dark">
           <img
             src="/images/winter/tent-setup.jpg"
-            alt="Portal LLC tent structure for winter concrete pouring"
+            alt="Portal tent structure for winter concrete pouring"
             className="w-full h-full object-cover"
             fetchPriority="high"
           />

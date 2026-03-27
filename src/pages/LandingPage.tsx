@@ -310,11 +310,11 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <img
               src="/images/brand/portal-logo-new.jpeg"
-              alt="Portal LLC"
+              alt="Portal"
               className="h-8 w-auto rounded"
             />
             <span className="font-bold text-base hidden sm:inline">
-              Portal LLC
+              Portal
             </span>
           </div>
           <a
@@ -637,7 +637,7 @@ export default function LandingPage() {
             Call {BUSINESS.phone}
           </a>
           <p className="text-white/50 text-sm mt-4">
-            Portal LLC | Licensed & Insured | {BUSINESS.license} | Seattle, WA
+            Portal | Licensed & Insured | {BUSINESS.license} | Seattle, WA
           </p>
         </div>
       </section>

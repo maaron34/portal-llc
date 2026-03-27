@@ -1,5 +1,5 @@
 export const BUSINESS = {
-  name: "Portal LLC",
+  name: "Portal",
   tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
   phone: "(206) 829-6396",
   phoneHref: "tel:+12068296396",

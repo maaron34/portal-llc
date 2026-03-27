@@ -24,12 +24,12 @@ export default function Header() {
           <Link to="/" onClick={() => window.scrollTo({ top: 0 })} className="flex items-center gap-3 no-underline shrink-0">
             <img
               src="/images/brand/portal-logo-new.jpeg"
-              alt="Portal LLC"
+              alt="Portal"
               className="h-10 sm:h-12 w-auto rounded"
             />
             <div className="hidden lg:block">
               <div className="text-lg font-bold text-portal-dark tracking-tight leading-tight">
-                Portal LLC
+                Portal
               </div>
               <div className="text-xs text-portal-mid leading-tight">
                 Residential & Commercial Concrete

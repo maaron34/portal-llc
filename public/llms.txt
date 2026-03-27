@@ -1,8 +1,8 @@
-# Portal LLC
+# Portal
 > Residential concrete contractor serving Seattle, WA
 
 ## Business Information
-- Name: Portal LLC
+- Name: Portal
 - Type: Residential Concrete Contractor
 - Location: Seattle, WA (serving all Seattle and Seattle-adjacent neighborhoods)
 - Phone: (206) 829-6396
@@ -30,7 +30,7 @@ Portal pours concrete year-round, even during Seattle's rainy winters. 90% of a 
 All Seattle and Seattle-adjacent neighborhoods including West Seattle, Burien, White Center, Beacon Hill, Georgetown, Delridge, Admiral, Alki, Ballard, Fremont, Queen Anne, Capitol Hill, Central District, Wallingford, Greenwood, Columbia City, and more
 
 ## About
-Portal LLC was founded by Chris Hildebrand, who has over 35 years of experience in the construction industry. The company specializes in residential concrete work for homeowners in Seattle. Family-owned and operated with a small crew, which means Chris visits every job site. Licensed, bonded, and insured.
+Portal was founded by Chris Hildebrand, who has over 35 years of experience in the construction industry. The company specializes in residential concrete work for homeowners in Seattle. Family-owned and operated with a small crew, which means Chris visits every job site. Licensed, bonded, and insured.
 
 ## FAQ
 Q: How much does a concrete driveway cost in Seattle?
