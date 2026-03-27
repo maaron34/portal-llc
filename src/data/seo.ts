@@ -77,7 +77,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
   contact: {
     title: "Contact Portal LLC | Free Concrete Estimate Seattle",
     description:
-      "Request a free estimate or ask a question. We typically respond within 24 hours. Call (206) 419-3880 or fill out our contact form.",
+      "Request a free estimate or ask a question. We typically respond within 24 hours. Call (206) 829-6396 or fill out our contact form.",
     canonical: "https://buildwithportal.com/contact",
   },
   yearRound: {
