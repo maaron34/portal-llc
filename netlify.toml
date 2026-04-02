@@ -2,10 +2,12 @@
   command = "npm run build"
   publish = "dist"
 
-# Force non-www -> www (301 permanent redirect)
+# Force www -> non-www (301 permanent redirect)
+# Netlify's domain settings use buildwithportal.com as primary (non-www)
+# This redirect must match that direction to avoid a redirect loop
 [[redirects]]
-  from = "https://buildwithportal.com/*"
-  to = "https://www.buildwithportal.com/:splat"
+  from = "https://www.buildwithportal.com/*"
+  to = "https://buildwithportal.com/:splat"
   status = 301
   force = true
 
