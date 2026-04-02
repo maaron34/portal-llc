@@ -2,10 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
-# Force www -> non-www (301 permanent redirect)
+# Force non-www -> www (301 permanent redirect)
 [[redirects]]
-  from = "https://www.buildwithportal.com/*"
-  to = "https://buildwithportal.com/:splat"
+  from = "https://buildwithportal.com/*"
+  to = "https://www.buildwithportal.com/:splat"
   status = 301
   force = true
 
