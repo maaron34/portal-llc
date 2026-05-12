@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { PageSEO } from "../data/seo";
+import { generateLocalBusinessSchema, type PageSEO } from "../data/seo";
 
 interface SEOProps {
   seo: PageSEO;
@@ -34,24 +34,27 @@ export default function SEO({ seo, schema }: SEOProps) {
     }
     link.href = seo.canonical;
 
-    // Schema markup
+    // Schema markup: caller-provided schema, or default to LocalBusiness on every route
+    // so prerendered pages without page-specific schema (About, Reviews, Contact, etc.)
+    // still have LocalBusiness in the snapshot.
+    const schemas = schema
+      ? (Array.isArray(schema) ? schema : [schema])
+      : [generateLocalBusinessSchema()];
+
     const existingSchemas = document.querySelectorAll('script[data-schema="portal"]');
     existingSchemas.forEach((el) => el.remove());
 
-    if (schema) {
-      const schemas = Array.isArray(schema) ? schema : [schema];
-      schemas.forEach((s) => {
-        const script = document.createElement("script");
-        script.type = "application/ld+json";
-        script.setAttribute("data-schema", "portal");
-        script.textContent = JSON.stringify(s);
-        document.head.appendChild(script);
-      });
-    }
+    schemas.forEach((s) => {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-schema", "portal");
+      script.textContent = JSON.stringify(s);
+      document.head.appendChild(script);
+    });
 
     return () => {
-      const schemas = document.querySelectorAll('script[data-schema="portal"]');
-      schemas.forEach((el) => el.remove());
+      const cleanup = document.querySelectorAll('script[data-schema="portal"]');
+      cleanup.forEach((el) => el.remove());
     };
   }, [seo, schema]);
 

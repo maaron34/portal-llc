@@ -1,5 +1,8 @@
 [build]
-  command = "npm run build"
+  # Playwright is used for per-route prerendering (scripts/prerender.mjs).
+  # Netlify CI doesn't pre-install Chromium, so we install it explicitly
+  # before the build. The download (~92MB) is cached between builds.
+  command = "npx playwright install chromium && npm run build"
   publish = "dist"
 
 # Force www -> non-www (301 permanent redirect)
