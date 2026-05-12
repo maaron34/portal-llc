@@ -5,17 +5,12 @@
   # is cached between builds. --with-deps is NOT needed — Netlify's build
   # image already has the system libraries Chromium requires.
   #
-  # Resilient fallback: if any step fails (install, vite build, or prerender),
-  # fall back to `build:no-prerender` so the site still deploys. The previous
-  # state (static schema + sync title from PR #1) is the worst-case shipped
-  # output. Diagnostic echoes make the failure mode visible in the build log.
+  # `timeout 240` wraps the prerender path with a hard 4-minute kill so a
+  # hung script (e.g., vite preview not responding to fetch polling in CI)
+  # can't lock up the build queue indefinitely. If it kills (or any step
+  # fails), the fallback runs `build:no-prerender` and ships PR #1's state.
   command = """
-    (echo '--- Installing Chromium for Playwright ---' && \
-     npx playwright install chromium && \
-     echo '--- Full build (vite + prerender) ---' && \
-     npm run build) || \
-    (echo '!!! Prerender path failed, falling back to no-prerender build !!!' && \
-     npm run build:no-prerender)
+    timeout 240 sh -c 'echo "--- Installing Chromium for Playwright ---" && npx playwright install chromium && echo "--- Full build (vite + prerender) ---" && npm run build' || (echo "!!! Prerender path failed or timed out — falling back to no-prerender build !!!" && npm run build:no-prerender)
   """
   publish = "dist"
 
