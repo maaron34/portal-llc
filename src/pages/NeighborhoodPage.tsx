@@ -191,30 +191,38 @@ export default function NeighborhoodPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Cross-link to other neighborhoods (replaces a previous CTA that
+          duplicated the Footer's "Ready to start your project?" band).
+          Internal linking between sibling neighborhood pages helps search
+          engines understand they're a related cluster and gives visitors
+          an easy hop to nearby coverage. */}
       <section className="py-16 sm:py-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-4">
-            Ready to start your {neighborhood.name} project?
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-3 text-center">
+            We also serve nearby neighborhoods
           </h2>
-          <p className="text-lg text-portal-mid mb-8">
-            Free estimate, typically within 24 hours. We start most projects
-            within 2 weeks.
+          <p className="text-portal-mid text-center mb-10">
+            Portal works across Seattle. Here are the neighborhoods adjacent
+            to {neighborhood.name}.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/contact#estimate-form"
-              className="inline-flex items-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
-            >
-              Get a Free Estimate
-              <ArrowRight size={20} />
-            </Link>
-            <a
-              href={BUSINESS.phoneHref}
-              className="inline-flex items-center gap-2 px-7 py-4 border-2 border-portal-dark text-portal-dark font-bold text-lg rounded-lg no-underline hover:bg-portal-dark hover:text-white transition-colors"
-            >
-              {BUSINESS.phone}
-            </a>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {NEIGHBORHOODS.filter((n) => n.slug !== neighborhood.slug).map(
+              (other) => (
+                <Link
+                  key={other.slug}
+                  to={`/concrete-contractor/${other.slug}`}
+                  className="group flex items-center justify-between px-5 py-4 border border-portal-warm/40 rounded-xl no-underline hover:border-portal-accent hover:bg-portal-cream/40 transition-colors"
+                >
+                  <span className="font-semibold text-portal-dark">
+                    {other.name}
+                  </span>
+                  <ArrowRight
+                    size={16}
+                    className="text-portal-accent shrink-0 group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
+              )
+            )}
           </div>
         </div>
       </section>
