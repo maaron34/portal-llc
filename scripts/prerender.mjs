@@ -203,7 +203,19 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("[prerender] fatal:", err);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    // Force-exit on success. Without this, Node sometimes hangs on lingering
+    // handles — most notably the spawned `npx vite preview` child process,
+    // which doesn't propagate SIGTERM cleanly through the npx wrapper in
+    // Netlify's build container. The CI then sits idle until `timeout 240`
+    // kills the whole shell, the outer `||` fallback fires, and the
+    // freshly-prerendered dist/ gets overwritten by a no-prerender vite
+    // build. Confirmed in commit a0b3a2f build log: prerender finished in
+    // 17.5s, then 3:34 of silence until the timeout fired.
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("[prerender] fatal:", err);
+    process.exit(1);
+  });
