@@ -104,8 +104,37 @@ export default function Footer() {
           {/* Service Areas */}
           <div>
             <h3 className="text-lg font-bold mb-4">Service Areas</h3>
-            <p className="text-white/70 text-sm leading-relaxed mb-2">
-              All Seattle neighborhoods including {SERVICE_AREAS.join(" · ")} + all Seattle-adjacent neighborhoods
+            <ul className="space-y-2 list-none p-0 m-0 mb-3">
+              {[
+                { to: "/concrete-contractor/west-seattle", label: "West Seattle" },
+                { to: "/concrete-contractor/ballard", label: "Ballard" },
+                { to: "/concrete-contractor/capitol-hill", label: "Capitol Hill" },
+                { to: "/concrete-contractor/queen-anne", label: "Queen Anne" },
+                { to: "/concrete-contractor/magnolia", label: "Magnolia" },
+                { to: "/concrete-contractor/green-lake", label: "Green Lake" },
+              ].map((link) => (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    className="text-white/70 text-sm no-underline hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="text-white/50 text-xs leading-relaxed">
+              + {SERVICE_AREAS.filter(
+                (a) =>
+                  ![
+                    "West Seattle",
+                    "Ballard",
+                    "Capitol Hill",
+                    "Queen Anne",
+                    "Magnolia",
+                    "Green Lake",
+                  ].includes(a)
+              ).join(" · ")}
             </p>
           </div>
 

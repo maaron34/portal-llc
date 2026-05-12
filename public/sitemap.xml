@@ -52,4 +52,28 @@
     <loc>https://buildwithportal.com/year-round</loc>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/west-seattle</loc>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/ballard</loc>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/capitol-hill</loc>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/queen-anne</loc>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/magnolia</loc>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://buildwithportal.com/concrete-contractor/green-lake</loc>
+    <priority>0.85</priority>
+  </url>
 </urlset>

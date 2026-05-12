@@ -12,6 +12,7 @@ import Reviews from "./pages/Reviews";
 import Contact from "./pages/Contact";
 import YearRound from "./pages/YearRound";
 import LandingPage from "./pages/LandingPage";
+import NeighborhoodPage from "./pages/NeighborhoodPage";
 
 function scrollToHashOrTop(hash: string | null) {
   if (hash) {
@@ -118,6 +119,7 @@ function AppRoutes() {
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/year-round" element={<YearRound />} />
+                  <Route path="/concrete-contractor/:slug" element={<NeighborhoodPage />} />
                 </Routes>
               </main>
               <Footer />

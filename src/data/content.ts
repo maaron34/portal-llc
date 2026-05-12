@@ -32,9 +32,11 @@ export const SERVICE_AREAS = [
   "Ballard",
   "Fremont",
   "Queen Anne",
+  "Magnolia",
   "Capitol Hill",
   "Central District",
   "Wallingford",
+  "Green Lake",
   "Greenwood",
   "Columbia City",
 ] as const;
