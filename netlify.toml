@@ -1,18 +1,31 @@
 [build]
-  # Playwright is used for per-route prerendering (scripts/prerender.mjs).
-  # Netlify CI doesn't pre-install Chromium, so we install it explicitly
-  # before the build. The download (~175MB Chrome + 113MB headless shell)
-  # is cached between builds. --with-deps is NOT needed — Netlify's build
-  # image already has the system libraries Chromium requires.
+  # Per-route prerendering via Playwright. Three layered safeguards:
   #
-  # `timeout 240` wraps the prerender path with a hard 4-minute kill so a
-  # hung script (e.g., vite preview not responding to fetch polling in CI)
-  # can't lock up the build queue indefinitely. If it kills (or any step
-  # fails), the fallback runs `build:no-prerender` and ships PR #1's state.
+  # 1. `--with-deps` so Chromium's system libraries are installed alongside
+  #    the browser binary. Without this, chromium.launch() can hang silently
+  #    in Netlify's build container even though `playwright install` reports
+  #    success.
+  # 2. The prerender script pins `vite preview --host 127.0.0.1` and uses
+  #    `http://127.0.0.1:...` in fetch URLs. Avoids the localhost → IPv6
+  #    resolution mismatch that caused 12+ minute hangs (vite binds IPv4,
+  #    fetch resolves IPv6 in Netlify's dual-stack containers).
+  # 3. `timeout 240` is the hard kill switch — if anything still hangs past
+  #    4 minutes, GNU coreutils sends SIGTERM and the outer `||` fallback
+  #    runs `build:no-prerender`, shipping PR #1's state. Site never stays
+  #    broken.
   command = """
-    timeout 240 sh -c 'echo "--- Installing Chromium for Playwright ---" && npx playwright install chromium && echo "--- Full build (vite + prerender) ---" && npm run build' || (echo "!!! Prerender path failed or timed out — falling back to no-prerender build !!!" && npm run build:no-prerender)
+    timeout 240 sh -c 'echo "--- Installing Chromium (with system deps) ---" && npx playwright install --with-deps chromium && echo "--- Full build (vite + prerender) ---" && npm run build' || (echo "!!! Prerender path failed or timed out — falling back to no-prerender build !!!" && npm run build:no-prerender)
   """
   publish = "dist"
+
+[build.environment]
+  # Pin Node to a current LTS. Node 18.x is EOL and has known interactions
+  # with recent Chromium versions in Playwright (browser launch hang during
+  # sandbox init).
+  NODE_VERSION = "22"
+  # Prefer IPv4 DNS results so any stray `localhost` lookup we may have
+  # missed in the prerender script resolves to 127.0.0.1, not ::1.
+  NODE_OPTIONS = "--dns-result-order=ipv4first"
 
 # Force www -> non-www (301 permanent redirect)
 # Netlify's domain settings use buildwithportal.com as primary (non-www)

@@ -27,7 +27,12 @@ const distDir = join(projectRoot, "dist");
 const sitemapPath = join(projectRoot, "public", "sitemap.xml");
 
 const PREVIEW_PORT = 4179;
-const PREVIEW_HOST = `http://localhost:${PREVIEW_PORT}`;
+// Use 127.0.0.1 explicitly instead of `localhost`. In Netlify's build
+// containers Node's resolver can prefer ::1 (IPv6); vite preview binds
+// IPv4 only, so the TCP connection accepts but never responds and the
+// fetch hangs indefinitely. Hardcoding IPv4 here + passing --host
+// 127.0.0.1 to vite preview sidesteps the resolution mismatch.
+const PREVIEW_HOST = `http://127.0.0.1:${PREVIEW_PORT}`;
 
 // ---- Parse routes from sitemap.xml ----
 
@@ -48,9 +53,12 @@ function getRoutes() {
 // ---- Vite preview server lifecycle ----
 
 async function startPreviewServer() {
+  // Pin the bind host to 127.0.0.1 explicitly so the server only listens on
+  // IPv4. Without this, Vite may bind to localhost in dual-stack mode and
+  // ambiguity between IPv4 and IPv6 resolution causes hangs in CI.
   const server = spawn(
     "npx",
-    ["vite", "preview", "--port", String(PREVIEW_PORT), "--strictPort"],
+    ["vite", "preview", "--host", "127.0.0.1", "--port", String(PREVIEW_PORT), "--strictPort"],
     { cwd: projectRoot, stdio: ["ignore", "pipe", "pipe"] }
   );
 
@@ -66,6 +74,11 @@ async function startPreviewServer() {
   // Poll the HTTP port until it responds. More robust than pattern-matching
   // Vite's stdout, which differs between local TTYs and CI environments
   // (Netlify build containers strip ANSI / change line buffering).
+  //
+  // Each fetch has its own short AbortSignal timeout so a single
+  // accepted-but-stalled connection can't pin the entire poll loop. Without
+  // it, Node's fetch will wait forever for the response on a TCP-accepted
+  // socket — which is exactly the failure mode we hit in Netlify CI.
   const maxWaitMs = 60_000;
   const start = Date.now();
   while (Date.now() - start < maxWaitMs) {
@@ -74,19 +87,22 @@ async function startPreviewServer() {
       throw new Error(`vite preview exited prematurely with code ${server.exitCode}`);
     }
     try {
-      const res = await fetch(`${PREVIEW_HOST}/`);
+      const res = await fetch(`${PREVIEW_HOST}/`, {
+        signal: AbortSignal.timeout(2000),
+      });
       // Any HTTP response means the server is listening (even 404 is fine
       // — it just means the SPA's catch-all handled the request).
       if (res.status >= 200 && res.status < 600) {
         return server;
       }
     } catch {
-      // Connection refused or network error — server not ready yet.
+      // Connection refused, DNS error, or per-fetch timeout — server not
+      // ready yet. Try again after a short pause.
     }
     await new Promise((r) => setTimeout(r, 250));
   }
 
-  throw new Error(`vite preview didn't respond on port ${PREVIEW_PORT} within ${maxWaitMs}ms`);
+  throw new Error(`vite preview didn't respond on ${PREVIEW_HOST} within ${maxWaitMs}ms`);
 }
 
 function stopPreviewServer(server) {
