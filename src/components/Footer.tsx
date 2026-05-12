@@ -16,7 +16,7 @@ export default function Footer() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/contact"
+              to="/contact#estimate-form"
               className="inline-flex px-6 py-3 bg-white text-portal-accent font-bold rounded-lg no-underline hover:bg-portal-cream transition-colors"
             >
               Request an Estimate
