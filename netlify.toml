@@ -1,20 +1,25 @@
 [build]
-  # Per-route prerendering via Playwright. Three layered safeguards:
+  # Per-route prerendering via Playwright. Layered safeguards:
   #
-  # 1. `--with-deps` so Chromium's system libraries are installed alongside
-  #    the browser binary. Without this, chromium.launch() can hang silently
-  #    in Netlify's build container even though `playwright install` reports
-  #    success.
-  # 2. The prerender script pins `vite preview --host 127.0.0.1` and uses
+  # 1. The prerender script pins `vite preview --host 127.0.0.1` and uses
   #    `http://127.0.0.1:...` in fetch URLs. Avoids the localhost → IPv6
-  #    resolution mismatch that caused 12+ minute hangs (vite binds IPv4,
-  #    fetch resolves IPv6 in Netlify's dual-stack containers).
-  # 3. `timeout 240` is the hard kill switch — if anything still hangs past
+  #    mismatch that caused 12+ minute hangs in earlier attempts (vite
+  #    binds IPv4, fetch resolves IPv6 in Netlify's dual-stack containers).
+  # 2. `timeout 240` is the hard kill switch — if anything still hangs past
   #    4 minutes, GNU coreutils sends SIGTERM and the outer `||` fallback
-  #    runs `build:no-prerender`, shipping PR #1's state. Site never stays
-  #    broken.
+  #    runs `build:no-prerender`, shipping PR #1's state.
+  #
+  # IMPORTANT: do NOT pass `--with-deps` to playwright install. It tries to
+  # `su` to root to run apt-get, and Netlify's build user has no sudo
+  # password — confirmed in the build log of commit 6f46672:
+  #     Switching to root user to install dependencies...
+  #     Password: su: Authentication failure
+  #     Failed to install browsers
+  # Netlify's build image already ships the libraries Chromium needs (it
+  # supports legacy Prerender.io integrations, so libnss3 et al. are baked
+  # in). Plain `playwright install chromium` works without root.
   command = """
-    timeout 240 sh -c 'echo "--- Installing Chromium (with system deps) ---" && npx playwright install --with-deps chromium && echo "--- Full build (vite + prerender) ---" && npm run build' || (echo "!!! Prerender path failed or timed out — falling back to no-prerender build !!!" && npm run build:no-prerender)
+    timeout 240 sh -c 'echo "--- Installing Chromium ---" && npx playwright install chromium && echo "--- Full build (vite + prerender) ---" && npm run build' || (echo "!!! Prerender path failed or timed out — falling back to no-prerender build !!!" && npm run build:no-prerender)
   """
   publish = "dist"
 
