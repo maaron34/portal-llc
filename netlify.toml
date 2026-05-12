@@ -1,15 +1,17 @@
 [build]
   # Playwright is used for per-route prerendering (scripts/prerender.mjs).
   # Netlify CI doesn't pre-install Chromium, so we install it explicitly
-  # before the build. The download (~92MB) is cached between builds.
+  # before the build. The download (~175MB Chrome + 113MB headless shell)
+  # is cached between builds. --with-deps is NOT needed — Netlify's build
+  # image already has the system libraries Chromium requires.
   #
-  # Resilient fallback: if Playwright install or the prerender step fails
-  # for any reason, fall back to `build:no-prerender` so the site still
-  # deploys (state matches PR #1: static schema + sync title only, no
-  # per-route prerender). The build log makes the failure mode visible.
+  # Resilient fallback: if any step fails (install, vite build, or prerender),
+  # fall back to `build:no-prerender` so the site still deploys. The previous
+  # state (static schema + sync title from PR #1) is the worst-case shipped
+  # output. Diagnostic echoes make the failure mode visible in the build log.
   command = """
     (echo '--- Installing Chromium for Playwright ---' && \
-     npx playwright install --with-deps chromium && \
+     npx playwright install chromium && \
      echo '--- Full build (vite + prerender) ---' && \
      npm run build) || \
     (echo '!!! Prerender path failed, falling back to no-prerender build !!!' && \

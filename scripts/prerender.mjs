@@ -47,34 +47,46 @@ function getRoutes() {
 
 // ---- Vite preview server lifecycle ----
 
-function startPreviewServer() {
-  return new Promise((resolveStart, rejectStart) => {
-    const server = spawn(
-      "npx",
-      ["vite", "preview", "--port", String(PREVIEW_PORT), "--strictPort"],
-      { cwd: projectRoot, stdio: ["ignore", "pipe", "pipe"] }
-    );
+async function startPreviewServer() {
+  const server = spawn(
+    "npx",
+    ["vite", "preview", "--port", String(PREVIEW_PORT), "--strictPort"],
+    { cwd: projectRoot, stdio: ["ignore", "pipe", "pipe"] }
+  );
 
-    const timeout = setTimeout(() => {
-      rejectStart(new Error("Preview server failed to start within 20s"));
-    }, 20_000);
+  // Stream Vite output to our stdout/stderr so CI logs show what's happening.
+  server.stdout.on("data", (data) => process.stdout.write(`[vite] ${data}`));
+  server.stderr.on("data", (data) => process.stderr.write(`[vite stderr] ${data}`));
 
-    server.stdout.on("data", (data) => {
-      const out = data.toString();
-      if (out.includes(`localhost:${PREVIEW_PORT}`) || out.includes("ready")) {
-        clearTimeout(timeout);
-        resolveStart(server);
-      }
-    });
-    server.stderr.on("data", (data) => {
-      // Surface errors but don't crash if it's a warning
-      process.stderr.write(`[vite preview] ${data}`);
-    });
-    server.on("error", (err) => {
-      clearTimeout(timeout);
-      rejectStart(err);
-    });
+  let spawnError = null;
+  server.on("error", (err) => {
+    spawnError = err;
   });
+
+  // Poll the HTTP port until it responds. More robust than pattern-matching
+  // Vite's stdout, which differs between local TTYs and CI environments
+  // (Netlify build containers strip ANSI / change line buffering).
+  const maxWaitMs = 60_000;
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    if (spawnError) throw spawnError;
+    if (server.exitCode !== null) {
+      throw new Error(`vite preview exited prematurely with code ${server.exitCode}`);
+    }
+    try {
+      const res = await fetch(`${PREVIEW_HOST}/`);
+      // Any HTTP response means the server is listening (even 404 is fine
+      // — it just means the SPA's catch-all handled the request).
+      if (res.status >= 200 && res.status < 600) {
+        return server;
+      }
+    } catch {
+      // Connection refused or network error — server not ready yet.
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+
+  throw new Error(`vite preview didn't respond on port ${PREVIEW_PORT} within ${maxWaitMs}ms`);
 }
 
 function stopPreviewServer(server) {
