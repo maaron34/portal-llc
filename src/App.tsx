@@ -80,8 +80,15 @@ function ScrollToTop() {
       // both fire, but both target the same destination so no conflict.
       requestAnimationFrame(() => scrollToHashOrTop(clickHash));
     }
-    document.addEventListener("click", handleInternalLinkClick);
-    return () => document.removeEventListener("click", handleInternalLinkClick);
+    // CAPTURE phase (third arg true) so this handler runs BEFORE React's
+    // synthetic event delegation. React Router's Link calls preventDefault()
+    // during bubble-phase event dispatch; if we registered in bubble phase
+    // too, e.defaultPrevented would already be true when we see the click
+    // and the bail-out at the top of this handler would skip the scroll
+    // entirely. Capture phase walks down from document first, so we run
+    // before any React onClick has a chance to preventDefault.
+    document.addEventListener("click", handleInternalLinkClick, true);
+    return () => document.removeEventListener("click", handleInternalLinkClick, true);
   }, []);
 
   return null;
