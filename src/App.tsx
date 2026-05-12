@@ -24,14 +24,51 @@ function ScrollToTop() {
     }
   }, []);
 
-  // Use useLayoutEffect so the scroll-to-top fires BEFORE the next route
-  // paints. Previously useEffect ran after paint, which meant a frame of
-  // visible scroll-position carryover (and on some browsers the scroll never
-  // applied at all because the browser's own scroll restoration won the race).
-  // "instant" behavior explicitly opts out of any inherited smooth-scroll CSS.
+  // Pathname-change scroll: handles cross-route navigation (typed URL,
+  // back/forward, programmatic navigate). useLayoutEffect runs before paint
+  // so there's no frame of stale scroll position.
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
   }, [pathname]);
+
+  // Click-delegation scroll: handles SAME-route Link clicks. When a user is
+  // already on /contact and clicks the Footer "Request an Estimate" Link
+  // (which targets /contact), React Router treats it as a no-op and pathname
+  // never changes — so the useLayoutEffect above doesn't fire. Document-level
+  // click delegation catches every internal-link click regardless of where
+  // the Link component lives.
+  useEffect(() => {
+    function handleInternalLinkClick(e: MouseEvent) {
+      // Bail on modified clicks (open-in-new-tab, middle-click, etc.) so we
+      // don't interfere with the browser's native behavior.
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.button !== 0
+      ) {
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      // Only scroll for internal absolute-path links (Links to /something).
+      // Skip externals (http://), protocol-relative (//), mailto:, tel:, and
+      // hash-only fragments (#section).
+      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
+      // Defer one animation frame so React Router's navigation logic settles
+      // first. Same-route clicks: scroll is the only behavior. Cross-route:
+      // both fire, but they both scroll to (0, 0) so no conflict.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+      });
+    }
+    document.addEventListener("click", handleInternalLinkClick);
+    return () => document.removeEventListener("click", handleInternalLinkClick);
+  }, []);
 
   return null;
 }
