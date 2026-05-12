@@ -98,6 +98,17 @@ export function generateLocalBusinessSchema() {
     url: BUSINESS.url,
     telephone: BUSINESS.phone,
     email: BUSINESS.email,
+    foundingDate: "2020", // Chris founded Portal ~2020 (6 yrs in business as of 2026)
+    founder: {
+      "@type": "Person",
+      name: BUSINESS.founder,
+      jobTitle: "Owner & Lead Contractor",
+      description: `${BUSINESS.founderYearsExperience}+ years of construction experience. Founder of ${BUSINESS.name}, based in Seattle.`,
+      worksFor: {
+        "@type": "Organization",
+        name: BUSINESS.name,
+      },
+    },
     areaServed: SERVICE_AREAS.map((area) => ({
       "@type": "City",
       name: area + ", WA",
@@ -107,6 +118,13 @@ export function generateLocalBusinessSchema() {
       addressLocality: BUSINESS.address.city,
       addressRegion: BUSINESS.address.state,
       addressCountry: "US",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      // Approximate centroid of West Seattle (Portal's service base).
+      // Used by Google for local-pack distance ranking + voice search.
+      latitude: 47.5712,
+      longitude: -122.3854,
     },
     openingHoursSpecification: [
       {
@@ -133,6 +151,11 @@ export function generateLocalBusinessSchema() {
           description: s.intro,
         },
       })),
+    },
+    identifier: {
+      "@type": "PropertyValue",
+      propertyID: "WA Contractor License",
+      value: BUSINESS.license,
     },
     image: BUSINESS.url + "/images/brand/portal-logo-new.jpeg",
     sameAs: [BUSINESS.instagram, BUSINESS.facebook],
