@@ -86,6 +86,12 @@ export const PAGE_SEO: Record<string, PageSEO> = {
       "Portal pours concrete year-round in Seattle, even during rainy winters. Learn how we use tent structures and insulated blankets to deliver high-quality results in any season.",
     canonical: "https://buildwithportal.com/year-round",
   },
+  refer: {
+    title: "Refer a Friend — You Both Get $100 | Portal Seattle Concrete",
+    description:
+      "Refer a friend to Portal Concrete and you both get $100. Your friend gets $100 off their first Portal job. You get $100 when their job is paid in full.",
+    canonical: "https://buildwithportal.com/refer",
+  },
 };
 
 export function generateLocalBusinessSchema() {
