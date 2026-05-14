@@ -89,7 +89,7 @@ export const PAGE_SEO: Record<string, PageSEO> = {
   refer: {
     title: "Refer a Friend — You Both Get $100 | Portal Seattle Concrete",
     description:
-      "Refer a friend to Portal Concrete and you both get $100. Your friend gets $100 off their first Portal job. You get $100 when their job is paid in full.",
+      "Refer a friend to Portal Concrete and you both get $100. Your friend gets $100 off their first Portal job. You get $100 when their job is booked.",
     canonical: "https://buildwithportal.com/refer",
   },
 };

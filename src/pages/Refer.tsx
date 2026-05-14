@@ -145,8 +145,8 @@ export default function Refer() {
           <p className="text-lg sm:text-xl text-portal-warm max-w-2xl mx-auto">
             Your friend gets <strong className="text-white">$100 off</strong>{" "}
             their first Portal job. You get{" "}
-            <strong className="text-white">$100</strong> when their job is paid
-            in full. No catch. No limit.
+            <strong className="text-white">$100</strong> when their job is
+            booked. No catch. No limit.
           </p>
         </div>
       </section>
@@ -175,10 +175,10 @@ export default function Refer() {
           <div>
             <div className="text-2xl font-bold text-portal-accent mb-1">3</div>
             <div className="text-sm font-semibold text-portal-dark mb-1">
-              You get $100 when their job is paid
+              You get $100 when their job is booked
             </div>
             <div className="text-xs text-portal-mid">
-              Sent within 30 days of invoice paid in full.
+              Sent within 30 days of booking. Forfeit if project cancels.
             </div>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function Refer() {
               </h2>
               <p className="text-green-700 mb-4">
                 {direction === "sending"
-                  ? `We'll reach out to your friend, mention the $100 discount, and circle back to you when their job is paid.`
+                  ? `We'll reach out to your friend, mention the $100 discount, and let you know when their job is booked so we can send your $100.`
                   : `We'll add the $100 discount to your estimate. Expect a call or text from us within 24 hours.`}
               </p>
               <p className="text-green-700 text-sm">
@@ -372,7 +372,7 @@ export default function Refer() {
 
                 <p className="text-xs text-portal-mid text-center leading-relaxed">
                   Applies to new Portal customers only. The friend's $100 off is applied at booking.
-                  Your $100 is paid within 30 days of the friend's invoice being paid in full.
+                  Your $100 is paid within 30 days of booking; forfeit if the project cancels before completion.
                   One discount per project.
                 </p>
               </form>
