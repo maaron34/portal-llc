@@ -71,7 +71,7 @@ export default function Refer() {
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
           subject: subjectPrefix,
-          from_name: "Portal LLC Website — Referral Form",
+          from_name: "Portal LLC Website (Referral Form)",
           direction,
           referrer_name: direction === "sending" ? yourName : friendName,
           referrer_phone: direction === "sending" ? yourPhone : friendPhone,
@@ -117,7 +117,7 @@ export default function Refer() {
           submitText: "Send the referral",
         }
       : {
-          yourSection: "Your info (the new customer — $100 off)",
+          yourSection: "Your info (the new customer, $100 off)",
           yourNameLabel: "Your name",
           yourPhoneLabel: "Your phone",
           yourEmailLabel: "Your email",
@@ -194,7 +194,7 @@ export default function Refer() {
                 className="text-green-700 mx-auto mb-4"
               />
               <h2 className="text-2xl font-bold text-green-800 mb-3">
-                Got it — thanks!
+                Got it. Thanks!
               </h2>
               <p className="text-green-700 mb-4">
                 {direction === "sending"
@@ -329,7 +329,7 @@ export default function Refer() {
                       name="project_type"
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
                     >
-                      <option value="">— Select —</option>
+                      <option value="">Select...</option>
                       <option value="Driveway">Driveway (new or replacement)</option>
                       <option value="Patio">Patio</option>
                       <option value="Stairs">Stairs / steps</option>
@@ -352,7 +352,7 @@ export default function Refer() {
                     <textarea
                       name="notes"
                       rows={3}
-                      placeholder="Optional — neighborhood, rough timing, project size, etc."
+                      placeholder="Optional. Neighborhood, rough timing, project size, etc."
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm resize-y"
                     />
                   </div>
