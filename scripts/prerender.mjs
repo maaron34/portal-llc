@@ -43,7 +43,11 @@ function getRoutes() {
   const xml = readFileSync(sitemapPath, "utf-8");
   const locs = [...xml.matchAll(/<loc>https:\/\/buildwithportal\.com(.*?)<\/loc>/g)];
   const routes = locs.map((m) => {
-    const path = m[1] || "/";
+    // Strip trailing slash from sitemap paths so `dist/{route}/index.html`
+    // doesn't end up as `dist/services/foundation-work//index.html`. The
+    // sitemap intentionally uses trailing slashes (canonical form), but the
+    // prerender output structure pins the slash via the `/index.html` suffix.
+    const path = (m[1] || "/").replace(/\/+$/, "") || "/";
     return path === "" ? "/" : path;
   });
   // Deduplicate, just in case
