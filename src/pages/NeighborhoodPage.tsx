@@ -25,7 +25,7 @@ export default function NeighborhoodPage() {
   const seo = {
     title: neighborhood.metaTitle,
     description: neighborhood.metaDescription,
-    canonical: `${BUSINESS.url}/concrete-contractor/${slug}`,
+    canonical: `${BUSINESS.url}/concrete-contractor/${slug}/`,
   };
 
   // Build a neighborhood-scoped LocalBusiness schema with this neighborhood

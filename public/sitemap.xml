@@ -5,79 +5,79 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services</loc>
+    <loc>https://buildwithportal.com/services/</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/driveways</loc>
+    <loc>https://buildwithportal.com/services/driveways/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/patios</loc>
+    <loc>https://buildwithportal.com/services/patios/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/walkways-stairs</loc>
+    <loc>https://buildwithportal.com/services/walkways-stairs/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/retaining-walls</loc>
+    <loc>https://buildwithportal.com/services/retaining-walls/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/foundation-work</loc>
+    <loc>https://buildwithportal.com/services/foundation-work/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/services/reconditioning</loc>
+    <loc>https://buildwithportal.com/services/reconditioning/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/reviews</loc>
+    <loc>https://buildwithportal.com/reviews/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/projects</loc>
+    <loc>https://buildwithportal.com/projects/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/about</loc>
+    <loc>https://buildwithportal.com/about/</loc>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/contact</loc>
+    <loc>https://buildwithportal.com/contact/</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/refer</loc>
+    <loc>https://buildwithportal.com/refer/</loc>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/year-round</loc>
+    <loc>https://buildwithportal.com/year-round/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/west-seattle</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/west-seattle/</loc>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/ballard</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/ballard/</loc>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/capitol-hill</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/capitol-hill/</loc>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/queen-anne</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/queen-anne/</loc>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/magnolia</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/magnolia/</loc>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://buildwithportal.com/concrete-contractor/green-lake</loc>
+    <loc>https://buildwithportal.com/concrete-contractor/green-lake/</loc>
     <priority>0.85</priority>
   </url>
 </urlset>
