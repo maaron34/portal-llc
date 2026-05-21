@@ -51,77 +51,71 @@ export default function Home() {
         schema={[generateLocalBusinessSchema(), generateFAQSchema()]}
       />
 
-      {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center bg-portal-dark overflow-hidden">
-        {/* Full image as background */}
-        <div className="absolute inset-0">
+      {/* Hero — logo on white, content centered below */}
+      <section className="bg-white pt-12 pb-10 sm:pt-16 sm:pb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <img
-            src="/images/hero-stairs.jpeg"
-            alt="Multi-level concrete stairs with retaining wall planters by Portal in Seattle"
-            className="w-full h-full object-cover object-[70%_30%] lg:object-contain lg:object-right"
+            src="/images/brand/portal-logo-new.jpeg"
+            alt="Portal Seattle Concrete"
+            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-10 sm:mb-12"
           />
-          {/* Overlay gradient - dark on left for text readability, fades into image */}
-          <div className="absolute inset-0 bg-gradient-to-r from-portal-dark/95 via-portal-dark/70 via-45% to-portal-dark/20 sm:via-40% sm:to-portal-dark/10" />
-        </div>
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 w-full">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={24}
-                    className="text-amber-400 fill-amber-400"
-                  />
-                ))}
-              </div>
-              <span className="text-white text-lg sm:text-xl font-bold">
-                Over {BUSINESS.reviewCount} Five-Star Reviews!
-              </span>
+
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={22}
+                  className="text-amber-400 fill-amber-400"
+                />
+              ))}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
-              Seattle's Concrete<br />
-              Experts
-            </h1>
-            <p className="text-base sm:text-lg text-white/80 mb-8 leading-relaxed max-w-lg">
-              Driveways. Patios. Stairs. Retaining walls. Foundations.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/contact"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
-              >
-                Get a Free Estimate
-                <ArrowRight size={20} />
-              </Link>
-              <Link
-                to="/projects"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 border-2 border-white/30 text-white font-bold text-lg rounded-lg no-underline hover:bg-white/10 transition-colors"
-              >
-                View Our Work
-              </Link>
-            </div>
-            {/* Year-round callout */}
+            <span className="text-portal-dark text-lg sm:text-xl font-bold">
+              Over {BUSINESS.reviewCount} Five-Star Reviews
+            </span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-portal-dark leading-[1.1] tracking-tight mb-5">
+            Seattle's Concrete Experts
+          </h1>
+          <p className="text-base sm:text-lg text-portal-mid mb-8 leading-relaxed">
+            Driveways. Patios. Stairs. Retaining walls. Foundations.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/year-round"
-              className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-amber-500/20 backdrop-blur-sm border border-amber-400/50 rounded-lg no-underline hover:bg-amber-500/30 transition-colors group"
+              to="/contact"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
             >
-              <CloudRain size={18} className="text-amber-400 shrink-0" />
-              <span className="text-white/90 text-sm">
-                We pour concrete year-round, rain or shine.{" "}
-                <span className="text-amber-400 font-semibold group-hover:underline">
-                  Learn how
-                </span>
-              </span>
+              Get a Free Estimate
+              <ArrowRight size={20} />
+            </Link>
+            <Link
+              to="/projects"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 border-2 border-portal-dark/20 text-portal-dark font-bold text-lg rounded-lg no-underline hover:bg-portal-dark/5 transition-colors"
+            >
+              View Our Work
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Trust Bar */}
-      <section className="bg-portal-dark py-5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm font-medium text-white/70 uppercase tracking-wide">
+          {/* Year-round callout */}
+          <Link
+            to="/year-round"
+            className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group"
+          >
+            <CloudRain size={18} className="text-amber-600 shrink-0" />
+            <span className="text-portal-dark text-sm">
+              We pour concrete year-round, rain or shine.{" "}
+              <span className="text-amber-700 font-semibold group-hover:underline">
+                Learn how
+              </span>
+            </span>
+          </Link>
+        </div>
+
+        {/* Trust bar absorbed into hero */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-12 sm:mt-14 pt-8 border-t border-portal-dark/10">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm font-medium text-portal-mid uppercase tracking-wide">
             <span className="flex items-center gap-2">
               <CheckCircle size={16} className="text-portal-accent" />
               Licensed & Insured
