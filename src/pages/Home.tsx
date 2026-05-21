@@ -57,8 +57,12 @@ export default function Home() {
           <img
             src="/images/brand/portal-logo-new.jpeg"
             alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-10 sm:mb-12"
+            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-4 sm:mb-5"
           />
+
+          <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-8 sm:mb-10">
+            Seattle Concrete Contractor
+          </h1>
 
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="flex">
@@ -75,9 +79,6 @@ export default function Home() {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-portal-dark leading-[1.1] tracking-tight mb-5">
-            Seattle's Concrete Experts
-          </h1>
           <p className="text-base sm:text-lg text-portal-mid mb-8 leading-relaxed">
             Driveways. Patios. Stairs. Retaining walls. Foundations.
           </p>
@@ -137,7 +138,7 @@ export default function Home() {
       </section>
 
       {/* Services */}
-      <section className="py-20 sm:py-28">
+      <section className="pt-10 pb-20 sm:pt-12 sm:pb-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-4">
             <SectionQuote quote={SECTION_QUOTES[0]} />
