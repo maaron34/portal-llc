@@ -57,33 +57,10 @@ export default function Home() {
           <img
             src="/images/brand/portal-logo-new.jpeg"
             alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-4 sm:mb-5"
+            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-6 sm:mb-8"
           />
 
-          <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-8 sm:mb-10">
-            Seattle Concrete Contractor
-          </h1>
-
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={22}
-                  className="text-amber-400 fill-amber-400"
-                />
-              ))}
-            </div>
-            <span className="text-portal-dark text-lg sm:text-xl font-bold">
-              Over {BUSINESS.reviewCount} Five-Star Reviews
-            </span>
-          </div>
-
-          <p className="text-base sm:text-lg text-portal-mid mb-8 leading-relaxed">
-            Driveways. Patios. Stairs. Retaining walls. Foundations.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-10">
             <Link
               to="/contact"
               className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
@@ -99,10 +76,33 @@ export default function Home() {
             </Link>
           </div>
 
+          <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-6">
+            Seattle Concrete Contractor
+          </h1>
+
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={22}
+                  className="text-amber-400 fill-amber-400"
+                />
+              ))}
+            </div>
+            <span className="text-portal-dark text-lg sm:text-xl font-bold">
+              Over {BUSINESS.reviewCount} Five-Star Reviews
+            </span>
+          </div>
+
+          <p className="text-base sm:text-lg text-portal-mid mb-6 leading-relaxed">
+            Driveways. Patios. Stairs. Retaining walls. Foundations.
+          </p>
+
           {/* Year-round callout */}
           <Link
             to="/year-round"
-            className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group"
+            className="inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group"
           >
             <CloudRain size={18} className="text-amber-600 shrink-0" />
             <span className="text-portal-dark text-sm">
