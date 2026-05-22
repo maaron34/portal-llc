@@ -55,12 +55,12 @@ export default function Home() {
       <section className="bg-white pt-12 pb-10 sm:pt-16 sm:pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <img
-            src="/images/brand/portal-logo-new.jpeg"
+            src="/images/brand/portal-logo-new-tight.png"
             alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-md sm:max-w-lg h-auto mb-6 sm:mb-8"
+            className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-6"
           />
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-10">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 sm:mb-12">
             <Link
               to="/contact"
               className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
@@ -76,11 +76,11 @@ export default function Home() {
             </Link>
           </div>
 
-          <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-6">
+          <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-5">
             Seattle Concrete Contractor
           </h1>
 
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-3">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -94,6 +94,11 @@ export default function Home() {
               Over {BUSINESS.reviewCount} Five-Star Reviews
             </span>
           </div>
+
+          <p className="text-portal-mid italic max-w-md mx-auto mb-8">
+            "{SECTION_QUOTES[0].text}"{" "}
+            <span className="text-portal-accent font-medium not-italic">- {SECTION_QUOTES[0].author}</span>
+          </p>
 
           <p className="text-base sm:text-lg text-portal-mid mb-6 leading-relaxed">
             Driveways. Patios. Stairs. Retaining walls. Foundations.
@@ -138,10 +143,9 @@ export default function Home() {
       </section>
 
       {/* Services */}
-      <section className="pt-10 pb-20 sm:pt-12 sm:pb-28">
+      <section className="pt-14 pb-20 sm:pt-16 sm:pb-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-4">
-            <SectionQuote quote={SECTION_QUOTES[0]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               What We Do
             </h2>
