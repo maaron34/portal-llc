@@ -145,44 +145,44 @@ body {
 }
 
 /* Shallow arc — only the bottom curvature.
-   Peaks sit just under the wordmark; bottom dips below it into
-   the visible lower portion of the spiral. */
+   Tighter X so peaks don't run wide; deeper Y so the bottom dips
+   well into the visible lower portion of the spiral. */
 @keyframes skater-ramp-mobile {
-  0%     { transform: translate(-200px,  -70px); }
-  6.25%  { transform: translate(-181px,  -28px); }
-  12.5%  { transform: translate(-134px,    4px); }
-  18.75% { transform: translate( -70px,   24px); }
-  25%    { transform: translate(   0px,   30px); }
-  31.25% { transform: translate(  70px,   24px); }
-  37.5%  { transform: translate( 134px,    4px); }
-  43.75% { transform: translate( 181px,  -28px); }
-  50%    { transform: translate( 200px,  -70px); }
-  56.25% { transform: translate( 181px,  -28px); }
-  62.5%  { transform: translate( 134px,    4px); }
-  68.75% { transform: translate(  70px,   24px); }
-  75%    { transform: translate(   0px,   30px); }
-  81.25% { transform: translate( -70px,   24px); }
-  87.5%  { transform: translate(-134px,    4px); }
-  93.75% { transform: translate(-181px,  -28px); }
-  100%   { transform: translate(-200px,  -70px); }
+  0%     { transform: translate(-170px,  -60px); }
+  6.25%  { transform: translate(-154px,   -5px); }
+  12.5%  { transform: translate(-114px,   37px); }
+  18.75% { transform: translate( -60px,   62px); }
+  25%    { transform: translate(   0px,   70px); }
+  31.25% { transform: translate(  60px,   62px); }
+  37.5%  { transform: translate( 114px,   37px); }
+  43.75% { transform: translate( 154px,   -5px); }
+  50%    { transform: translate( 170px,  -60px); }
+  56.25% { transform: translate( 154px,   -5px); }
+  62.5%  { transform: translate( 114px,   37px); }
+  68.75% { transform: translate(  60px,   62px); }
+  75%    { transform: translate(   0px,   70px); }
+  81.25% { transform: translate( -60px,   62px); }
+  87.5%  { transform: translate(-114px,   37px); }
+  93.75% { transform: translate(-154px,   -5px); }
+  100%   { transform: translate(-170px,  -60px); }
 }
 
 @keyframes skater-ramp-desktop {
-  0%     { transform: translate(-290px, -100px); }
-  6.25%  { transform: translate(-263px,  -37px); }
-  12.5%  { transform: translate(-194px,   12px); }
-  18.75% { transform: translate(-102px,   40px); }
-  25%    { transform: translate(   0px,   50px); }
-  31.25% { transform: translate( 102px,   40px); }
-  37.5%  { transform: translate( 194px,   12px); }
-  43.75% { transform: translate( 263px,  -37px); }
-  50%    { transform: translate( 290px, -100px); }
-  56.25% { transform: translate( 263px,  -37px); }
-  62.5%  { transform: translate( 194px,   12px); }
-  68.75% { transform: translate( 102px,   40px); }
-  75%    { transform: translate(   0px,   50px); }
-  81.25% { transform: translate(-102px,   40px); }
-  87.5%  { transform: translate(-194px,   12px); }
-  93.75% { transform: translate(-263px,  -37px); }
-  100%   { transform: translate(-290px, -100px); }
+  0%     { transform: translate(-240px,  -80px); }
+  6.25%  { transform: translate(-218px,   -4px); }
+  12.5%  { transform: translate(-160px,   54px); }
+  18.75% { transform: translate( -84px,   88px); }
+  25%    { transform: translate(   0px,  100px); }
+  31.25% { transform: translate(  84px,   88px); }
+  37.5%  { transform: translate( 160px,   54px); }
+  43.75% { transform: translate( 218px,   -4px); }
+  50%    { transform: translate( 240px,  -80px); }
+  56.25% { transform: translate( 218px,   -4px); }
+  62.5%  { transform: translate( 160px,   54px); }
+  68.75% { transform: translate(  84px,   88px); }
+  75%    { transform: translate(   0px,  100px); }
+  81.25% { transform: translate( -84px,   88px); }
+  87.5%  { transform: translate(-160px,   54px); }
+  93.75% { transform: translate(-218px,   -4px); }
+  100%   { transform: translate(-240px,  -80px); }
 }
