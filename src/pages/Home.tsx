@@ -66,7 +66,7 @@ export default function Home() {
             <img
               src="/images/brand/portal-logo-new-tight.png"
               alt="Portal Seattle Concrete"
-              className="block w-full h-auto relative z-10"
+              className="block w-full mx-auto h-auto sm:max-w-lg lg:max-w-xl relative z-10"
             />
           </div>
 
