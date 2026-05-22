@@ -121,18 +121,26 @@ body {
 
 @media (prefers-reduced-motion: no-preference) {
   .hero-skater {
-    animation: skater-ramp 14s ease-in-out infinite;
+    animation: skater-ramp 14s linear infinite;
   }
 }
 
-/* Ramp / halfpipe motion: lowest in the middle, peaks at each end.
-   Skater flips direction at each peak so they always face the way they're rolling. */
+/* Halfpipe motion: deep U-shape. Lowest (and fastest) in the middle,
+   slowest at the peaks where gravity is fighting them. Per-keyframe
+   easing simulates gravity — accelerating down, decelerating up. */
 @keyframes skater-ramp {
-  0%   { transform: translate(-44vw, -18px) scaleX(1); }   /* at left peak, facing right (just turned around) */
-  25%  { transform: translate(  0vw,   8px) scaleX(1); }   /* bottom of the bowl, rolling right */
-  44%  { transform: translate( 44vw, -18px) scaleX(1); }   /* arriving at right peak */
-  50%  { transform: translate( 44vw, -18px) scaleX(-1); }  /* flip at right peak */
-  75%  { transform: translate(  0vw,   8px) scaleX(-1); }  /* bottom of bowl, rolling left */
-  94%  { transform: translate(-44vw, -18px) scaleX(-1); }  /* arriving at left peak */
-  100% { transform: translate(-44vw, -18px) scaleX(1); }   /* flip back, matches start */
+  /* Descend right ramp (gaining speed) */
+  0%   { transform: translate(-44vw, -70px) scaleX(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4); }
+  /* Bottom of the bowl, rolling right (max speed) */
+  25%  { transform: translate(  0vw,   0px) scaleX(1); animation-timing-function: cubic-bezier(0.1, 0.6, 0.5, 1); }
+  /* Climbing right ramp (losing speed) */
+  44%  { transform: translate( 44vw, -70px) scaleX(1); animation-timing-function: linear; }
+  /* Pivot at right peak */
+  50%  { transform: translate( 44vw, -70px) scaleX(-1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4); }
+  /* Bottom rolling left (max speed) */
+  75%  { transform: translate(  0vw,   0px) scaleX(-1); animation-timing-function: cubic-bezier(0.1, 0.6, 0.5, 1); }
+  /* Climbing left ramp */
+  94%  { transform: translate(-44vw, -70px) scaleX(-1); animation-timing-function: linear; }
+  /* Pivot at left peak, return to start */
+  100% { transform: translate(-44vw, -70px) scaleX(1); }
 }
