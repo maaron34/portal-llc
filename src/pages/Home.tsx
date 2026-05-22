@@ -57,7 +57,7 @@ export default function Home() {
           <img
             src="/images/brand/portal-logo-new-tight.png"
             alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-6"
+            className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-3 sm:mb-4"
           />
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 sm:mb-12">
@@ -97,7 +97,7 @@ export default function Home() {
 
           <p className="text-portal-mid italic max-w-md mx-auto mb-8">
             "{SECTION_QUOTES[0].text}"{" "}
-            <span className="text-portal-accent font-medium not-italic">- {SECTION_QUOTES[0].author}</span>
+            <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[0].author}</span>
           </p>
 
           <p className="text-base sm:text-lg text-portal-mid mb-6 leading-relaxed">

@@ -23,15 +23,12 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" onClick={() => window.scrollTo({ top: 0 })} className="flex items-center gap-3 no-underline shrink-0">
             <img
-              src="/images/brand/portal-logo-new.jpeg"
-              alt="Portal"
-              className="h-10 sm:h-12 w-auto rounded"
+              src="/images/brand/portal-logo-new-tight.png"
+              alt="Portal Seattle Concrete"
+              className="h-10 sm:h-12 w-auto"
             />
             <div className="hidden lg:block">
-              <div className="text-lg font-bold text-portal-dark tracking-tight leading-tight">
-                Portal
-              </div>
-              <div className="text-xs text-portal-mid leading-tight">
+              <div className="text-sm text-portal-mid leading-tight">
                 Residential & Commercial Concrete
               </div>
             </div>
