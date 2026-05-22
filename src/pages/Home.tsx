@@ -31,18 +31,6 @@ function RevealStagger({ children, className = "" }: { children: React.ReactNode
   );
 }
 
-function SectionQuote({ quote }: { quote: typeof SECTION_QUOTES[number] }) {
-  return (
-    <div className="flex items-center justify-center gap-3 mb-10">
-      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
-      <p className="text-portal-mid italic text-center max-w-lg">
-        "{quote.text}" <span className="text-portal-accent font-medium not-italic">- {quote.author}</span>
-      </p>
-      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <>
