@@ -125,23 +125,26 @@ body {
   }
 }
 
-/* Halfpipe motion sized like the logo (~460px wide, ~400px tall).
-   Skater climbs to the height of the wordmark at the peaks and dips
-   below to the CTA area in the middle. Per-keyframe easing
-   simulates gravity — accelerating down, decelerating up. */
+/* Halfpipe motion — true elliptical arc traced via intermediate
+   waypoints (otherwise CSS interpolates straight lines and the
+   path reads as a V). Five waypoints per half-traversal sampled
+   at 45-degree intervals around the arc. Mostly constant speed;
+   only the segments next to the peaks have a gentle ease so the
+   turnaround doesn't feel abrupt. */
 @keyframes skater-ramp {
-  /* Descend right ramp (gaining speed) */
-  0%   { transform: translate(-230px, -380px) scaleX(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4); }
-  /* Bottom of the bowl, rolling right (max speed) */
-  25%  { transform: translate(   0px,    0px) scaleX(1); animation-timing-function: cubic-bezier(0.1, 0.6, 0.5, 1); }
-  /* Climbing right ramp (losing speed) */
-  44%  { transform: translate( 230px, -380px) scaleX(1); animation-timing-function: linear; }
+  /* --- Left peak → bottom → right peak --- */
+  0%   { transform: translate(-290px, -380px) scaleX(1);  animation-timing-function: ease-out; }
+  11%  { transform: translate(-205px, -111px) scaleX(1);  animation-timing-function: linear; }
+  22%  { transform: translate(   0px,    0px) scaleX(1);  animation-timing-function: linear; }
+  33%  { transform: translate( 205px, -111px) scaleX(1);  animation-timing-function: ease-in; }
+  44%  { transform: translate( 290px, -380px) scaleX(1);  animation-timing-function: linear; }
   /* Pivot at right peak */
-  50%  { transform: translate( 230px, -380px) scaleX(-1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4); }
-  /* Bottom rolling left (max speed) */
-  75%  { transform: translate(   0px,    0px) scaleX(-1); animation-timing-function: cubic-bezier(0.1, 0.6, 0.5, 1); }
-  /* Climbing left ramp */
-  94%  { transform: translate(-230px, -380px) scaleX(-1); animation-timing-function: linear; }
+  50%  { transform: translate( 290px, -380px) scaleX(-1); animation-timing-function: ease-out; }
+  /* --- Right peak → bottom → left peak --- */
+  61%  { transform: translate( 205px, -111px) scaleX(-1); animation-timing-function: linear; }
+  72%  { transform: translate(   0px,    0px) scaleX(-1); animation-timing-function: linear; }
+  83%  { transform: translate(-205px, -111px) scaleX(-1); animation-timing-function: ease-in; }
+  94%  { transform: translate(-290px, -380px) scaleX(-1); animation-timing-function: linear; }
   /* Pivot at left peak, return to start */
-  100% { transform: translate(-230px, -380px) scaleX(1); }
+  100% { transform: translate(-290px, -380px) scaleX(1); }
 }
