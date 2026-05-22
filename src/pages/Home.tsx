@@ -53,18 +53,22 @@ export default function Home() {
 
       {/* Hero — white background with slow-rotating spiral watermark */}
       <section className="bg-white relative overflow-hidden pt-20 pb-6 sm:pt-24 sm:pb-8">
-        <img
-          src="/images/brand/swirlie-logo.png"
-          alt=""
-          aria-hidden="true"
-          className="hero-spiral-bg"
-        />
-        <RevealStagger className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <img
-            src="/images/brand/portal-logo-new-tight.png"
-            alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-3 sm:mb-4"
-          />
+        <RevealStagger className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          {/* Logo + spiral watermark anchored together so the spiral
+              always sits behind the wordmark on every viewport */}
+          <div className="hero-logo-stack relative mx-auto w-full max-w-sm sm:max-w-xl lg:max-w-2xl mb-3 sm:mb-4">
+            <img
+              src="/images/brand/swirlie-logo.png"
+              alt=""
+              aria-hidden="true"
+              className="hero-spiral-bg"
+            />
+            <img
+              src="/images/brand/portal-logo-new-tight.png"
+              alt="Portal Seattle Concrete"
+              className="block w-full mx-auto h-auto sm:max-w-lg lg:max-w-xl relative z-10"
+            />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-5">
             <Link
