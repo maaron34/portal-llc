@@ -203,7 +203,6 @@ export default function Home() {
       <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-14">
-            <SectionQuote quote={SECTION_QUOTES[1]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               Concrete Repair & Reconditioning
             </h2>
@@ -278,6 +277,12 @@ export default function Home() {
               );
             })}
           </RevealStagger>
+          <Reveal className="text-center mt-14">
+            <p className="text-portal-mid italic max-w-md mx-auto">
+              "{SECTION_QUOTES[1].text}"{" "}
+              <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[1].author}</span>
+            </p>
+          </Reveal>
         </div>
       </section>
 
