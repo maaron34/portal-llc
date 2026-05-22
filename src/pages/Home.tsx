@@ -52,7 +52,7 @@ export default function Home() {
       />
 
       {/* Hero — white background with slow-rotating spiral watermark */}
-      <section className="bg-white relative overflow-hidden pt-12 pb-6 sm:pt-16 sm:pb-8">
+      <section className="bg-white relative overflow-hidden pt-20 pb-6 sm:pt-24 sm:pb-8">
         <img
           src="/images/brand/swirlie-logo.png"
           alt=""
@@ -66,7 +66,7 @@ export default function Home() {
             className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-3 sm:mb-4"
           />
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 sm:mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-5">
             <Link
               to="/contact"
               className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-portal-accent text-white font-bold text-lg rounded-lg no-underline hover:bg-portal-accent-dark transition-colors"
@@ -81,6 +81,20 @@ export default function Home() {
               View Our Work
             </Link>
           </div>
+
+          {/* Year-round callout */}
+          <Link
+            to="/year-round"
+            className="inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group mb-10 sm:mb-12"
+          >
+            <CloudRain size={18} className="text-amber-600 shrink-0" />
+            <span className="text-portal-dark text-sm">
+              We pour concrete year-round, rain or shine.{" "}
+              <span className="text-amber-700 font-semibold group-hover:underline">
+                Learn how
+              </span>
+            </span>
+          </Link>
 
           <h1 className="text-xs sm:text-sm font-semibold text-portal-mid uppercase tracking-[0.2em] mb-5">
             Seattle Concrete Contractor
@@ -105,24 +119,10 @@ export default function Home() {
             Driveways. Patios. Stairs. Retaining walls. Foundations.
           </p>
 
-          <p className="text-portal-mid italic max-w-md mx-auto mb-8">
+          <p className="text-portal-mid italic max-w-md mx-auto">
             "{SECTION_QUOTES[0].text}"{" "}
             <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[0].author}</span>
           </p>
-
-          {/* Year-round callout */}
-          <Link
-            to="/year-round"
-            className="inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group"
-          >
-            <CloudRain size={18} className="text-amber-600 shrink-0" />
-            <span className="text-portal-dark text-sm">
-              We pour concrete year-round, rain or shine.{" "}
-              <span className="text-amber-700 font-semibold group-hover:underline">
-                Learn how
-              </span>
-            </span>
-          </Link>
         </RevealStagger>
 
         {/* Trust bar absorbed into hero */}
@@ -255,7 +255,6 @@ export default function Home() {
       <section className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal>
-            <SectionQuote quote={SECTION_QUOTES[2]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-14 text-center">
               Why Homeowners Choose Portal
             </h2>
@@ -298,8 +297,12 @@ export default function Home() {
                 />
               ))}
             </div>
-            <p className="text-portal-mid">
+            <p className="text-portal-mid mb-6">
               {BUSINESS.rating} average on Google
+            </p>
+            <p className="text-portal-mid italic max-w-md mx-auto">
+              "{SECTION_QUOTES[2].text}"{" "}
+              <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[2].author}</span>
             </p>
           </Reveal>
           <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -342,7 +345,6 @@ export default function Home() {
       <section className="py-20 sm:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Reveal>
-            <SectionQuote quote={SECTION_QUOTES[3]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-12 text-center">
               Frequently Asked Questions
             </h2>
@@ -369,6 +371,12 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+          <Reveal className="text-center mt-12">
+            <p className="text-portal-mid italic max-w-md mx-auto">
+              "{SECTION_QUOTES[3].text}"{" "}
+              <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[3].author}</span>
+            </p>
+          </Reveal>
         </div>
       </section>
 

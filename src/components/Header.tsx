@@ -27,11 +27,6 @@ export default function Header() {
               alt="Portal Seattle Concrete"
               className="h-10 sm:h-12 w-auto"
             />
-            <div className="hidden lg:block">
-              <div className="text-sm text-portal-mid leading-tight">
-                Residential & Commercial Concrete
-              </div>
-            </div>
           </Link>
 
           {/* Desktop Nav */}
