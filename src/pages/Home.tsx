@@ -51,8 +51,8 @@ export default function Home() {
         schema={[generateLocalBusinessSchema(), generateFAQSchema()]}
       />
 
-      {/* Hero — logo on textured white, slow-rotating spiral watermark */}
-      <section className="hero-texture relative overflow-hidden pt-12 pb-10 sm:pt-16 sm:pb-12">
+      {/* Hero — white background with slow-rotating spiral watermark */}
+      <section className="bg-white relative overflow-hidden pt-12 pb-6 sm:pt-16 sm:pb-8">
         <img
           src="/images/brand/swirlie-logo.png"
           alt=""
@@ -101,13 +101,13 @@ export default function Home() {
             </span>
           </div>
 
+          <p className="text-base sm:text-lg text-portal-mid mb-5 leading-relaxed">
+            Driveways. Patios. Stairs. Retaining walls. Foundations.
+          </p>
+
           <p className="text-portal-mid italic max-w-md mx-auto mb-8">
             "{SECTION_QUOTES[0].text}"{" "}
             <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[0].author}</span>
-          </p>
-
-          <p className="text-base sm:text-lg text-portal-mid mb-6 leading-relaxed">
-            Driveways. Patios. Stairs. Retaining walls. Foundations.
           </p>
 
           {/* Year-round callout */}
@@ -149,7 +149,7 @@ export default function Home() {
       </section>
 
       {/* Services */}
-      <section className="pt-14 pb-20 sm:pt-16 sm:pb-28">
+      <section className="pt-6 pb-20 sm:pt-8 sm:pb-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-4">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
