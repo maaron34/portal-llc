@@ -62,13 +62,17 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
-/* Hero polish — slow-rotating spiral watermark centered behind the logo */
+/* Hero polish — slow-rotating spiral watermark behind the logo.
+   Now sized relative to .hero-logo-stack (the wrapper containing the
+   logo) so the spiral tracks the logo's position on every viewport
+   instead of centering on the whole hero section. */
 .hero-spiral-bg {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 720px;
-  height: 720px;
+  width: 170%;
+  height: auto;
+  aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
   opacity: 0.06;
   pointer-events: none;
@@ -78,8 +82,7 @@ body {
 
 @media (min-width: 1024px) {
   .hero-spiral-bg {
-    width: 920px;
-    height: 920px;
+    width: 200%;
   }
 }
 
@@ -95,15 +98,16 @@ body {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Hero skater — rides back and forth along the bottom of the hero,
-   independent of the spiral. Flips direction at each end. */
+/* Hero skater — anchored to the bottom of .hero-logo-stack
+   (logo bottom edge). Path scales between mobile and desktop so
+   the arc tracks the wordmark on every viewport. */
 .hero-skater {
   position: absolute;
-  bottom: 110px;
+  bottom: 0;
   left: 50%;
-  width: 56px;
+  width: 36px;
   height: auto;
-  margin-left: -28px;
+  margin-left: -18px;
   color: var(--color-portal-dark);
   opacity: 0.18;
   pointer-events: none;
@@ -111,26 +115,59 @@ body {
   z-index: 1;
 }
 
+@media (min-width: 640px) {
+  .hero-skater {
+    width: 56px;
+    margin-left: -28px;
+  }
+}
+
 @media (min-width: 1024px) {
   .hero-skater {
     width: 72px;
     margin-left: -36px;
-    bottom: 120px;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .hero-skater {
-    animation: skater-ramp 14s linear infinite;
+    animation: skater-ramp-mobile 14s linear infinite;
   }
 }
 
-/* Halfpipe motion — shallow elliptical arc with peaks just above
-   the wordmark and bottom raised to logo height (so we don't dip
-   way below). Sampled at 8 equal-arc-length intervals per half
-   traversal, all linear, no flip — skater is symmetric so it
-   doesn't need to face either direction. Single continuous loop. */
-@keyframes skater-ramp {
+@media (min-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .hero-skater {
+    animation-name: skater-ramp-desktop;
+  }
+}
+
+/* Mobile halfpipe — smaller arc that fits inside the section's
+   overflow:hidden on narrow viewports. Same equal-arc-length
+   sampling, just scaled ~70% of the desktop values. */
+@keyframes skater-ramp-mobile {
+  0%     { transform: translate(-180px, -260px); }
+  6.25%  { transform: translate(-163px, -194px); }
+  12.5%  { transform: translate(-120px, -143px); }
+  18.75% { transform: translate( -63px, -113px); }
+  25%    { transform: translate(   0px, -103px); }
+  31.25% { transform: translate(  63px, -113px); }
+  37.5%  { transform: translate( 120px, -143px); }
+  43.75% { transform: translate( 163px, -194px); }
+  50%    { transform: translate( 180px, -260px); }
+  56.25% { transform: translate( 163px, -194px); }
+  62.5%  { transform: translate( 120px, -143px); }
+  68.75% { transform: translate(  63px, -113px); }
+  75%    { transform: translate(   0px, -103px); }
+  81.25% { transform: translate( -63px, -113px); }
+  87.5%  { transform: translate(-120px, -143px); }
+  93.75% { transform: translate(-163px, -194px); }
+  100%   { transform: translate(-180px, -260px); }
+}
+
+/* Desktop halfpipe — peaks just above the wordmark, bottom near
+   the logo's own bottom. Sampled at 8 equal-arc-length intervals
+   per half traversal, no flip. */
+@keyframes skater-ramp-desktop {
   0%     { transform: translate(-290px, -380px); }
   6.25%  { transform: translate(-263px, -283px); }
   12.5%  { transform: translate(-194px, -209px); }

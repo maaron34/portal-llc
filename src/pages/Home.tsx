@@ -41,44 +41,47 @@ export default function Home() {
 
       {/* Hero — white background with slow-rotating spiral watermark + skater */}
       <section className="bg-white relative overflow-hidden pt-20 pb-6 sm:pt-24 sm:pb-8">
-        <img
-          src="/images/brand/swirlie-logo.png"
-          alt=""
-          aria-hidden="true"
-          className="hero-spiral-bg"
-        />
-        <svg
-          className="hero-skater"
-          viewBox="80 25 90 130"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          {/* Stick-figure skater — symmetric pose so no scaleX flip needed at direction changes. */}
-          <g stroke="currentColor" strokeWidth={4} strokeLinecap="round" fill="none">
-            <circle cx="125" cy="38" r="9" />
-            {/* Body — straight vertical */}
-            <line x1="125" y1="50" x2="125" y2="85" />
-            {/* Arms raised symmetrically up-and-out */}
-            <line x1="125" y1="58" x2="162" y2="30" />
-            <line x1="125" y1="58" x2="88" y2="30" />
-            {/* Legs spread symmetrically */}
-            <line x1="125" y1="85" x2="150" y2="130" />
-            <line x1="125" y1="85" x2="100" y2="130" />
-            {/* Skateboard */}
-            <line x1="88" y1="138" x2="162" y2="138" strokeWidth={6} />
-          </g>
-          {/* Wheels */}
-          <g fill="currentColor">
-            <circle cx="99" cy="146" r="4" />
-            <circle cx="151" cy="146" r="4" />
-          </g>
-        </svg>
-        <RevealStagger className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <img
-            src="/images/brand/portal-logo-new-tight.png"
-            alt="Portal Seattle Concrete"
-            className="mx-auto w-full max-w-sm sm:max-w-md h-auto mb-3 sm:mb-4"
-          />
+        <RevealStagger className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          {/* Logo with spiral watermark + skater anchored relative to its bounds */}
+          <div className="hero-logo-stack relative mx-auto w-full max-w-sm sm:max-w-md mb-3 sm:mb-4">
+            <img
+              src="/images/brand/swirlie-logo.png"
+              alt=""
+              aria-hidden="true"
+              className="hero-spiral-bg"
+            />
+            <svg
+              className="hero-skater"
+              viewBox="80 25 90 130"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              {/* Stick-figure skater — symmetric pose so no scaleX flip needed at direction changes. */}
+              <g stroke="currentColor" strokeWidth={4} strokeLinecap="round" fill="none">
+                <circle cx="125" cy="38" r="9" />
+                {/* Body — straight vertical */}
+                <line x1="125" y1="50" x2="125" y2="85" />
+                {/* Arms raised symmetrically up-and-out */}
+                <line x1="125" y1="58" x2="162" y2="30" />
+                <line x1="125" y1="58" x2="88" y2="30" />
+                {/* Legs spread symmetrically */}
+                <line x1="125" y1="85" x2="150" y2="130" />
+                <line x1="125" y1="85" x2="100" y2="130" />
+                {/* Skateboard */}
+                <line x1="88" y1="138" x2="162" y2="138" strokeWidth={6} />
+              </g>
+              {/* Wheels */}
+              <g fill="currentColor">
+                <circle cx="99" cy="146" r="4" />
+                <circle cx="151" cy="146" r="4" />
+              </g>
+            </svg>
+            <img
+              src="/images/brand/portal-logo-new-tight.png"
+              alt="Portal Seattle Concrete"
+              className="block w-full h-auto relative z-10"
+            />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-5">
             <Link
