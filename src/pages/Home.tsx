@@ -51,9 +51,15 @@ export default function Home() {
         schema={[generateLocalBusinessSchema(), generateFAQSchema()]}
       />
 
-      {/* Hero — logo on white, content centered below */}
-      <section className="bg-white pt-12 pb-10 sm:pt-16 sm:pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      {/* Hero — logo on textured white, slow-rotating spiral watermark */}
+      <section className="hero-texture relative overflow-hidden pt-12 pb-10 sm:pt-16 sm:pb-12">
+        <img
+          src="/images/brand/swirlie-logo.png"
+          alt=""
+          aria-hidden="true"
+          className="hero-spiral-bg"
+        />
+        <RevealStagger className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <img
             src="/images/brand/portal-logo-new-tight.png"
             alt="Portal Seattle Concrete"
@@ -117,10 +123,10 @@ export default function Home() {
               </span>
             </span>
           </Link>
-        </div>
+        </RevealStagger>
 
         {/* Trust bar absorbed into hero */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-12 sm:mt-14 pt-8 border-t border-portal-dark/10">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 mt-12 sm:mt-14 pt-8 border-t border-portal-dark/10">
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm font-medium text-portal-mid uppercase tracking-wide">
             <span className="flex items-center gap-2">
               <CheckCircle size={16} className="text-portal-accent" />
