@@ -62,3 +62,35 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
+/* Hero polish — slow-rotating spiral watermark centered behind the logo */
+.hero-spiral-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 720px;
+  height: 720px;
+  transform: translate(-50%, -50%);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+@media (min-width: 1024px) {
+  .hero-spiral-bg {
+    width: 920px;
+    height: 920px;
+  }
+}
+
+/* Slow rotation for the spiral watermark — barely perceptible */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-spiral-bg {
+    animation: spiral-rotate 90s linear infinite;
+  }
+}
+
+@keyframes spiral-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
