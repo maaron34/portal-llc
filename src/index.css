@@ -125,26 +125,27 @@ body {
   }
 }
 
-/* Halfpipe motion — true elliptical arc traced via intermediate
-   waypoints (otherwise CSS interpolates straight lines and the
-   path reads as a V). Five waypoints per half-traversal sampled
-   at 45-degree intervals around the arc. Mostly constant speed;
-   only the segments next to the peaks have a gentle ease so the
-   turnaround doesn't feel abrupt. */
+/* Halfpipe motion — shallow elliptical arc with peaks just above
+   the wordmark and bottom raised to logo height (so we don't dip
+   way below). Sampled at 8 equal-arc-length intervals per half
+   traversal, all linear, no flip — skater is symmetric so it
+   doesn't need to face either direction. Single continuous loop. */
 @keyframes skater-ramp {
-  /* --- Left peak → bottom → right peak --- */
-  0%   { transform: translate(-290px, -380px) scaleX(1);  animation-timing-function: ease-out; }
-  11%  { transform: translate(-205px, -111px) scaleX(1);  animation-timing-function: linear; }
-  22%  { transform: translate(   0px,    0px) scaleX(1);  animation-timing-function: linear; }
-  33%  { transform: translate( 205px, -111px) scaleX(1);  animation-timing-function: ease-in; }
-  44%  { transform: translate( 290px, -380px) scaleX(1);  animation-timing-function: linear; }
-  /* Pivot at right peak */
-  50%  { transform: translate( 290px, -380px) scaleX(-1); animation-timing-function: ease-out; }
-  /* --- Right peak → bottom → left peak --- */
-  61%  { transform: translate( 205px, -111px) scaleX(-1); animation-timing-function: linear; }
-  72%  { transform: translate(   0px,    0px) scaleX(-1); animation-timing-function: linear; }
-  83%  { transform: translate(-205px, -111px) scaleX(-1); animation-timing-function: ease-in; }
-  94%  { transform: translate(-290px, -380px) scaleX(-1); animation-timing-function: linear; }
-  /* Pivot at left peak, return to start */
-  100% { transform: translate(-290px, -380px) scaleX(1); }
+  0%     { transform: translate(-290px, -380px); }
+  6.25%  { transform: translate(-263px, -283px); }
+  12.5%  { transform: translate(-194px, -209px); }
+  18.75% { transform: translate(-102px, -165px); }
+  25%    { transform: translate(   0px, -150px); }
+  31.25% { transform: translate( 102px, -165px); }
+  37.5%  { transform: translate( 194px, -209px); }
+  43.75% { transform: translate( 263px, -283px); }
+  50%    { transform: translate( 290px, -380px); }
+  56.25% { transform: translate( 263px, -283px); }
+  62.5%  { transform: translate( 194px, -209px); }
+  68.75% { transform: translate( 102px, -165px); }
+  75%    { transform: translate(   0px, -150px); }
+  81.25% { transform: translate(-102px, -165px); }
+  87.5%  { transform: translate(-194px, -209px); }
+  93.75% { transform: translate(-263px, -283px); }
+  100%   { transform: translate(-290px, -380px); }
 }

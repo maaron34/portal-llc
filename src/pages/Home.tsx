@@ -53,24 +53,21 @@ export default function Home() {
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          {/* Stick-figure skater, both arms raised. Faces right; CSS scaleX flips on direction change. */}
+          {/* Stick-figure skater — symmetric pose so no scaleX flip needed at direction changes. */}
           <g stroke="currentColor" strokeWidth={4} strokeLinecap="round" fill="none">
-            {/* Head (outlined) */}
-            <circle cx="122" cy="38" r="9" />
-            {/* Body */}
-            <line x1="124" y1="50" x2="128" y2="82" />
-            {/* Right arm raised up-and-forward */}
-            <line x1="127" y1="56" x2="162" y2="30" />
-            {/* Left arm raised up-and-back */}
-            <line x1="124" y1="56" x2="88" y2="36" />
-            {/* Right leg */}
-            <line x1="128" y1="82" x2="150" y2="130" />
-            {/* Left leg */}
-            <line x1="128" y1="82" x2="102" y2="130" />
+            <circle cx="125" cy="38" r="9" />
+            {/* Body — straight vertical */}
+            <line x1="125" y1="50" x2="125" y2="85" />
+            {/* Arms raised symmetrically up-and-out */}
+            <line x1="125" y1="58" x2="162" y2="30" />
+            <line x1="125" y1="58" x2="88" y2="30" />
+            {/* Legs spread symmetrically */}
+            <line x1="125" y1="85" x2="150" y2="130" />
+            <line x1="125" y1="85" x2="100" y2="130" />
             {/* Skateboard */}
             <line x1="88" y1="138" x2="162" y2="138" strokeWidth={6} />
           </g>
-          {/* Wheels — solid */}
+          {/* Wheels */}
           <g fill="currentColor">
             <circle cx="99" cy="146" r="4" />
             <circle cx="151" cy="146" r="4" />
