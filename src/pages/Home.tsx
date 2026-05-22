@@ -49,33 +49,31 @@ export default function Home() {
         />
         <svg
           className="hero-skater"
-          viewBox="90 25 90 130"
+          viewBox="80 25 90 130"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          {/* Stick-figure skater — inked-line style to match the spiral.
-              Faces right by default; CSS flips on direction change. */}
-          <g stroke="currentColor" strokeWidth={5} strokeLinecap="round" fill="none">
+          {/* Stick-figure skater, both arms raised. Faces right; CSS scaleX flips on direction change. */}
+          <g stroke="currentColor" strokeWidth={4} strokeLinecap="round" fill="none">
+            {/* Head (outlined) */}
+            <circle cx="122" cy="38" r="9" />
             {/* Body */}
-            <line x1="122" y1="50" x2="125" y2="88" />
-            {/* Back arm */}
-            <line x1="124" y1="60" x2="100" y2="70" />
-            {/* Front arm */}
-            <line x1="124" y1="60" x2="152" y2="68" />
-            {/* Back leg */}
-            <line x1="125" y1="88" x2="112" y2="110" />
-            <line x1="112" y1="110" x2="118" y2="132" />
-            {/* Front leg */}
-            <line x1="125" y1="88" x2="140" y2="108" />
-            <line x1="140" y1="108" x2="148" y2="130" />
+            <line x1="124" y1="50" x2="128" y2="82" />
+            {/* Right arm raised up-and-forward */}
+            <line x1="127" y1="56" x2="162" y2="30" />
+            {/* Left arm raised up-and-back */}
+            <line x1="124" y1="56" x2="88" y2="36" />
+            {/* Right leg */}
+            <line x1="128" y1="82" x2="150" y2="130" />
+            {/* Left leg */}
+            <line x1="128" y1="82" x2="102" y2="130" />
             {/* Skateboard */}
-            <line x1="100" y1="138" x2="170" y2="138" strokeWidth={7} />
+            <line x1="88" y1="138" x2="162" y2="138" strokeWidth={6} />
           </g>
-          {/* Head + wheels — solid */}
+          {/* Wheels — solid */}
           <g fill="currentColor">
-            <circle cx="122" cy="40" r="10" />
-            <circle cx="107" cy="147" r="5" />
-            <circle cx="163" cy="147" r="5" />
+            <circle cx="99" cy="146" r="4" />
+            <circle cx="151" cy="146" r="4" />
           </g>
         </svg>
         <RevealStagger className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">

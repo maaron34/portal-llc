@@ -121,14 +121,18 @@ body {
 
 @media (prefers-reduced-motion: no-preference) {
   .hero-skater {
-    animation: skater-roll 14s ease-in-out infinite;
+    animation: skater-ramp 14s ease-in-out infinite;
   }
 }
 
-@keyframes skater-roll {
-  0%   { transform: translateX(-44vw) scaleX(1); }
-  44%  { transform: translateX( 44vw) scaleX(1); }
-  50%  { transform: translateX( 44vw) scaleX(-1); }
-  94%  { transform: translateX(-44vw) scaleX(-1); }
-  100% { transform: translateX(-44vw) scaleX(1); }
+/* Ramp / halfpipe motion: lowest in the middle, peaks at each end.
+   Skater flips direction at each peak so they always face the way they're rolling. */
+@keyframes skater-ramp {
+  0%   { transform: translate(-44vw, -18px) scaleX(1); }   /* at left peak, facing right (just turned around) */
+  25%  { transform: translate(  0vw,   8px) scaleX(1); }   /* bottom of the bowl, rolling right */
+  44%  { transform: translate( 44vw, -18px) scaleX(1); }   /* arriving at right peak */
+  50%  { transform: translate( 44vw, -18px) scaleX(-1); }  /* flip at right peak */
+  75%  { transform: translate(  0vw,   8px) scaleX(-1); }  /* bottom of bowl, rolling left */
+  94%  { transform: translate(-44vw, -18px) scaleX(-1); }  /* arriving at left peak */
+  100% { transform: translate(-44vw, -18px) scaleX(1); }   /* flip back, matches start */
 }
