@@ -56,7 +56,7 @@ export default function Home() {
         <RevealStagger className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           {/* Logo + spiral watermark anchored together so the spiral
               always sits behind the wordmark on every viewport */}
-          <div className="hero-logo-stack relative mx-auto w-full max-w-sm sm:max-w-md mb-3 sm:mb-4">
+          <div className="hero-logo-stack relative mx-auto w-full max-w-sm sm:max-w-lg mb-3 sm:mb-4">
             <img
               src="/images/brand/swirlie-logo.png"
               alt=""
