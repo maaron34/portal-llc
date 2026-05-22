@@ -94,3 +94,41 @@ body {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
+
+/* Hero skater — rides back and forth along the bottom of the hero,
+   independent of the spiral. Flips direction at each end. */
+.hero-skater {
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  width: 56px;
+  height: auto;
+  margin-left: -28px;
+  color: var(--color-portal-dark);
+  opacity: 0.18;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .hero-skater {
+    width: 72px;
+    margin-left: -36px;
+    bottom: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-skater {
+    animation: skater-roll 14s ease-in-out infinite;
+  }
+}
+
+@keyframes skater-roll {
+  0%   { transform: translateX(-44vw) scaleX(1); }
+  44%  { transform: translateX( 44vw) scaleX(1); }
+  50%  { transform: translateX( 44vw) scaleX(-1); }
+  94%  { transform: translateX(-44vw) scaleX(-1); }
+  100% { transform: translateX(-44vw) scaleX(1); }
+}
