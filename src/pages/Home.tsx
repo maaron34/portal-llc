@@ -31,18 +31,6 @@ function RevealStagger({ children, className = "" }: { children: React.ReactNode
   );
 }
 
-function SectionQuote({ quote }: { quote: typeof SECTION_QUOTES[number] }) {
-  return (
-    <div className="flex items-center justify-center gap-3 mb-10">
-      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
-      <p className="text-portal-mid italic text-center max-w-lg">
-        "{quote.text}" <span className="text-portal-accent font-medium not-italic">- {quote.author}</span>
-      </p>
-      <div className="hidden sm:block w-8 h-px bg-portal-accent/30" />
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <>
@@ -63,6 +51,27 @@ export default function Home() {
               aria-hidden="true"
               className="hero-spiral-bg"
             />
+            <svg
+              className="hero-skater"
+              viewBox="80 25 90 130"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              {/* Stick-figure skater — symmetric, both arms up, no flip needed at turnarounds */}
+              <g stroke="currentColor" strokeWidth={4} strokeLinecap="round" fill="none">
+                <circle cx="125" cy="38" r="9" />
+                <line x1="125" y1="50" x2="125" y2="85" />
+                <line x1="125" y1="58" x2="162" y2="30" />
+                <line x1="125" y1="58" x2="88" y2="30" />
+                <line x1="125" y1="85" x2="150" y2="130" />
+                <line x1="125" y1="85" x2="100" y2="130" />
+                <line x1="88" y1="138" x2="162" y2="138" strokeWidth={6} />
+              </g>
+              <g fill="currentColor">
+                <circle cx="99" cy="146" r="4" />
+                <circle cx="151" cy="146" r="4" />
+              </g>
+            </svg>
             <img
               src="/images/brand/portal-logo-new-tight.png"
               alt="Portal Seattle Concrete"
@@ -207,7 +216,6 @@ export default function Home() {
       <section className="py-20 sm:py-28 bg-portal-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center mb-14">
-            <SectionQuote quote={SECTION_QUOTES[1]} />
             <h2 className="text-3xl sm:text-4xl font-extrabold text-portal-dark mb-4">
               Concrete Repair & Reconditioning
             </h2>
@@ -282,6 +290,12 @@ export default function Home() {
               );
             })}
           </RevealStagger>
+          <Reveal className="text-center mt-14">
+            <p className="text-portal-mid italic max-w-md mx-auto">
+              "{SECTION_QUOTES[1].text}"{" "}
+              <span className="text-portal-accent font-medium not-italic whitespace-nowrap">- {SECTION_QUOTES[1].author}</span>
+            </p>
+          </Reveal>
         </div>
       </section>
 
