@@ -88,7 +88,7 @@ export default function Home() {
 
           {/* Year-round callout */}
           <Link
-            to="/year-round"
+            to="/year-round/"
             className="inline-flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-300 rounded-lg no-underline hover:bg-amber-100 transition-colors group mb-10 sm:mb-12"
           >
             <CloudRain size={18} className="text-amber-600 shrink-0" />
@@ -365,7 +365,7 @@ export default function Home() {
                     {faq.question.includes("rain") && (
                       <>
                         {" "}
-                        <Link to="/year-round" className="text-portal-accent font-semibold hover:text-portal-accent-dark transition-colors">
+                        <Link to="/year-round/" className="text-portal-accent font-semibold hover:text-portal-accent-dark transition-colors">
                           Learn more about our all-weather process.
                         </Link>
                       </>
