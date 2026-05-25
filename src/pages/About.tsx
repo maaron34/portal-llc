@@ -208,15 +208,6 @@ export default function About() {
                 referrals from past customers; that doesn't happen if the
                 last job ended badly.
               </p>
-              <p>
-                "Portal Seattle Concrete" is the d/b/a Portal LLC filed with
-                the Washington Department of Revenue in May 2026 — same
-                company, same owner, same crew, registered to put "Seattle"
-                in the name where customers can see it. Some of the
-                contractors ranking ahead of us on Google did the same thing
-                by editing their business listing instead of filing
-                paperwork; we did it the right way.
-              </p>
             </div>
 
             <div className="lg:col-span-2">
@@ -239,6 +230,9 @@ export default function About() {
                 <p className="text-sm text-portal-mid mt-2">
                   {BUSINESS.reviewCount}+ five-star reviews from Seattle
                   homeowners.
+                </p>
+                <p className="text-xs text-portal-mid/70 mt-3 pt-3 border-t border-portal-mid/10">
+                  Portal LLC d/b/a Portal Seattle Concrete (WA DOR, 2026).
                 </p>
               </div>
               <div className="mt-6">
