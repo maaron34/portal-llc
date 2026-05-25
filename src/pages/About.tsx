@@ -59,7 +59,7 @@ const ABOUT_PAGE = {
   "@type": "AboutPage",
   "@id": "https://buildwithportal.com/about/#aboutpage",
   url: "https://buildwithportal.com/about/",
-  name: "About Portal",
+  name: "About Portal Seattle Concrete",
   description: PAGE_SEO.about.description,
   mainEntity: { "@id": "https://buildwithportal.com/about/#chris-hildebrand" },
   isPartOf: { "@id": BUSINESS.url },
@@ -103,7 +103,7 @@ export default function About() {
       <section className="py-16 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-portal-dark mb-4">
-            About Portal
+            About Portal Seattle Concrete
           </h1>
           <p className="text-portal-mid text-lg mb-12">
             Seattle residential concrete contractor. Family operation,
