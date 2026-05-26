@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Phone, Mail, Clock, Instagram, MapPin } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
@@ -6,10 +6,36 @@ import { BUSINESS, SERVICE_AREAS } from "../data/content";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
+type Utm = {
+  source: string;
+  medium: string;
+  campaign: string;
+  term: string;
+  content: string;
+};
+
+const EMPTY_UTM: Utm = { source: "", medium: "", campaign: "", term: "", content: "" };
+
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  // Captured on mount so the form submission preserves attribution even if
+  // the user clears the URL bar before submitting. Each non-empty UTM is
+  // also forwarded into the GA4 generate_lead event below for reporting.
+  const [utm, setUtm] = useState<Utm>(EMPTY_UTM);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setUtm({
+      source: params.get("utm_source") || "",
+      medium: params.get("utm_medium") || "",
+      campaign: params.get("utm_campaign") || "",
+      term: params.get("utm_term") || "",
+      content: params.get("utm_content") || "",
+    });
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,19 +51,30 @@ export default function Contact() {
     const neighborhood = formData.get("neighborhood") as string;
     const message = formData.get("message") as string;
 
+    // Subject includes the source so Chris can eyeball attribution from the
+    // email notification alone, without opening any analytics dashboard.
+    const sourceSuffix = utm.source ? ` (via ${utm.source})` : "";
+
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
-          subject: `Website Inquiry from ${name}`,
+          subject: `Website Inquiry from ${name}${sourceSuffix}`,
           from_name: "Portal LLC Website",
           name,
           email,
           phone: phone || "Not provided",
           address: neighborhood || "Not provided",
           message,
+          utm_source: utm.source || "(direct)",
+          utm_medium: utm.medium || "(none)",
+          utm_campaign: utm.campaign || "(none)",
+          utm_term: utm.term || "",
+          utm_content: utm.content || "",
+          landing_url: typeof window !== "undefined" ? window.location.href : "",
+          referrer: typeof document !== "undefined" ? document.referrer : "",
         }),
       });
 
@@ -47,6 +84,12 @@ export default function Contact() {
           (window as any).gtag("event", "generate_lead", {
             event_category: "form",
             event_label: "contact_page",
+            // Surface UTMs on the event so GA4 reports can slice form-fills
+            // by source/medium/campaign — survives even if the GA4 session
+            // attribution model loses context across sessions.
+            source: utm.source || undefined,
+            medium: utm.medium || undefined,
+            campaign: utm.campaign || undefined,
           });
         }
         setSubmitted(true);
