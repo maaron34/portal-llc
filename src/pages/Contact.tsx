@@ -92,6 +92,25 @@ export default function Contact() {
             campaign: utm.campaign || undefined,
           });
         }
+
+        // Fire-and-forget: add the subscriber to MailerLite's "Portal Leads"
+        // group so the 5-email nurture automation kicks in. Don't await — the
+        // user already has their thank-you from the Web3Forms success, and
+        // Chris's notification email is in flight. If MailerLite is slow or
+        // down, the lead is recoverable from Web3Forms logs; we don't want
+        // to surface an error here that obscures the primary success state.
+        fetch("/.netlify/functions/add-to-mailerlite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            utm_source: utm.source,
+            utm_medium: utm.medium,
+            utm_campaign: utm.campaign,
+          }),
+        }).catch((err) => console.warn("MailerLite add failed:", err));
+
         setSubmitted(true);
       } else {
         setError("Something went wrong. Please call or email us directly.");
