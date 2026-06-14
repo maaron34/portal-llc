@@ -3,6 +3,7 @@ import { CheckCircle2, Gift, Users } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS } from "../data/content";
+import { attributionPayload } from "../lib/attribution";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -81,13 +82,14 @@ export default function Refer() {
           project_type: projectType,
           notes,
           message: messageBlock,
+          ...attributionPayload(),
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        if (typeof window !== "undefined" && (window as any).gtag) {
-          (window as any).gtag("event", "generate_lead", {
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "generate_lead", {
             event_category: "form",
             event_label: `refer_${direction}`,
           });
