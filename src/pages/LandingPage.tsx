@@ -34,21 +34,21 @@ function isQualifiedLead(data: FormData): boolean {
 
 function firePixelEvents(data: FormData) {
   // Meta Pixel: always fire Lead event on form submit
-  if (typeof window !== "undefined" && (window as any).fbq) {
-    (window as any).fbq("track", "Lead");
+  if (typeof window !== "undefined" && window.fbq) {
+    window.fbq("track", "Lead");
   }
 
   // Only fire QualifiedLead for leads that pass MQL filter
   if (isQualifiedLead(data)) {
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      (window as any).fbq("trackCustom", "QualifiedLead", {
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq("trackCustom", "QualifiedLead", {
         projectType: data.projectType,
         timeline: data.timeline,
       });
     }
     // GA4 custom event
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "qualified_lead", {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "qualified_lead", {
         project_type: data.projectType,
         timeline: data.timeline,
       });
@@ -56,8 +56,8 @@ function firePixelEvents(data: FormData) {
   }
 
   // GA4: always track form submission
-  if (typeof window !== "undefined" && (window as any).gtag) {
-    (window as any).gtag("event", "generate_lead", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "generate_lead", {
       event_category: "form",
       event_label: "landing_page",
     });

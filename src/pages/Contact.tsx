@@ -80,8 +80,8 @@ export default function Contact() {
 
       const data = await res.json();
       if (data.success) {
-        if (typeof window !== "undefined" && (window as any).gtag) {
-          (window as any).gtag("event", "generate_lead", {
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "generate_lead", {
             event_category: "form",
             event_label: "contact_page",
             // Surface UTMs on the event so GA4 reports can slice form-fills

@@ -86,8 +86,8 @@ export default function Refer() {
 
       const data = await res.json();
       if (data.success) {
-        if (typeof window !== "undefined" && (window as any).gtag) {
-          (window as any).gtag("event", "generate_lead", {
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "generate_lead", {
             event_category: "form",
             event_label: `refer_${direction}`,
           });
