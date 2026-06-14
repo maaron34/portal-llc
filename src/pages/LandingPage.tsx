@@ -12,6 +12,7 @@ import {
 import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
+import { attributionPayload } from "../lib/attribution";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -280,6 +281,7 @@ export default function LandingPage() {
           timeline: data.timeline || "Not specified",
           message: data.message || "No additional details",
           source: `Landing Page - ${page.headline}`,
+          ...attributionPayload(),
         }),
       });
 

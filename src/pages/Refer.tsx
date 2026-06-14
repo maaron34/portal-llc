@@ -3,6 +3,7 @@ import { CheckCircle2, Gift, Users } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS } from "../data/content";
+import { attributionPayload } from "../lib/attribution";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -81,6 +82,7 @@ export default function Refer() {
           project_type: projectType,
           notes,
           message: messageBlock,
+          ...attributionPayload(),
         }),
       });
 

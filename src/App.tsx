@@ -14,6 +14,7 @@ import Refer from "./pages/Refer";
 import YearRound from "./pages/YearRound";
 import LandingPage from "./pages/LandingPage";
 import NeighborhoodPage from "./pages/NeighborhoodPage";
+import { captureAttribution } from "./lib/attribution";
 
 function scrollToHashOrTop(hash: string | null) {
   if (hash) {
@@ -97,6 +98,13 @@ function ScrollToTop() {
 }
 
 function AppRoutes() {
+  // Capture first-touch lead attribution once on initial load, before any
+  // client-side navigation drops the query string. Lives here (not in the
+  // scroll helper) so the lead-tracking entrypoint is easy to find.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
   return (
     <>
       <ScrollToTop />
