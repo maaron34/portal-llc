@@ -33,6 +33,22 @@ export default function Contact() {
     const attribution = attributionPayload();
     const sourceSuffix = ` (${attribution.lead_source})`;
 
+    // Canonical lead record -> Supabase via our Netlify function. Fired
+    // independent of Web3Forms so the system-of-record captures every submit
+    // even if the email relay hiccups. Fire-and-forget: never blocks the UI.
+    fetch("/.netlify/functions/submit-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        address: neighborhood,
+        message,
+        ...attribution,
+      }),
+    }).catch((err) => console.warn("Supabase lead capture failed:", err));
+
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",

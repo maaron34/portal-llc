@@ -265,6 +265,27 @@ export default function LandingPage() {
     // Fire pixel events based on MQL qualification
     firePixelEvents(data);
 
+    // Canonical lead record -> Supabase via our Netlify function. Fired
+    // independent of Web3Forms so the system-of-record captures every submit.
+    // Fire-and-forget: never blocks the UI. project_type / timeline / owner
+    // status ride along in the lead's `raw` until we promote them to columns.
+    fetch("/.netlify/functions/submit-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        message: data.message,
+        project_type: data.projectType,
+        timeline: data.timeline,
+        owner_status: data.ownerStatus,
+        source: `Landing Page - ${page.headline}`,
+        ...attributionPayload(),
+      }),
+    }).catch((err) => console.warn("Supabase lead capture failed:", err));
+
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
