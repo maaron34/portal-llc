@@ -137,7 +137,7 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
  * deliberately separate from the site's existing lead-notification email.
  */
 async function emailDraftToChris(payload: LeadPayload, draft: string): Promise<void> {
-  const who = payload.name || payload.email || "a new lead";
+  const who = payload.name || payload.email || payload.phone || "a new lead";
   const message = [
     `Ready-to-send reply for ${who}:`,
     "",
@@ -199,10 +199,11 @@ export default async (request: Request): Promise<Response> => {
 
   const email = (payload.email || "").trim();
   const name = (payload.name || "").trim();
-  // Require at least a name or email so direct hits from bots don't store
-  // empty rows.
-  if (!email && !name) {
-    return json({ error: "Lead needs at least a name or email" }, 400);
+  const phone = (payload.phone || "").trim();
+  // Require at least a name, email, or phone so direct hits from bots don't
+  // store empty rows. QUO/SMS leads often arrive with only a phone number.
+  if (!email && !name && !phone) {
+    return json({ error: "Lead needs a name, email, or phone" }, 400);
   }
 
   // Preview mode: generate the reply draft only — no insert, no email. Lets us
@@ -216,7 +217,7 @@ export default async (request: Request): Promise<Response> => {
   const row = {
     name: name || null,
     email: email || null,
-    phone: (payload.phone || "").trim() || null,
+    phone: phone || null,
     address: (payload.address || "").trim() || null,
     message: (payload.message || "").trim() || null,
     lead_source: payload.lead_source || null,
@@ -230,7 +231,7 @@ export default async (request: Request): Promise<Response> => {
     http_referrer: payload.http_referrer || null,
     landing_page: payload.landing_page || null,
     channel: payload.channel || "website",
-    dedupe_key: email ? email.toLowerCase() : null,
+    dedupe_key: email ? email.toLowerCase() : phone || null,
     raw: payload,
   };
 
