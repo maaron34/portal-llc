@@ -160,6 +160,10 @@ async function emailDraftToChris(payload: LeadPayload, draft: string): Promise<v
         access_key: WEB3FORMS_KEY,
         subject: `Ready reply for ${who}`,
         from_name: "Portal Lead Assistant",
+        // Temporary during onboarding: CC Michael so he can see the lead
+        // emails Chris receives. Remove when Chris is running solo.
+        // (ccemail is a Web3Forms Pro feature; no-op on the free tier.)
+        ccemail: "michael@appliedgpt.ai",
         message,
       }),
     });
