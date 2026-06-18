@@ -136,8 +136,11 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
  * the site uses (delivers to Chris's configured inbox). Best-effort and
  * deliberately separate from the site's existing lead-notification email.
  */
-async function emailDraftToChris(payload: LeadPayload, draft: string): Promise<void> {
+async function emailDraftToChris(payload: LeadPayload, draft: string, leadId?: string): Promise<void> {
   const who = payload.name || payload.email || payload.phone || "a new lead";
+  const vcardLink = leadId
+    ? `https://buildwithportal.com/.netlify/functions/vcard?id=${leadId}`
+    : "";
   const message = [
     `Ready-to-send reply for ${who}:`,
     "",
@@ -148,6 +151,7 @@ async function emailDraftToChris(payload: LeadPayload, draft: string): Promise<v
     payload.phone ? `Phone: ${payload.phone}` : "",
     payload.address ? `Address: ${payload.address}` : "",
     payload.project_type ? `Project: ${payload.project_type}` : "",
+    vcardLink ? `Add ${who} to your contacts (tap on your phone): ${vcardLink}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -263,7 +267,7 @@ export default async (request: Request): Promise<Response> => {
     // Best-effort: draft a paste-ready reply and email it to Chris, separate
     // from the site's existing lead-notification email. Never fails capture.
     const draft = await draftReply(payload);
-    if (draft) await emailDraftToChris(payload, draft);
+    if (draft) await emailDraftToChris(payload, draft, id);
 
     return json({ ok: true, id, drafted: Boolean(draft) }, 200);
   } catch (err) {
