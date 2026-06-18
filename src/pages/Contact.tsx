@@ -4,6 +4,7 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { attributionPayload } from "../lib/attribution";
+import { captureLead } from "../lib/lead-capture";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -33,21 +34,9 @@ export default function Contact() {
     const attribution = attributionPayload();
     const sourceSuffix = ` (${attribution.lead_source})`;
 
-    // Canonical lead record -> Supabase via our Netlify function. Fired
-    // independent of Web3Forms so the system-of-record captures every submit
-    // even if the email relay hiccups. Fire-and-forget: never blocks the UI.
-    fetch("/.netlify/functions/submit-lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        phone,
-        address: neighborhood,
-        message,
-        ...attribution,
-      }),
-    }).catch((err) => console.warn("Supabase lead capture failed:", err));
+    // Canonical lead record -> Supabase (system-of-record), fired independent
+    // of Web3Forms so every submit is captured even if the email relay hiccups.
+    captureLead({ name, email, phone, address: neighborhood, message, ...attribution });
 
     try {
       const res = await fetch("https://api.web3forms.com/submit", {

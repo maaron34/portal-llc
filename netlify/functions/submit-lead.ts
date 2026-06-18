@@ -64,6 +64,13 @@ export default async (request: Request): Promise<Response> => {
     return json({ error: "Server config missing" }, 500);
   }
 
+  // Cap payload size (a lead form is well under 50 KB) so the open endpoint
+  // can't be used to exhaust function memory with a giant body.
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > 50_000) {
+    return json({ error: "Payload too large" }, 413);
+  }
+
   let payload: LeadPayload;
   try {
     payload = await request.json();

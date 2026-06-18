@@ -13,6 +13,7 @@ import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
 import { attributionPayload } from "../lib/attribution";
+import { captureLead } from "../lib/lead-capture";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -265,26 +266,21 @@ export default function LandingPage() {
     // Fire pixel events based on MQL qualification
     firePixelEvents(data);
 
-    // Canonical lead record -> Supabase via our Netlify function. Fired
-    // independent of Web3Forms so the system-of-record captures every submit.
-    // Fire-and-forget: never blocks the UI. project_type / timeline / owner
-    // status ride along in the lead's `raw` until we promote them to columns.
-    fetch("/.netlify/functions/submit-lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        message: data.message,
-        project_type: data.projectType,
-        timeline: data.timeline,
-        owner_status: data.ownerStatus,
-        source: `Landing Page - ${page.headline}`,
-        ...attributionPayload(),
-      }),
-    }).catch((err) => console.warn("Supabase lead capture failed:", err));
+    // Canonical lead record -> Supabase (system-of-record), fired independent
+    // of Web3Forms. project_type / timeline / owner_status / source ride along
+    // in the lead's `raw` until we promote them to columns.
+    captureLead({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      message: data.message,
+      project_type: data.projectType,
+      timeline: data.timeline,
+      owner_status: data.ownerStatus,
+      source: `Landing Page - ${page.headline}`,
+      ...attributionPayload(),
+    });
 
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
