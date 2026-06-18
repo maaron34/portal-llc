@@ -91,9 +91,9 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
     "details. Output ONLY the reply body — no subject line, no bracketed " +
     "placeholders — and sign off as Chris.";
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -111,7 +111,6 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
       }),
       signal: controller.signal,
     });
-    clearTimeout(timeout);
 
     if (!res.ok) {
       console.error("OpenRouter draft error:", res.status, await res.text());
@@ -119,10 +118,16 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
     }
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content;
-    return typeof text === "string" && text.trim() ? text.trim() : null;
+    if (typeof text !== "string" || !text.trim()) {
+      console.error("OpenRouter returned no draft text:", JSON.stringify(data).slice(0, 500));
+      return null;
+    }
+    return text.trim();
   } catch (err) {
     console.error("OpenRouter draft threw:", err);
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
