@@ -4,6 +4,7 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { attributionPayload } from "../lib/attribution";
+import { captureLead } from "../lib/lead-capture";
 
 const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 
@@ -32,6 +33,10 @@ export default function Contact() {
     // opening any analytics dashboard.
     const attribution = attributionPayload();
     const sourceSuffix = ` (${attribution.lead_source})`;
+
+    // Canonical lead record -> Supabase (system-of-record), fired independent
+    // of Web3Forms so every submit is captured even if the email relay hiccups.
+    captureLead({ name, email, phone, address: neighborhood, message, ...attribution });
 
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
