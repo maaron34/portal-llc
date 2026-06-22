@@ -14,6 +14,7 @@ import Refer from "./pages/Refer";
 import YearRound from "./pages/YearRound";
 import LandingPage from "./pages/LandingPage";
 import NeighborhoodPage from "./pages/NeighborhoodPage";
+import Terms from "./pages/Terms";
 import { captureAttribution } from "./lib/attribution";
 
 function scrollToHashOrTop(hash: string | null) {
@@ -129,6 +130,7 @@ function AppRoutes() {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/refer" element={<Refer />} />
                   <Route path="/year-round" element={<YearRound />} />
+                  <Route path="/terms" element={<Terms />} />
                   <Route path="/concrete-contractor/:slug" element={<NeighborhoodPage />} />
                 </Routes>
               </main>
