@@ -13,7 +13,7 @@
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "google/gemini-2.0-flash-001";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "google/gemini-2.5-flash";
 const MAX_PHOTOS = 4;
 
 const json = (body: unknown, status: number): Response =>
