@@ -29,7 +29,7 @@ export default function Terms() {
   return (
     <>
       <SEO seo={SEO_DATA} />
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 pt-28 pb-16 sm:px-6">
         <h1 className="text-3xl font-bold text-gray-900">Terms &amp; Conditions</h1>
         <p className="mt-2 text-lg text-gray-600">Portal LLC d/b/a Portal Seattle Concrete</p>
         <p className="mt-5 text-gray-700">
