@@ -44,6 +44,11 @@ const SYSTEM =
   "contractors'), SEO/marketing/ads pitches, financing or insurance offers, " +
   "recruiting, software pitches. Be STRICT against anything selling to the " +
   "business rather than buying from it.\n" +
+  "A text that reads like a real person in conversation — using Chris's name, " +
+  "saying they'll email or call or send photos or details, replying to an " +
+  "earlier message, or asking a question — is a LEAD even if it does not name " +
+  "the specific job. When genuinely torn between a real person and spam, choose " +
+  "lead (true): a stray spam is one quick dismissal, a missed customer is a lost job.\n" +
   "Respond with ONLY a JSON object, no prose: " +
   '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
