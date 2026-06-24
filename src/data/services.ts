@@ -9,6 +9,7 @@ export interface Service {
   process?: { title: string; steps: string[] };
   note?: string;
   beforeAfterImages?: { before: string; after: string; label: string }[];
+  highlight?: { title: string; body: string; image?: string };
   galleryTitle?: string;
   galleryCaption?: string;
   galleryImages: string[];
@@ -218,7 +219,12 @@ export const SERVICES: Service[] = [
     shortTitle: "Floor Leveling",
     heroImage: "/images/floor-leveling/leveling-hero-power-trowel.jpeg",
     intro:
-      "Before new floors go down - LVP, tile, hardwood, or epoxy - the slab underneath has to be flat. An uneven or sloping floor causes cracked tile, hollow spots, squeaks, and gaps along the baseboard. We level basement and interior concrete slabs across Seattle so your finished floor sits flat and stays that way.",
+      "A flat floor is the first step to finishing your basement, and a finished basement is the most affordable way to add real living space to a Seattle home. Before LVP, tile, hardwood, or carpet goes down, the slab underneath has to be level, or you end up with cracked tile, hollow spots, squeaks, and gaps along the baseboard. We level basement and interior concrete slabs across Seattle so the finished floor sits flat and stays that way.",
+    highlight: {
+      title: "Finish your basement this winter, without moving out",
+      body: "Basement leveling and floor prep happen entirely indoors, so we work right through Seattle's wet winter while everyone else waits for summer. And because it is interior work, you keep living in your home the whole time - no renting elsewhere, no packing up the house. It is the most overlooked way to add livable square footage to a Seattle home.",
+      image: "/images/floor-leveling/finished-basement-living.jpeg",
+    },
     services: [
       "Basement floor leveling",
       "Uneven and sloping slab correction",
@@ -254,7 +260,9 @@ export const SERVICES: Service[] = [
       "/images/floor-leveling/leveling-fresh-floor.jpeg",
       "/images/team/wix_team_grinding.jpeg",
       "/images/floor-leveling/leveling-smoothing-wet.jpeg",
-      "/images/team/wix_garage_pour.jpeg",
+      "/images/floor-leveling/finished-basement-fireplace.jpeg",
+      "/images/floor-leveling/finished-basement-gym.jpeg",
+      "/images/floor-leveling/finished-basement-modern.jpeg",
     ],
   },
 ];

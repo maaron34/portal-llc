@@ -57,9 +57,9 @@ export const PAGE_SEO: Record<string, PageSEO> = {
     canonical: "https://buildwithportal.com/services/reconditioning/",
   },
   "floor-leveling": {
-    title: "Floor Leveling Seattle | Basement & Concrete Slab Leveling | Portal",
+    title: "Floor Leveling Seattle | Basement Slab Leveling & Refinishing Prep | Portal",
     description:
-      "Concrete floor leveling in Seattle. Basement slabs, uneven and sloping floors, self-leveling underlayment, and grinding to prep for LVP, tile, hardwood, and epoxy. Free estimates.",
+      "Concrete floor leveling in Seattle. Level a basement slab to finish it and add living space: self-leveling underlayment, grinding, and floor prep for LVP, tile, and hardwood. Done in winter, no moving out. Free estimates.",
     canonical: "https://buildwithportal.com/services/floor-leveling/",
   },
   projects: {

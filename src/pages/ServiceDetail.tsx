@@ -44,6 +44,29 @@ export default function ServiceDetail() {
             {service.intro}
           </p>
 
+          {/* Highlight / benefit panel */}
+          {service.highlight && (
+            <div className="mb-12 rounded-xl overflow-hidden bg-portal-cream border border-portal-light grid grid-cols-1 md:grid-cols-2">
+              {service.highlight.image && (
+                <div className="aspect-[4/3] md:aspect-auto md:h-full">
+                  <img
+                    src={service.highlight.image}
+                    alt={service.highlight.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-6 sm:p-8 flex flex-col justify-center">
+                <h2 className="text-2xl font-bold text-portal-dark mb-3">
+                  {service.highlight.title}
+                </h2>
+                <p className="text-portal-mid leading-relaxed">
+                  {service.highlight.body}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Services List */}
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-portal-dark mb-5">
