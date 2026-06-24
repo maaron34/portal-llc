@@ -9,6 +9,8 @@ export interface Service {
   process?: { title: string; steps: string[] };
   note?: string;
   beforeAfterImages?: { before: string; after: string; label: string }[];
+  galleryTitle?: string;
+  galleryCaption?: string;
   galleryImages: string[];
 }
 
@@ -210,6 +212,51 @@ export const SERVICES: Service[] = [
       "/images/before-after/after-stairs4.jpeg",
     ],
   },
+  {
+    slug: "floor-leveling",
+    title: "Floor Leveling",
+    shortTitle: "Floor Leveling",
+    heroImage: "/images/floor-leveling/leveling-hero-power-trowel.jpeg",
+    intro:
+      "Before new floors go down - LVP, tile, hardwood, or epoxy - the slab underneath has to be flat. An uneven or sloping floor causes cracked tile, hollow spots, squeaks, and gaps along the baseboard. We level basement and interior concrete slabs across Seattle so your finished floor sits flat and stays that way.",
+    services: [
+      "Basement floor leveling",
+      "Uneven and sloping slab correction",
+      "Self-leveling underlayment installation",
+      "Concrete grinding and high-spot removal",
+      "Floor prep for LVP, tile, hardwood, and epoxy",
+      "Garage and shop floor leveling",
+    ],
+    extras: {
+      title: "Why Seattle Slabs Move",
+      items: [
+        "Expansive clay soils that swell and shrink with the seasons",
+        "High winter water tables under older basements",
+        "Settling from poor original subgrade compaction",
+        "Drainage problems that wash out support beneath the slab",
+      ],
+    },
+    process: {
+      title: "Our Process",
+      steps: [
+        "On-site assessment - we measure the slope and map the low and high spots",
+        "Diagnose the cause - if water or drainage is moving the slab, we address that first",
+        "Prep and grind - remove high spots and clean the surface for a solid bond",
+        "Level - pour self-leveling underlayment or patch to a flat plane",
+        "Cure - most floors are ready for finished flooring within about 24 hours",
+      ],
+    },
+    note: "The fix is not always more concrete on top. In Seattle, a moving basement slab is often a drainage problem. We will tell you honestly whether you need leveling, drainage work, or both, and we handle the French drains and foundation drainage too.",
+    galleryTitle: "What Floor Leveling Looks Like",
+    galleryCaption:
+      "Illustrative examples. Photos of Portal's completed Seattle floor-leveling work coming soon.",
+    galleryImages: [
+      "/images/floor-leveling/leveling-fresh-floor.jpeg",
+      "/images/team/wix_team_grinding.jpeg",
+      "/images/floor-leveling/leveling-smoothing-wet.jpeg",
+      "/images/team/wix_garage_pour.jpeg",
+    ],
+  },
 ];
 
 export const SERVICE_BRIEF = [
@@ -248,5 +295,11 @@ export const SERVICE_BRIEF = [
     description: "Restore worn concrete without full replacement.",
     slug: "reconditioning",
     image: "/images/before-after/after-stairs2.jpeg",
+  },
+  {
+    title: "Floor Leveling",
+    description: "Basement and interior slab leveling for flat, lasting floors.",
+    slug: "floor-leveling",
+    image: "/images/floor-leveling/leveling-fresh-floor.jpeg",
   },
 ];

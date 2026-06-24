@@ -56,6 +56,12 @@ export const PAGE_SEO: Record<string, PageSEO> = {
       "Concrete repair and reconditioning in Seattle. Crack repair, surface restoration, polymer-modified Ardex patching, broom finish overlay, color stain, and sealer. Free estimates.",
     canonical: "https://buildwithportal.com/services/reconditioning/",
   },
+  "floor-leveling": {
+    title: "Floor Leveling Seattle | Basement & Concrete Slab Leveling | Portal",
+    description:
+      "Concrete floor leveling in Seattle. Basement slabs, uneven and sloping floors, self-leveling underlayment, and grinding to prep for LVP, tile, hardwood, and epoxy. Free estimates.",
+    canonical: "https://buildwithportal.com/services/floor-leveling/",
+  },
   projects: {
     title: "Our Work | Concrete Projects Gallery | Portal Seattle",
     description:

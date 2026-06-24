@@ -138,9 +138,21 @@ export default function ServiceDetail() {
       {service.galleryImages.length > 0 && (
         <section className="py-16 sm:py-24 bg-portal-cream">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-8">
-              {slug === "reconditioning" ? "Before & After" : `${service.title} Gallery`}
+            <h2
+              className={`text-2xl sm:text-3xl font-bold text-portal-dark ${
+                service.galleryCaption ? "mb-2" : "mb-8"
+              }`}
+            >
+              {service.galleryTitle ||
+                (slug === "reconditioning"
+                  ? "Before & After"
+                  : `${service.title} Gallery`)}
             </h2>
+            {service.galleryCaption && (
+              <p className="text-portal-mid text-sm mb-8">
+                {service.galleryCaption}
+              </p>
+            )}
             {service.beforeAfterImages ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {service.beforeAfterImages.map((pair, idx) => (
