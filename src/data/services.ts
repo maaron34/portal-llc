@@ -254,8 +254,6 @@ export const SERVICES: Service[] = [
     },
     note: "The fix is not always more concrete on top. In Seattle, a moving basement slab is often a drainage problem. We will tell you honestly whether you need leveling, drainage work, or both, and we handle the French drains and foundation drainage too.",
     galleryTitle: "What Floor Leveling Looks Like",
-    galleryCaption:
-      "Illustrative examples. Photos of Portal's completed Seattle floor-leveling work coming soon.",
     galleryImages: [
       "/images/floor-leveling/leveling-fresh-floor.jpeg",
       "/images/team/wix_team_grinding.jpeg",
