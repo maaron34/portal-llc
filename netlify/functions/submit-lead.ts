@@ -251,6 +251,22 @@ export default async (request: Request): Promise<Response> => {
       body: JSON.stringify(row),
     });
 
+    // Duplicate dedupe_key (same email/phone already a lead, e.g. a concurrent
+    // cron create or a form resubmit): return the existing lead's id instead of
+    // creating a second, and skip the draft/email so we don't re-notify Chris.
+    // Preserves the existing lead (no overwrite of its draft/stage/photos).
+    if (res.status === 409 && row.dedupe_key) {
+      const ex = await fetch(
+        `${SUPABASE_URL}/rest/v1/leads?dedupe_key=eq.${encodeURIComponent(row.dedupe_key)}&select=id&limit=1`,
+        { headers: { apikey: secret, Authorization: `Bearer ${secret}` } }
+      );
+      if (ex.ok) {
+        const rows = (await ex.json()) as { id?: string }[];
+        if (rows[0]?.id) return json({ ok: true, id: rows[0].id, duplicate: true }, 200);
+      }
+      return json({ ok: true, duplicate: true }, 200);
+    }
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Supabase insert error:", res.status, errorText);
