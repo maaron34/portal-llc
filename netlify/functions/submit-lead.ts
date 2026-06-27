@@ -172,6 +172,26 @@ async function emailDraftToChris(payload: LeadPayload, draft: string, leadId?: s
   }
 }
 
+/**
+ * Screen a website-form submission: real customer lead, or a vendor pitch
+ * (SEO/marketing/VA spam)? Reuses the classify-sms function. Fail-open: any error
+ * or uncertainty returns false (treated as a lead) so a real one is never dropped.
+ */
+async function isVendorSpam(text: string, from?: string): Promise<boolean> {
+  try {
+    const r = await fetch("https://buildwithportal.com/.netlify/functions/classify-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, from }),
+    });
+    if (!r.ok) return false;
+    const v = (await r.json()) as { lead?: boolean; confidence?: number };
+    return v.lead === false && (v.confidence ?? 0) >= 0.7;
+  } catch {
+    return false;
+  }
+}
+
 export default async (request: Request): Promise<Response> => {
   // CORS preflight (browsers send this before cross-origin POSTs).
   if (request.method === "OPTIONS") {
@@ -216,6 +236,13 @@ export default async (request: Request): Promise<Response> => {
     return json({ preview: true, draft: await draftReply(payload) }, 200);
   }
 
+  // Website-form submissions aren't pre-screened, so filter out vendor pitches
+  // (SEO/marketing/VA spam) before they clutter the inbox or email Chris. Cron
+  // sources (quo/email/voicemail) are already classified upstream.
+  const isWebsite = !payload.channel || payload.channel === "website";
+  const screenText = [payload.project_type, payload.timeline, payload.message, name].filter(Boolean).join("\n");
+  const junk = isWebsite && screenText ? await isVendorSpam(screenText, email || phone) : false;
+
   // Map only known columns; stash the full payload in `raw` for anything we
   // didn't model yet. stage, created_at, and channel-default use table defaults.
   const row = {
@@ -236,7 +263,7 @@ export default async (request: Request): Promise<Response> => {
     landing_page: payload.landing_page || null,
     channel: payload.channel || "website",
     dedupe_key: email ? email.toLowerCase() : phone || null,
-    raw: payload,
+    raw: junk ? { ...payload, junk: true } : payload,
   };
 
   try {
@@ -275,6 +302,10 @@ export default async (request: Request): Promise<Response> => {
 
     const data = await res.json();
     const id = Array.isArray(data) ? data[0]?.id : data?.id;
+
+    // Vendor spam is recorded (raw.junk) but stays out of the inbox — no draft,
+    // no email to Chris.
+    if (junk) return json({ ok: true, id, junk: true }, 200);
 
     // Best-effort: draft a paste-ready reply and email it to Chris, separate
     // from the site's existing lead-notification email. Never fails capture.
