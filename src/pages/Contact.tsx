@@ -4,9 +4,7 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { attributionPayload } from "../lib/attribution";
-import { captureLead } from "../lib/lead-capture";
-
-const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
+import { submitLead } from "../lib/lead-capture";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -29,73 +27,57 @@ export default function Contact() {
 
     // First-touch attribution (UTM / ad click IDs / referrer), captured at app
     // load and persisted across navigation so it survives /lp/* -> /contact.
-    // Surfaced in the lead email subject so Chris sees the source without
-    // opening any analytics dashboard.
+    // Surfaced in the lead email so Chris sees the source without opening any
+    // analytics dashboard.
     const attribution = attributionPayload();
-    const sourceSuffix = ` (${attribution.lead_source})`;
 
-    // Canonical lead record -> Supabase (system-of-record), fired independent
-    // of Web3Forms so every submit is captured even if the email relay hiccups.
-    captureLead({ name, email, phone, address: neighborhood, message, ...attribution });
+    // Canonical capture: Supabase insert + queued email to Chris. The success
+    // UI is gated on this response — if it fails, the lead went nowhere, so
+    // the visitor must see the error and the direct phone/email fallback.
+    const result = await submitLead({
+      name,
+      email,
+      phone,
+      address: neighborhood,
+      message,
+      ...attribution,
+    });
 
-    try {
-      const res = await fetch("https://api.web3forms.com/submit", {
+    if (result.ok) {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "generate_lead", {
+          event_category: "form",
+          event_label: "contact_page",
+          // Surface UTMs on the event so GA4 reports can slice form-fills by
+          // source/medium/campaign even if session attribution loses context.
+          source: attribution.utm_source,
+          medium: attribution.utm_medium,
+          campaign: attribution.utm_campaign,
+        });
+      }
+
+      // Fire-and-forget: add the subscriber to MailerLite's "Portal Leads"
+      // group so the 5-email nurture automation kicks in. Don't await — the
+      // lead is already captured in Supabase and Chris's notification is
+      // queued; a slow or down MailerLite shouldn't delay or obscure the
+      // visitor's success state.
+      fetch("/.netlify/functions/add-to-mailerlite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `Website Inquiry from ${name}${sourceSuffix}`,
-          from_name: "Portal LLC Website",
           name,
           email,
-          phone: phone || "Not provided",
-          address: neighborhood || "Not provided",
-          message,
-          ...attribution,
+          utm_source: attribution.utm_source || "",
+          utm_medium: attribution.utm_medium || "",
+          utm_campaign: attribution.utm_campaign || "",
         }),
-      });
+      }).catch((err) => console.warn("MailerLite add failed:", err));
 
-      const data = await res.json();
-      if (data.success) {
-        if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "generate_lead", {
-            event_category: "form",
-            event_label: "contact_page",
-            // Surface UTMs on the event so GA4 reports can slice form-fills by
-            // source/medium/campaign even if session attribution loses context.
-            source: attribution.utm_source,
-            medium: attribution.utm_medium,
-            campaign: attribution.utm_campaign,
-          });
-        }
-
-        // Fire-and-forget: add the subscriber to MailerLite's "Portal Leads"
-        // group so the 5-email nurture automation kicks in. Don't await — the
-        // user already has their thank-you from the Web3Forms success, and
-        // Chris's notification email is in flight. If MailerLite is slow or
-        // down, the lead is recoverable from Web3Forms logs; we don't want
-        // to surface an error here that obscures the primary success state.
-        fetch("/.netlify/functions/add-to-mailerlite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            utm_source: attribution.utm_source || "",
-            utm_medium: attribution.utm_medium || "",
-            utm_campaign: attribution.utm_campaign || "",
-          }),
-        }).catch((err) => console.warn("MailerLite add failed:", err));
-
-        setSubmitted(true);
-      } else {
-        setError("Something went wrong. Please call or email us directly.");
-      }
-    } catch {
+      setSubmitted(true);
+    } else {
       setError("Something went wrong. Please call or email us directly.");
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   return (

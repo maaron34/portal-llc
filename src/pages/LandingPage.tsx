@@ -13,9 +13,7 @@ import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
 import { attributionPayload } from "../lib/attribution";
-import { captureLead } from "../lib/lead-capture";
-
-const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
+import { submitLead } from "../lib/lead-capture";
 
 type FormData = {
   name: string;
@@ -263,13 +261,12 @@ export default function LandingPage() {
     setSubmitting(true);
     setError("");
 
-    // Fire pixel events based on MQL qualification
-    firePixelEvents(data);
-
-    // Canonical lead record -> Supabase (system-of-record), fired independent
-    // of Web3Forms. project_type / timeline / owner_status / source ride along
-    // in the lead's `raw` until we promote them to columns.
-    captureLead({
+    // Canonical capture: Supabase insert + queued email to Chris. Success UI
+    // is gated on this response — if it fails, the lead went nowhere, so the
+    // visitor must see the error and the call-us fallback. project_type /
+    // timeline / owner_status / source ride along in the lead's `raw` until
+    // we promote them to columns.
+    const result = await submitLead({
       name: data.name,
       email: data.email,
       phone: data.phone,
@@ -282,37 +279,15 @@ export default function LandingPage() {
       ...attributionPayload(),
     });
 
-    try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `Estimate Request from ${data.name} - ${page.headline}`,
-          from_name: "Portal LLC Website",
-          name: data.name,
-          phone: data.phone,
-          email: data.email,
-          address: data.address,
-          project_type: data.projectType || "Not specified",
-          timeline: data.timeline || "Not specified",
-          message: data.message || "No additional details",
-          source: `Landing Page - ${page.headline}`,
-          ...attributionPayload(),
-        }),
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        setSubmitted(true);
-      } else {
-        setError("Something went wrong. Please call us directly.");
-      }
-    } catch {
+    if (result.ok) {
+      // Pixels fire only on confirmed capture so ad platforms optimize on
+      // leads that actually reached us.
+      firePixelEvents(data);
+      setSubmitted(true);
+    } else {
       setError("Something went wrong. Please call us directly.");
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   // Show first 3 reviews in the grid, use the rest in the sidebar callout rotation

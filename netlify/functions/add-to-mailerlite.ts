@@ -2,9 +2,10 @@
  * Netlify Function: add a contact-form submission to MailerLite as a subscriber
  * in the "Portal Leads" group, which triggers the 5-email nurture automation.
  *
- * Wiring: Contact.tsx calls this AFTER a successful Web3Forms submission.
- * Web3Forms remains the source of truth for Chris's notification email + GA4
- * attribution; this function is purely the MailerLite-add side of the lead flow.
+ * Wiring: Contact.tsx calls this fire-and-forget AFTER a successful
+ * submit-lead capture (Supabase is the system-of-record; Chris's notification
+ * email goes out via notify-lead). This function is purely the
+ * MailerLite-add side of the lead flow.
  *
  * Server-side because the MailerLite API key (process.env.MAILERLITE_API_KEY)
  * stays out of the browser bundle. The key authorizes "add subscriber + tag"
@@ -13,9 +14,9 @@
  *
  * Failure mode: if MailerLite rejects the call for any reason (rate limit,
  * downtime, invalid email), we log + return a non-2xx, but the caller in
- * Contact.tsx does not surface the error to the user — they've already seen
- * the Web3Forms success state and Chris's notification email is already in
- * flight. Missing MailerLite adds are recoverable from Web3Forms logs.
+ * Contact.tsx does not surface the error to the user — the lead is already
+ * captured in Supabase and Chris's notification is queued. Missing MailerLite
+ * adds are recoverable from the leads table.
  */
 
 // Static config — group ID for "Portal Leads" in MailerLite.
@@ -77,7 +78,7 @@ export default async (request: Request): Promise<Response> => {
   }
 
   // Build MailerLite payload. Stick to standard fields (name) + groups for v1.
-  // UTM attribution stays in Web3Forms email + GA4 events — adding UTM custom
+  // UTM attribution stays in the leads table + GA4 events — adding UTM custom
   // fields to MailerLite would require pre-creating them via the dashboard;
   // not worth the operational overhead until we have a segmentation use case.
   const mlBody = {

@@ -1,29 +1,26 @@
 /**
  * Netlify Function: capture a website lead to the Supabase `leads` table — the
- * canonical system-of-record — then best-effort email Chris a lead notification
- * with a paste-ready reply draft (via OpenRouter) and vCard link. A failed
- * draft/email never blocks capture.
+ * canonical system-of-record — then hand off to notify-lead, which
+ * emails Chris a lead notification with a paste-ready reply draft (via
+ * OpenRouter) and vCard link. A failed draft/email never blocks capture.
  *
- * Wiring: Contact.tsx and LandingPage.tsx call this fire-and-forget on submit.
- *
- * Email goes through Resend (RESEND_API_KEY), NOT Web3Forms: Web3Forms rejects
- * server-side API calls on the free tier ("Pro plan is required") and flags
- * accounts that try — which silently killed all lead emails in July 2026 while
- * Supabase capture kept working. If RESEND_API_KEY is unset, capture still
- * works and the email is skipped.
+ * Wiring: Contact.tsx, LandingPage.tsx, and Refer.tsx AWAIT this call and gate
+ * their success UI on the response — if capture fails, the lead went nowhere
+ * (there is no other relay anymore), so the form must show its error state
+ * instead of a false thank-you. That's why the slow LLM + email work is queued
+ * to a background function: the visitor only waits for classify + insert
+ * (~2s), not the ~8s notification tail. If queueing fails, we fall back to
+ * running the notification inline — slower for that one visitor, but Chris
+ * never silently misses a lead.
  *
  * Server-side because the Supabase SECRET key (process.env.SUPABASE_SECRET_KEY)
  * must never reach the browser bundle — it bypasses row-level security and can
  * read/write every row. The public project URL is safe to hardcode.
- *
- * Failure mode: the client calls this fire-and-forget, so a failure here never
- * blocks the user's success state.
  */
 
+import { draftReply, emailChris, type LeadPayload } from "../lib/lead-notify";
+
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
-// Where lead notifications go. Env override so QA can redirect without a code change.
-const NOTIFY_TO = process.env.LEAD_NOTIFY_TO || "chris@buildwithportal.com";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,165 +28,11 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-type LeadPayload = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  message?: string;
-  lead_source?: string;
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-  gclid?: string;
-  fbclid?: string;
-  http_referrer?: string;
-  landing_page?: string;
-  channel?: string;
-  // Landing-page extras (stored in `raw`, used to personalize the draft).
-  project_type?: string;
-  timeline?: string;
-  owner_status?: string;
-  source?: string;
-  // When true, generate the reply draft only — no insert, no email (QA hook).
-  preview?: boolean;
-};
-
 const json = (body: unknown, status: number): Response =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   });
-
-/**
- * Draft a short, paste-ready reply for Chris to send a new lead — in his voice,
- * asking for what he needs to estimate (photos, rough dimensions, site access).
- * Never prices. Returns null if OpenRouter is unconfigured or errors, since a
- * failed draft must never block lead capture.
- */
-async function draftReply(payload: LeadPayload): Promise<string | null> {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) return null;
-
-  const lead = [
-    payload.name ? `Name: ${payload.name}` : "",
-    payload.address ? `Address: ${payload.address}` : "",
-    payload.project_type ? `Project type: ${payload.project_type}` : "",
-    payload.timeline ? `Timeline: ${payload.timeline}` : "",
-    payload.message ? `What they wrote: ${payload.message}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  const system =
-    "You draft a short reply that Chris, owner of Portal (a Seattle concrete " +
-    "contractor), will send to a brand-new lead. Goal: thank them, reference " +
-    "their specific project, and ask for exactly what Chris needs to give an " +
-    "accurate estimate — clear photos of the area, rough dimensions (length x " +
-    "width, plus thickness or height if they know it), and site access details " +
-    "(driveway/gate width, slope, anything blocking a pour). Warm but direct, " +
-    "first person as Chris, 3-5 sentences. Never quote a price or invent " +
-    "details. Output ONLY the reply body — no subject line, no bracketed " +
-    "placeholders — and sign off as Chris.";
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: OPENROUTER_MODEL,
-        max_tokens: 400,
-        temperature: 0.6,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: `New lead:\n${lead || "(no details provided)"}` },
-        ],
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      console.error("OpenRouter draft error:", res.status, await res.text());
-      return null;
-    }
-    const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
-    if (typeof text !== "string" || !text.trim()) {
-      console.error("OpenRouter returned no draft text:", JSON.stringify(data).slice(0, 500));
-      return null;
-    }
-    return text.trim();
-  } catch (err) {
-    console.error("OpenRouter draft threw:", err);
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-/**
- * Email Chris the lead notification: lead details, a ready-to-paste reply draft
- * (when the LLM produced one), and a tap-to-save vCard link. One email per
- * lead. Sent via Resend from our own domain so delivery doesn't depend on a
- * third-party form relay. Reply-To is the lead so Chris can just hit reply and
- * paste the draft. Best-effort: skipped when RESEND_API_KEY is unset, and a
- * send failure is logged, never thrown.
- */
-async function emailChris(payload: LeadPayload, draft: string | null, leadId?: string): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
-
-  const who = payload.name || payload.email || payload.phone || "a new lead";
-  const vcardLink = leadId
-    ? `https://buildwithportal.com/.netlify/functions/vcard?id=${leadId}`
-    : "";
-  const message = [
-    payload.name ? `Name: ${payload.name}` : "",
-    payload.email ? `Email: ${payload.email}` : "",
-    payload.phone ? `Phone: ${payload.phone}` : "",
-    payload.address ? `Address: ${payload.address}` : "",
-    payload.project_type ? `Project: ${payload.project_type}` : "",
-    payload.timeline ? `Timeline: ${payload.timeline}` : "",
-    payload.message ? `Message: ${payload.message}` : "",
-    payload.lead_source ? `Source: ${payload.lead_source}` : "",
-    ...(draft ? ["", "Ready-to-send reply (hit reply and paste):", "", draft] : []),
-    ...(vcardLink ? ["", `Add ${who} to your contacts (tap on your phone): ${vcardLink}`] : []),
-  ]
-    .filter((line, i, arr) => line !== "" || arr[i - 1] !== "")
-    .join("\n");
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Portal Leads <leads@buildwithportal.com>",
-        to: [NOTIFY_TO],
-        reply_to: payload.email || undefined,
-        subject: `New lead: ${who}${payload.lead_source ? ` (${payload.lead_source})` : ""}`,
-        text: message,
-      }),
-    });
-    if (!res.ok) {
-      console.error("Resend send failed:", res.status, await res.text());
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error("Resend send threw:", err);
-    return false;
-  }
-}
 
 /**
  * Screen a website-form submission: real customer lead, or a vendor pitch
@@ -208,6 +51,35 @@ async function isVendorSpam(text: string, from?: string): Promise<boolean> {
     return v.lead === false && (v.confidence ?? 0) >= 0.7;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Hand the notification work (LLM draft + Resend email) to the background
+ * function on this same deploy. Netlify answers 202 before the handler runs,
+ * so this await costs one local round-trip, not the whole notification.
+ * Returns false on any failure so the caller can fall back to inline.
+ */
+async function queueNotify(origin: string, payload: LeadPayload, id?: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
+  try {
+    const res = await fetch(`${origin}/.netlify/functions/notify-lead`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-auth": process.env.SUPABASE_SECRET_KEY || "",
+      },
+      body: JSON.stringify({ payload, id }),
+      signal: controller.signal,
+    });
+    if (!res.ok) console.error("notify-lead queue rejected:", res.status);
+    return res.ok;
+  } catch (err) {
+    console.error("notify-lead queue failed:", err);
+    return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -326,9 +198,13 @@ export default async (request: Request): Promise<Response> => {
     // no email to Chris.
     if (junk) return json({ ok: true, id, junk: true }, 200);
 
-    // Best-effort: draft a paste-ready reply, then email Chris the lead — with
-    // the draft when one was produced, without it otherwise. A failed draft
-    // must never cost Chris the notification. Never fails capture.
+    // Queue draft + email to the background function so the visitor gets their
+    // success state now. Inline fallback if queueing fails (e.g. the plan tier
+    // rejects background functions): slower, but Chris still gets the email.
+    const origin = new URL(request.url).origin;
+    if (await queueNotify(origin, payload, id)) {
+      return json({ ok: true, id, notify: "queued" }, 200);
+    }
     const draft = await draftReply(payload);
     const emailed = await emailChris(payload, draft, id);
 
