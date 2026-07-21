@@ -1,26 +1,29 @@
 /**
  * Netlify Function: capture a website lead to the Supabase `leads` table — the
- * canonical system-of-record — then best-effort draft a paste-ready reply (via
- * OpenRouter) and email it to Chris, separate from the site's existing
- * lead-notification email. A failed draft/email never blocks capture.
+ * canonical system-of-record — then best-effort email Chris a lead notification
+ * with a paste-ready reply draft (via OpenRouter) and vCard link. A failed
+ * draft/email never blocks capture.
  *
- * Wiring: Contact.tsx and LandingPage.tsx call this fire-and-forget on submit,
- * in parallel with the existing Web3Forms email. Web3Forms still sends Chris's
- * notification; this makes the lead durable + queryable, and feeds the
- * forthcoming ops dashboard + Make orchestration (notify / vCard / photo scan).
+ * Wiring: Contact.tsx and LandingPage.tsx call this fire-and-forget on submit.
+ *
+ * Email goes through Resend (RESEND_API_KEY), NOT Web3Forms: Web3Forms rejects
+ * server-side API calls on the free tier ("Pro plan is required") and flags
+ * accounts that try — which silently killed all lead emails in July 2026 while
+ * Supabase capture kept working. If RESEND_API_KEY is unset, capture still
+ * works and the email is skipped.
  *
  * Server-side because the Supabase SECRET key (process.env.SUPABASE_SECRET_KEY)
  * must never reach the browser bundle — it bypasses row-level security and can
  * read/write every row. The public project URL is safe to hardcode.
  *
  * Failure mode: the client calls this fire-and-forget, so a failure here never
- * blocks the user's success state or Chris's email. Lost inserts are
- * recoverable from Web3Forms logs.
+ * blocks the user's success state.
  */
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
-const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
+// Where lead notifications go. Env override so QA can redirect without a code change.
+const NOTIFY_TO = process.env.LEAD_NOTIFY_TO || "chris@buildwithportal.com";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -132,43 +135,59 @@ async function draftReply(payload: LeadPayload): Promise<string | null> {
 }
 
 /**
- * Email Chris a ready-to-paste reply for a new lead, via the same Web3Forms key
- * the site uses (delivers to Chris's configured inbox). Best-effort and
- * deliberately separate from the site's existing lead-notification email.
+ * Email Chris the lead notification: lead details, a ready-to-paste reply draft
+ * (when the LLM produced one), and a tap-to-save vCard link. One email per
+ * lead. Sent via Resend from our own domain so delivery doesn't depend on a
+ * third-party form relay. Reply-To is the lead so Chris can just hit reply and
+ * paste the draft. Best-effort: skipped when RESEND_API_KEY is unset, and a
+ * send failure is logged, never thrown.
  */
-async function emailDraftToChris(payload: LeadPayload, draft: string, leadId?: string): Promise<void> {
+async function emailChris(payload: LeadPayload, draft: string | null, leadId?: string): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return false;
+
   const who = payload.name || payload.email || payload.phone || "a new lead";
   const vcardLink = leadId
     ? `https://buildwithportal.com/.netlify/functions/vcard?id=${leadId}`
     : "";
   const message = [
-    `Ready-to-send reply for ${who}:`,
-    "",
-    draft,
-    "",
-    "----",
+    payload.name ? `Name: ${payload.name}` : "",
     payload.email ? `Email: ${payload.email}` : "",
     payload.phone ? `Phone: ${payload.phone}` : "",
     payload.address ? `Address: ${payload.address}` : "",
     payload.project_type ? `Project: ${payload.project_type}` : "",
-    vcardLink ? `Add ${who} to your contacts (tap on your phone): ${vcardLink}` : "",
+    payload.timeline ? `Timeline: ${payload.timeline}` : "",
+    payload.message ? `Message: ${payload.message}` : "",
+    payload.lead_source ? `Source: ${payload.lead_source}` : "",
+    ...(draft ? ["", "Ready-to-send reply (hit reply and paste):", "", draft] : []),
+    ...(vcardLink ? ["", `Add ${who} to your contacts (tap on your phone): ${vcardLink}`] : []),
   ]
-    .filter(Boolean)
+    .filter((line, i, arr) => line !== "" || arr[i - 1] !== "")
     .join("\n");
 
   try {
-    await fetch("https://api.web3forms.com/submit", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        access_key: WEB3FORMS_KEY,
-        subject: `Ready reply for ${who}`,
-        from_name: "Portal Lead Assistant",
-        message,
+        from: "Portal Leads <leads@buildwithportal.com>",
+        to: [NOTIFY_TO],
+        reply_to: payload.email || undefined,
+        subject: `New lead: ${who}${payload.lead_source ? ` (${payload.lead_source})` : ""}`,
+        text: message,
       }),
     });
+    if (!res.ok) {
+      console.error("Resend send failed:", res.status, await res.text());
+      return false;
+    }
+    return true;
   } catch (err) {
-    console.error("Draft email send threw:", err);
+    console.error("Resend send threw:", err);
+    return false;
   }
 }
 
@@ -307,12 +326,13 @@ export default async (request: Request): Promise<Response> => {
     // no email to Chris.
     if (junk) return json({ ok: true, id, junk: true }, 200);
 
-    // Best-effort: draft a paste-ready reply and email it to Chris, separate
-    // from the site's existing lead-notification email. Never fails capture.
+    // Best-effort: draft a paste-ready reply, then email Chris the lead — with
+    // the draft when one was produced, without it otherwise. A failed draft
+    // must never cost Chris the notification. Never fails capture.
     const draft = await draftReply(payload);
-    if (draft) await emailDraftToChris(payload, draft, id);
+    const emailed = await emailChris(payload, draft, id);
 
-    return json({ ok: true, id, drafted: Boolean(draft) }, 200);
+    return json({ ok: true, id, drafted: Boolean(draft), emailed }, 200);
   } catch (err) {
     console.error("Supabase fetch threw:", err);
     return json({ error: "Network error reaching Supabase" }, 502);
