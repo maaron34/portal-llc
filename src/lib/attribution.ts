@@ -4,8 +4,8 @@
 // page on first load and persists them to sessionStorage so they survive
 // client-side navigation (e.g. an ad lands on /lp/driveways?utm_... and the
 // visitor then submits from /contact). Exposes a flat, non-empty payload to
-// merge into Web3Forms submissions (so the lead email shows the source) and,
-// later, the Make webhook.
+// merge into submit-lead captures (so the Supabase row and Chris's lead email
+// show the source) and, later, the Make webhook.
 
 const STORAGE_KEY = "portal_attribution";
 

@@ -4,8 +4,7 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS } from "../data/content";
 import { attributionPayload } from "../lib/attribution";
-
-const WEB3FORMS_KEY = "97c81447-a5dc-43a2-8880-542d83c80609";
+import { submitLead } from "../lib/lead-capture";
 
 type Direction = "sending" | "received";
 
@@ -65,44 +64,34 @@ export default function Refer() {
             `Notes: ${notes || "(none)"}`,
           ].join("\n");
 
-    try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: subjectPrefix,
-          from_name: "Portal LLC Website (Referral Form)",
-          direction,
-          referrer_name: direction === "sending" ? yourName : friendName,
-          referrer_phone: direction === "sending" ? yourPhone : friendPhone,
-          friend_name: direction === "sending" ? friendName : yourName,
-          friend_phone: direction === "sending" ? friendPhone : yourPhone,
-          friend_email: direction === "received" ? yourEmail : "",
-          project_type: projectType,
-          notes,
-          message: messageBlock,
-          ...attributionPayload(),
-        }),
-      });
+    // Referral submissions flow through the same canonical capture as every
+    // other form (the program is shelved, but the page is live, so its form
+    // must actually deliver): the submitter becomes the lead contact, and the
+    // full referral breakdown — who referred whom, both phones — rides in the
+    // message so Chris's email and the ops dashboard show the whole picture.
+    // Success UI is gated on the response; a failure shows the call-us error.
+    const result = await submitLead({
+      name: yourName,
+      phone: yourPhone,
+      email: yourEmail,
+      message: `${subjectPrefix}\n\n${messageBlock}`,
+      project_type: projectType,
+      source: `Referral form (${direction})`,
+      ...attributionPayload(),
+    });
 
-      const data = await res.json();
-      if (data.success) {
-        if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "generate_lead", {
-            event_category: "form",
-            event_label: `refer_${direction}`,
-          });
-        }
-        setSubmitted(true);
-      } else {
-        setError("Something went wrong. Please call or text us directly.");
+    if (result.ok) {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "generate_lead", {
+          event_category: "form",
+          event_label: `refer_${direction}`,
+        });
       }
-    } catch {
+      setSubmitted(true);
+    } else {
       setError("Something went wrong. Please call or text us directly.");
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   // Field labels swap based on direction so the form reads correctly for both audiences.
