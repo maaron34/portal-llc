@@ -78,11 +78,6 @@ export async function emailChris(payload: LeadPayload, leadId?: string): Promise
     payload.timeline ? `Timeline: ${payload.timeline}` : "",
     payload.message ? `Message: ${payload.message}` : "",
     payload.lead_source ? `Source: ${payload.lead_source}` : "",
-    ...(payload.email
-      ? ["", `Reply to this email to respond to ${who} directly (${payload.email}).`]
-      : payload.phone
-        ? ["", `No email on this lead — call or text ${payload.phone}.`]
-        : []),
     ...(vcardLink ? ["", `Add ${who} to your contacts (tap on your phone): ${vcardLink}`] : []),
   ]
     .filter((line, i, arr) => line !== "" || arr[i - 1] !== "")
