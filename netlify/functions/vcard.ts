@@ -1,6 +1,6 @@
 /**
  * Netlify Function: return a vCard (.vcf) for a lead so Chris can one-tap add
- * them to his iPhone Contacts. Linked from the draft email by lead ID (so no
+ * them to his iPhone Contacts. Linked from the lead email by lead ID (so no
  * personal data sits in the URL). Reads the lead from Supabase with the secret
  * key (bypasses RLS). The lead ID is an unguessable UUID, which gates access.
  *

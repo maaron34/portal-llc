@@ -1,24 +1,23 @@
 /**
  * Netlify Function: capture a website lead to the Supabase `leads` table — the
  * canonical system-of-record — then hand off to notify-lead, which
- * emails Chris a lead notification with a paste-ready reply draft (via
- * OpenRouter) and vCard link. A failed draft/email never blocks capture.
+ * emails Chris a lead notification with a vCard link. A failed email never
+ * blocks capture.
  *
  * Wiring: Contact.tsx, LandingPage.tsx, and Refer.tsx AWAIT this call and gate
  * their success UI on the response — if capture fails, the lead went nowhere
  * (there is no other relay anymore), so the form must show its error state
- * instead of a false thank-you. That's why the slow LLM + email work is queued
- * to a background function: the visitor only waits for classify + insert
- * (~2s), not the ~8s notification tail. If queueing fails, we fall back to
- * running the notification inline — slower for that one visitor, but Chris
- * never silently misses a lead.
+ * instead of a false thank-you. The email is queued to a background function
+ * so the visitor only waits for classify + insert (~2s). If queueing fails, we
+ * fall back to sending the email inline — slower for that one visitor, but
+ * Chris never silently misses a lead.
  *
  * Server-side because the Supabase SECRET key (process.env.SUPABASE_SECRET_KEY)
  * must never reach the browser bundle — it bypasses row-level security and can
  * read/write every row. The public project URL is safe to hardcode.
  */
 
-import { draftReply, emailChris, type LeadPayload } from "../lib/lead-notify";
+import { emailChris, type LeadPayload } from "../lib/lead-notify";
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 
@@ -55,8 +54,8 @@ async function isVendorSpam(text: string, from?: string): Promise<boolean> {
 }
 
 /**
- * Hand the notification work (LLM draft + Resend email) to the background
- * function on this same deploy. Netlify answers 202 before the handler runs,
+ * Hand the notification email (Resend) to the background function on this
+ * same deploy. Netlify answers 202 before the handler runs,
  * so this await costs one local round-trip, not the whole notification.
  * Returns false on any failure so the caller can fall back to inline.
  */
@@ -119,12 +118,6 @@ export default async (request: Request): Promise<Response> => {
   // store empty rows. QUO/SMS leads often arrive with only a phone number.
   if (!email && !name && !phone) {
     return json({ error: "Lead needs a name, email, or phone" }, 400);
-  }
-
-  // Preview mode: generate the reply draft only — no insert, no email. Lets us
-  // QA draft quality without creating a row or emailing Chris.
-  if (payload.preview) {
-    return json({ preview: true, draft: await draftReply(payload) }, 200);
   }
 
   // Website-form submissions aren't pre-screened, so filter out vendor pitches
@@ -194,21 +187,20 @@ export default async (request: Request): Promise<Response> => {
     const data = await res.json();
     const id = Array.isArray(data) ? data[0]?.id : data?.id;
 
-    // Vendor spam is recorded (raw.junk) but stays out of the inbox — no draft,
-    // no email to Chris.
+    // Vendor spam is recorded (raw.junk) but stays out of the inbox — no email
+    // to Chris.
     if (junk) return json({ ok: true, id, junk: true }, 200);
 
-    // Queue draft + email to the background function so the visitor gets their
+    // Queue the email to the background function so the visitor gets their
     // success state now. Inline fallback if queueing fails (e.g. the plan tier
     // rejects background functions): slower, but Chris still gets the email.
     const origin = new URL(request.url).origin;
     if (await queueNotify(origin, payload, id)) {
       return json({ ok: true, id, notify: "queued" }, 200);
     }
-    const draft = await draftReply(payload);
-    const emailed = await emailChris(payload, draft, id);
+    const emailed = await emailChris(payload, id);
 
-    return json({ ok: true, id, drafted: Boolean(draft), emailed }, 200);
+    return json({ ok: true, id, emailed }, 200);
   } catch (err) {
     console.error("Supabase fetch threw:", err);
     return json({ error: "Network error reaching Supabase" }, 502);
