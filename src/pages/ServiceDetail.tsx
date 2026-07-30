@@ -46,7 +46,11 @@ export default function ServiceDetail() {
 
           {/* Highlight / benefit panel */}
           {service.highlight && (
-            <div className="mb-12 rounded-xl overflow-hidden bg-portal-cream border border-portal-light grid grid-cols-1 md:grid-cols-2">
+            <div
+              className={`mb-12 rounded-xl overflow-hidden bg-portal-cream border border-portal-light grid grid-cols-1 ${
+                service.highlight.image ? "md:grid-cols-2" : ""
+              }`}
+            >
               {service.highlight.image && (
                 <div className="aspect-[4/3] md:aspect-auto md:h-full">
                   <img

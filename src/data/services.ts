@@ -217,13 +217,12 @@ export const SERVICES: Service[] = [
     slug: "floor-leveling",
     title: "Floor Leveling",
     shortTitle: "Floor Leveling",
-    heroImage: "/images/floor-leveling/leveling-hero-power-trowel.jpeg",
+    heroImage: "/images/team/team_3_job_site.jpeg",
     intro:
       "A flat floor is the first step to finishing your basement, and a finished basement is the most affordable way to add real living space to a Seattle home. Before LVP, tile, hardwood, or carpet goes down, the slab underneath has to be level, or you end up with cracked tile, hollow spots, squeaks, and gaps along the baseboard. We level basement and interior concrete slabs across Seattle so the finished floor sits flat and stays that way.",
     highlight: {
       title: "Finish your basement this winter, without moving out",
       body: "Basement leveling and floor prep happen entirely indoors, so we work right through Seattle's wet winter while everyone else waits for summer. And because it is interior work, you keep living in your home the whole time - no renting elsewhere, no packing up the house. It is the most overlooked way to add livable square footage to a Seattle home.",
-      image: "/images/floor-leveling/finished-basement-living.jpeg",
     },
     services: [
       "Basement floor leveling",
@@ -255,12 +254,9 @@ export const SERVICES: Service[] = [
     note: "The fix is not always more concrete on top. In Seattle, a moving basement slab is often a drainage problem. We will tell you honestly whether you need leveling, drainage work, or both, and we handle the French drains and foundation drainage too.",
     galleryTitle: "What Floor Leveling Looks Like",
     galleryImages: [
-      "/images/floor-leveling/leveling-fresh-floor.jpeg",
+      "/images/team/wix_team_pushing.jpeg",
       "/images/team/wix_team_grinding.jpeg",
-      "/images/floor-leveling/leveling-smoothing-wet.jpeg",
-      "/images/floor-leveling/finished-basement-fireplace.jpeg",
-      "/images/floor-leveling/finished-basement-gym.jpeg",
-      "/images/floor-leveling/finished-basement-modern.jpeg",
+      "/images/team/team_4_backs.jpeg",
     ],
   },
 ];
@@ -306,6 +302,6 @@ export const SERVICE_BRIEF = [
     title: "Floor Leveling",
     description: "Basement and interior slab leveling for flat, lasting floors.",
     slug: "floor-leveling",
-    image: "/images/floor-leveling/leveling-fresh-floor.jpeg",
+    image: "/images/team/wix_team_pushing.jpeg",
   },
 ];
