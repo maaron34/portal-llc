@@ -1,3 +1,12 @@
+// Anchor years, not counts. A hardcoded "6 years in business" is correct for
+// exactly twelve months and then quietly states a falsehood on every page,
+// including the ones an AI answer engine reads. Deriving from the year means
+// the site ages itself.
+const FOUNDED_YEAR = 2020;
+const FOUNDER_CAREER_START = 1991;
+
+const yearsSince = (year: number) => new Date().getFullYear() - year;
+
 export const BUSINESS = {
   name: "Portal",
   tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
@@ -9,8 +18,15 @@ export const BUSINESS = {
   license: "PORTAL*803D4",
   reviewCount: 100,
   rating: 4.9,
-  yearsInBusiness: 6,
-  founderYearsExperience: 35,
+  foundedYear: FOUNDED_YEAR,
+  yearsInBusiness: yearsSince(FOUNDED_YEAR),
+  founderYearsExperience: yearsSince(FOUNDER_CAREER_START),
+  // Quoted from clause 9 of the posted terms (/terms), deliberately. Marketing
+  // copy that promises more than the contract is a liability; copy that repeats
+  // the contract is just the contract, and answer engines compare on it.
+  warrantyYears: 1,
+  warrantySummary:
+    "Portal warrants its workmanship for 1 year from substantial completion. Normal concrete cracking, misuse, and site conditions are excluded. Full terms at /terms.",
   founder: "Chris Hildebrand",
   instagram: "https://www.instagram.com/portal.llc/",
   facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
@@ -747,3 +763,49 @@ export const FAQS = [
       "Yes. We work year-round in Seattle. 90% of a concrete project is prep work that can happen in any weather. For the actual pour, we build temporary tent structures to keep rain off the concrete. In cold snaps, insulated blankets protect the cure. Winter is actually a great time to book because our schedule is more flexible and we can start sooner.",
   },
 ] as const;
+
+/**
+ * Keywords that mark a review as being about a given service, keyed by the
+ * service slug in SERVICES.
+ *
+ * Matched against the review text rather than stored as a tag on each review,
+ * so a new review sorts itself the moment it is pasted in. There are over a
+ * hundred reviews and hand-tagging them would go stale on the first addition.
+ *
+ * Order inside each list does not matter; a review can belong to more than one
+ * service, which is correct - a job that mentions the driveway and the walkway
+ * is real proof for both.
+ */
+const SERVICE_REVIEW_KEYWORDS: Record<string, string[]> = {
+  driveways: ["driveway"],
+  patios: ["patio"],
+  "walkways-stairs": ["walkway", "stair", "step", "stoop", "path"],
+  "retaining-walls": ["retaining wall", "retaining-wall"],
+  "foundation-work": ["foundation", "basement", "slab", "footing", "adu"],
+  reconditioning: ["recondition", "resurfac", "restore", "overlay", "stain"],
+  "floor-leveling": ["level", "self leveler", "self-leveler", "leveling"],
+};
+
+/**
+ * Reviews that mention a given service, newest-first order preserved from
+ * REVIEWS. Returns an empty array for an unknown slug, so a new service page
+ * renders without proof rather than crashing.
+ */
+export function reviewsForService(slug: string, limit = 3) {
+  const keywords = SERVICE_REVIEW_KEYWORDS[slug];
+  if (!keywords) return [];
+  return REVIEWS.filter((r) => {
+    const text = r.text.toLowerCase();
+    return keywords.some((k) => text.includes(k));
+  }).slice(0, limit);
+}
+
+/** How many reviews mention a service. Used for the "N reviews mention..." line. */
+export function reviewCountForService(slug: string): number {
+  const keywords = SERVICE_REVIEW_KEYWORDS[slug];
+  if (!keywords) return 0;
+  return REVIEWS.filter((r) => {
+    const text = r.text.toLowerCase();
+    return keywords.some((k) => text.includes(k));
+  }).length;
+}
