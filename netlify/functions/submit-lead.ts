@@ -107,7 +107,14 @@ async function findLeadByPhone(secret: string, phone: string): Promise<ExistingL
     );
     if (!res.ok) return null;
     const rows = (await res.json()) as ExistingLead[];
-    return rows.find((r) => digits10(r.phone || "") === key && !r.raw?.junk) ?? null;
+    const matches = rows.filter((r) => digits10(r.phone || "") === key && !r.raw?.junk);
+    // Prefer a record that already has a name over a bare one, then the most
+    // recent (the query is ordered newest first). Where a form submission and a
+    // texted-photo record both exist for one person, the named record is the
+    // one carrying the project description, so it is the one to keep building
+    // on — otherwise every later text would pile onto the anonymous record and
+    // Chris would still be looking at a lead with no name.
+    return matches.find((r) => (r.name || "").trim()) ?? matches[0] ?? null;
   } catch {
     return null;
   }
