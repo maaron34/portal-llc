@@ -3,6 +3,7 @@ import { ArrowRight, AlertCircle } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO, generateServiceSchema } from "../data/seo";
 import { SERVICES } from "../data/services";
+import { BUSINESS, reviewsForService, reviewCountForService } from "../data/content";
 
 export default function ServiceDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,8 @@ export default function ServiceDetail() {
   }
 
   const seo = PAGE_SEO[slug] || PAGE_SEO.services;
+  const serviceReviews = reviewsForService(slug);
+  const mentions = reviewCountForService(slug);
 
   return (
     <>
@@ -140,6 +143,52 @@ export default function ServiceDetail() {
               </p>
             </div>
           )}
+
+          {/* Proof for THIS service, not the company in general. An answer
+              engine comparing contractors reads the driveway page and asks
+              whether anyone vouches for the driveway work specifically;
+              company-wide review counts do not answer that. */}
+          {serviceReviews.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-2xl sm:text-3xl font-bold text-portal-dark mb-2">
+                What customers say about our {service.shortTitle.toLowerCase()}
+              </h2>
+              <p className="text-portal-mid text-sm mb-6">
+                {mentions} of our {BUSINESS.reviewCount}+ five-star reviews mention{" "}
+                {service.shortTitle.toLowerCase()}.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {serviceReviews.map((review) => (
+                  <blockquote
+                    key={review.author}
+                    className="bg-portal-cream rounded-xl p-6 text-sm leading-relaxed text-portal-dark"
+                  >
+                    <p className="mb-4">"{review.text}"</p>
+                    <footer className="text-portal-mid text-xs font-semibold not-italic">
+                      {review.author} - {review.source}
+                    </footer>
+                  </blockquote>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Workmanship warranty. Wording is clause 9 of /terms verbatim in
+              substance, so the page never promises more than the contract. */}
+          <div className="border border-portal-warm rounded-xl p-6 mb-10">
+            <h3 className="text-lg font-bold text-portal-dark mb-2">
+              Backed by a {BUSINESS.warrantyYears}-year workmanship warranty
+            </h3>
+            <p className="text-portal-mid text-sm leading-relaxed">
+              Portal warrants its workmanship for {BUSINESS.warrantyYears} year from
+              substantial completion. Normal concrete cracking, misuse, and site
+              conditions are excluded.{" "}
+              <Link to="/terms" className="text-portal-accent underline">
+                Read the full terms
+              </Link>
+              .
+            </p>
+          </div>
 
           {/* CTA */}
           <div className="bg-portal-dark rounded-xl p-8 sm:p-10 text-center">
