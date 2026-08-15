@@ -1,62 +1,3 @@
-// Anchor years, not counts. A hardcoded "6 years in business" is correct for
-// exactly twelve months and then quietly states a falsehood on every page,
-// including the ones an AI answer engine reads. Deriving from the year means
-// the site ages itself.
-const FOUNDED_YEAR = 2020;
-const FOUNDER_CAREER_START = 1991;
-
-const yearsSince = (year: number) => new Date().getFullYear() - year;
-
-export const BUSINESS = {
-  name: "Portal",
-  tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
-  phone: "(206) 829-6396",
-  phoneHref: "tel:+12068296396",
-  email: "chris@buildwithportal.com",
-  url: "https://buildwithportal.com",
-  hours: "Monday-Friday 7:30 AM - 5:00 PM, Saturday by appointment",
-  license: "PORTAL*803D4",
-  reviewCount: 100,
-  rating: 4.9,
-  foundedYear: FOUNDED_YEAR,
-  yearsInBusiness: yearsSince(FOUNDED_YEAR),
-  founderYearsExperience: yearsSince(FOUNDER_CAREER_START),
-  // Quoted from clause 9 of the posted terms (/terms), deliberately. Marketing
-  // copy that promises more than the contract is a liability; copy that repeats
-  // the contract is just the contract, and answer engines compare on it.
-  warrantyYears: 1,
-  warrantySummary:
-    "Portal warrants its workmanship for 1 year from substantial completion. Normal concrete cracking, misuse, and site conditions are excluded. Full terms at /terms.",
-  founder: "Chris Hildebrand",
-  instagram: "https://www.instagram.com/portal.llc/",
-  facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
-  address: {
-    city: "Seattle",
-    state: "WA",
-  },
-} as const;
-
-export const SERVICE_AREAS = [
-  "West Seattle",
-  "Burien",
-  "White Center",
-  "Beacon Hill",
-  "Georgetown",
-  "Delridge",
-  "Admiral",
-  "Alki",
-  "Ballard",
-  "Fremont",
-  "Queen Anne",
-  "Magnolia",
-  "Capitol Hill",
-  "Central District",
-  "Wallingford",
-  "Green Lake",
-  "Greenwood",
-  "Columbia City",
-] as const;
-
 export const REVIEWS = [
   // Google Reviews
   {
@@ -681,6 +622,72 @@ export const REVIEWS = [
     source: "Google",
   },
 ] as const;
+
+// Anchor years, not counts. A hardcoded "6 years in business" is correct for
+// exactly twelve months and then quietly states a falsehood on every page,
+// including the ones an AI answer engine reads. Deriving from the year means
+// the site ages itself.
+const FOUNDED_YEAR = 2020;
+const FOUNDER_CAREER_START = 1991;
+
+const yearsSince = (year: number) => new Date().getFullYear() - year;
+
+export const BUSINESS = {
+  name: "Portal",
+  tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
+  phone: "(206) 829-6396",
+  phoneHref: "tel:+12068296396",
+  email: "chris@buildwithportal.com",
+  url: "https://buildwithportal.com",
+  hours: "Monday-Friday 7:30 AM - 5:00 PM, Saturday by appointment",
+  license: "PORTAL*803D4",
+  // Counted from REVIEWS rather than typed in. The hardcoded "100" quietly
+  // conflated two different numbers: the reviews we hold across every platform
+  // and the count on Google alone. Google shows 91, so "100+ five-star reviews,
+  // 4.9 average on Google" read as a claim that does not survive a check, and
+  // directories do check.
+  reviewCount: REVIEWS.length,
+  googleReviewCount: REVIEWS.filter((r) => r.source === "Google").length,
+  rating: 4.9,
+  foundedYear: FOUNDED_YEAR,
+  yearsInBusiness: yearsSince(FOUNDED_YEAR),
+  founderYearsExperience: yearsSince(FOUNDER_CAREER_START),
+  // Quoted from clause 9 of the posted terms (/terms), deliberately. Marketing
+  // copy that promises more than the contract is a liability; copy that repeats
+  // the contract is just the contract, and answer engines compare on it.
+  warrantyYears: 1,
+  warrantySummary:
+    "Portal warrants its workmanship for 1 year from substantial completion. Normal concrete cracking, misuse, and site conditions are excluded. Full terms at /terms.",
+  founder: "Chris Hildebrand",
+  instagram: "https://www.instagram.com/portal.llc/",
+  facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
+  address: {
+    city: "Seattle",
+    state: "WA",
+  },
+} as const;
+
+export const SERVICE_AREAS = [
+  "West Seattle",
+  "Burien",
+  "White Center",
+  "Beacon Hill",
+  "Georgetown",
+  "Delridge",
+  "Admiral",
+  "Alki",
+  "Ballard",
+  "Fremont",
+  "Queen Anne",
+  "Magnolia",
+  "Capitol Hill",
+  "Central District",
+  "Wallingford",
+  "Green Lake",
+  "Greenwood",
+  "Columbia City",
+] as const;
+
 
 export const WHY_PORTAL = [
   {
