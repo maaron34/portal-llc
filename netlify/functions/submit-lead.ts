@@ -37,19 +37,138 @@ const json = (body: unknown, status: number): Response =>
  * Screen a website-form submission: real customer lead, or a vendor pitch
  * (SEO/marketing/VA spam)? Reuses the classify-sms function. Fail-open: any error
  * or uncertainty returns false (treated as a lead) so a real one is never dropped.
+ *
+ * `channel: "website"` matters: the classifier's default prompt is tuned for
+ * cold SMS to the business line, where a contentless text really is spam. A form
+ * on our own site is the opposite — the submitter typed a name, email and phone
+ * to reach us, so a thin message ("Google", an address paste) is a customer who
+ * didn't feel like writing, not a spammer. Judging those two the same way junked
+ * four real Google Ads leads in July/August 2026.
  */
-async function isVendorSpam(text: string, from?: string): Promise<boolean> {
+async function isVendorSpam(origin: string, text: string, from?: string): Promise<boolean> {
   try {
-    const r = await fetch("https://buildwithportal.com/.netlify/functions/classify-sms", {
+    // Same deploy, not the hardcoded production host. Pointing at production
+    // meant a deploy preview screened its submissions with whatever prompt was
+    // already live, so a change to the classifier could not be tested before
+    // merging it — and every form submission took a round-trip out to the
+    // public internet and back to reach a function sitting beside this one.
+    const r = await fetch(`${origin}/.netlify/functions/classify-sms`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, from }),
+      body: JSON.stringify({ text, from, channel: "website" }),
     });
     if (!r.ok) return false;
     const v = (await r.json()) as { lead?: boolean; confidence?: number };
     return v.lead === false && (v.confidence ?? 0) >= 0.7;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Last 10 digits of a phone number, or "" if it isn't a usable US number.
+ * Collapses every format we actually receive — "+12067181940", "2067181940",
+ * "(206) 718-1940", "206-718-1940" — onto one comparable key.
+ */
+function digits10(phone: string): string {
+  const d = (phone || "").replace(/\D/g, "");
+  return d.length >= 10 ? d.slice(-10) : "";
+}
+
+type ExistingLead = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  address: string | null;
+  message: string | null;
+  phone: string | null;
+  raw: { junk?: unknown } | null;
+};
+
+/**
+ * Find a lead already on file for this phone number, matching on the last 10
+ * digits rather than the stored string.
+ *
+ * Why this exists: website leads are keyed by email and texted leads by phone,
+ * so the same person reaching us both ways used to land as two records — the
+ * form submission with their name and project, and a second, nameless one
+ * holding the photos they texted. Chris then had a lead with no name and no
+ * context sitting next to a lead with no photos, and no way to tell they were
+ * the same job. QUO is our missed-call text-back service, so the same-person-
+ * two-ways case is the normal path, not an edge case.
+ *
+ * Junk-flagged leads are skipped so a real inquiry never gets merged into a
+ * dismissed one. Best effort: any failure returns null and we create a new lead
+ * as before, which is the old behavior rather than a lost lead.
+ */
+async function findLeadByPhone(secret: string, phone: string): Promise<ExistingLead | null> {
+  const key = digits10(phone);
+  if (!key) return null;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?phone=not.is.null&select=id,name,email,address,message,phone,raw` +
+        `&order=created_at.desc&limit=500`,
+      { headers: { apikey: secret, Authorization: `Bearer ${secret}` } }
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as ExistingLead[];
+    const matches = rows.filter((r) => digits10(r.phone || "") === key && !r.raw?.junk);
+    // Prefer a record that already has a name over a bare one, then the most
+    // recent (the query is ordered newest first). Where a form submission and a
+    // texted-photo record both exist for one person, the named record is the
+    // one carrying the project description, so it is the one to keep building
+    // on — otherwise every later text would pile onto the anonymous record and
+    // Chris would still be looking at a lead with no name.
+    return matches.find((r) => (r.name || "").trim()) ?? matches[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fold a new submission into the lead already on file for that phone.
+ *
+ * Only fills blanks — an existing name, email or address is never overwritten,
+ * because the earlier record is usually the richer one (a form submission) and
+ * the new arrival is usually a bare text. A genuinely new message is appended
+ * with its date and channel instead of replacing what's there, so the lead page
+ * reads as the history of the conversation: what they submitted, then what they
+ * texted. Best effort — a failed patch still returns the matched id, so the
+ * caller attaches photos and correspondence to the right lead either way.
+ */
+async function mergeIntoLead(secret: string, existing: ExistingLead, payload: LeadPayload): Promise<void> {
+  const patch: Record<string, string> = {};
+  const fill = (field: "name" | "email" | "address", value: string) => {
+    if (value && !(existing[field] || "").trim()) patch[field] = value;
+  };
+  fill("name", (payload.name || "").trim());
+  fill("email", (payload.email || "").trim());
+  fill("address", (payload.address || "").trim());
+
+  const incoming = (payload.message || "").trim();
+  const current = (existing.message || "").trim();
+  if (incoming && !current) {
+    patch.message = incoming;
+  } else if (incoming && !current.includes(incoming)) {
+    const when = new Date().toISOString().slice(0, 10);
+    const via = payload.channel && payload.channel !== "website" ? `via ${payload.channel}` : "via the website";
+    patch.message = `${current}\n\n--- ${when}, ${via} ---\n${incoming}`;
+  }
+
+  if (!Object.keys(patch).length) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${encodeURIComponent(existing.id)}`, {
+      method: "PATCH",
+      headers: {
+        apikey: secret,
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(patch),
+    });
+  } catch {
+    /* best effort — the id we return is what matters */
   }
 }
 
@@ -124,8 +243,32 @@ export default async (request: Request): Promise<Response> => {
   // (SEO/marketing/VA spam) before they clutter the inbox or email Chris. Cron
   // sources (quo/email/voicemail) are already classified upstream.
   const isWebsite = !payload.channel || payload.channel === "website";
+  // A click we paid for is never auto-junked. Vendors pitching us arrive direct
+  // or via a scraped list; they don't come through a Google/Meta ad we're billed
+  // for. Suppressing one of these costs us the click AND the job, so the bar for
+  // a paid lead is a human deciding, not a classifier. (Four real Google Ads
+  // leads were silently junked before this rule: two were address-only pastes,
+  // two were one-word messages.)
+  const paidClick = Boolean(payload.gclid || payload.fbclid || payload.utm_source);
   const screenText = [payload.project_type, payload.timeline, payload.message, name].filter(Boolean).join("\n");
-  const junk = isWebsite && screenText ? await isVendorSpam(screenText, email || phone) : false;
+  const origin = new URL(request.url).origin;
+  const junk = isWebsite && screenText && !paidClick ? await isVendorSpam(origin, screenText, email || phone) : false;
+
+  // Same person, second channel? Fold it into the lead already on file instead
+  // of opening a nameless second one. Junk submissions skip this: they should
+  // never touch a real lead's record.
+  const existing = !junk && phone ? await findLeadByPhone(secret, phone) : null;
+  if (existing) {
+    await mergeIntoLead(secret, existing, payload);
+    // A form submission still emails Chris even though no new lead was created:
+    // someone filling in the form is asking for a reply, and the whole point of
+    // merging is that he sees it against the context he already has. A texted
+    // photo (no message) doesn't email — QUO already put that on his phone.
+    if (isWebsite) {
+      if (!(await queueNotify(origin, payload, existing.id))) await emailChris(payload, existing.id);
+    }
+    return json({ ok: true, id: existing.id, merged: true }, 200);
+  }
 
   // Map only known columns; stash the full payload in `raw` for anything we
   // didn't model yet. stage, created_at, and channel-default use table defaults.
@@ -194,7 +337,6 @@ export default async (request: Request): Promise<Response> => {
     // Queue the email to the background function so the visitor gets their
     // success state now. Inline fallback if queueing fails (e.g. the plan tier
     // rejects background functions): slower, but Chris still gets the email.
-    const origin = new URL(request.url).origin;
     if (await queueNotify(origin, payload, id)) {
       return json({ ok: true, id, notify: "queued" }, 200);
     }

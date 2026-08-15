@@ -10,7 +10,9 @@
  * lead:true so a real lead is never dropped by a classifier hiccup (Chris can
  * dismiss a stray spam far more cheaply than losing a job).
  *
- * Body: { text: string, from?: string }
+ * Body: { text: string, from?: string, channel?: "website" }
+ * `channel: "website"` switches to the form-submission prompt (see below); any
+ * other value keeps the SMS rules.
  * Returns: { lead: boolean, confidence: number, reason: string }
  */
 
@@ -27,6 +29,34 @@ const json = (body: unknown, status: number): Response =>
     status,
     headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   });
+
+/**
+ * Website-form submissions get their own prompt. The SMS rules below assume a
+ * cold text to a business line, where a one-word message really is a wrong
+ * number. A form is the opposite: the sender typed a name, an email and a phone
+ * into our own site to reach us, so thin content means a customer who didn't
+ * feel like writing much. Scoring those by the SMS rules junked four real
+ * Google Ads leads (two address-only pastes, two one-word messages) before this
+ * split existed, and Chris was never emailed about any of them.
+ */
+const SYSTEM_WEBSITE =
+  "You classify submissions to the contact form on a Seattle concrete " +
+  "contractor's own website. The sender has already typed a name, email and " +
+  "phone to reach this business. Decide if the submitter is a potential " +
+  "CUSTOMER or NOT.\n" +
+  "Presume CUSTOMER. A short, vague, blank-ish, or address-only message is a " +
+  "customer — people paste an address, type one word, or write nothing much " +
+  "and wait for a call back. Never judge a submission by how little it says.\n" +
+  "NOT a customer only when the submission is clearly selling something TO the " +
+  "contractor — SEO, web design, marketing, ads, lead generation, appointment " +
+  "setting, virtual assistants, AI tools, software, recruiting, financing, " +
+  "insurance, business brokerage, invitations to bid on someone else's " +
+  "project — or is obvious bot output (random character strings for a name " +
+  "and message).\n" +
+  "When torn, choose customer (true): a stray pitch is one quick dismissal, a " +
+  "missed customer is a lost job.\n" +
+  "Respond with ONLY a JSON object, no prose: " +
+  '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
 const SYSTEM =
   "You classify inbound SMS texts sent to a Seattle concrete contractor's " +
@@ -52,7 +82,11 @@ const SYSTEM =
   "Respond with ONLY a JSON object, no prose: " +
   '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
-async function classify(text: string, from?: string): Promise<{ lead: boolean; confidence: number; reason: string }> {
+async function classify(
+  text: string,
+  from?: string,
+  channel?: string
+): Promise<{ lead: boolean; confidence: number; reason: string }> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return { lead: true, confidence: 0, reason: "classifier unconfigured; default include" };
 
@@ -67,7 +101,7 @@ async function classify(text: string, from?: string): Promise<{ lead: boolean; c
         max_tokens: 120,
         temperature: 0,
         messages: [
-          { role: "system", content: SYSTEM },
+          { role: "system", content: channel === "website" ? SYSTEM_WEBSITE : SYSTEM },
           { role: "user", content: `From: ${from || "unknown"}\nText: ${text}` },
         ],
       }),
@@ -104,7 +138,7 @@ export default async (request: Request): Promise<Response> => {
   const contentLength = Number(request.headers.get("content-length") || "0");
   if (contentLength > 20_000) return json({ error: "Payload too large" }, 413);
 
-  let body: { text?: string; from?: string };
+  let body: { text?: string; from?: string; channel?: string };
   try {
     body = await request.json();
   } catch {
@@ -114,6 +148,6 @@ export default async (request: Request): Promise<Response> => {
   const text = (body.text || "").trim();
   if (!text) return json({ error: "Missing text" }, 400);
 
-  const result = await classify(text, body.from);
+  const result = await classify(text, body.from, body.channel);
   return json(result, 200);
 };
