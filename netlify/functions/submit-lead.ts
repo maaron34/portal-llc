@@ -45,9 +45,14 @@ const json = (body: unknown, status: number): Response =>
  * didn't feel like writing, not a spammer. Judging those two the same way junked
  * four real Google Ads leads in July/August 2026.
  */
-async function isVendorSpam(text: string, from?: string): Promise<boolean> {
+async function isVendorSpam(origin: string, text: string, from?: string): Promise<boolean> {
   try {
-    const r = await fetch("https://buildwithportal.com/.netlify/functions/classify-sms", {
+    // Same deploy, not the hardcoded production host. Pointing at production
+    // meant a deploy preview screened its submissions with whatever prompt was
+    // already live, so a change to the classifier could not be tested before
+    // merging it — and every form submission took a round-trip out to the
+    // public internet and back to reach a function sitting beside this one.
+    const r = await fetch(`${origin}/.netlify/functions/classify-sms`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, from, channel: "website" }),
@@ -246,7 +251,8 @@ export default async (request: Request): Promise<Response> => {
   // two were one-word messages.)
   const paidClick = Boolean(payload.gclid || payload.fbclid || payload.utm_source);
   const screenText = [payload.project_type, payload.timeline, payload.message, name].filter(Boolean).join("\n");
-  const junk = isWebsite && screenText && !paidClick ? await isVendorSpam(screenText, email || phone) : false;
+  const origin = new URL(request.url).origin;
+  const junk = isWebsite && screenText && !paidClick ? await isVendorSpam(origin, screenText, email || phone) : false;
 
   // Same person, second channel? Fold it into the lead already on file instead
   // of opening a nameless second one. Junk submissions skip this: they should
@@ -259,7 +265,6 @@ export default async (request: Request): Promise<Response> => {
     // merging is that he sees it against the context he already has. A texted
     // photo (no message) doesn't email — QUO already put that on his phone.
     if (isWebsite) {
-      const origin = new URL(request.url).origin;
       if (!(await queueNotify(origin, payload, existing.id))) await emailChris(payload, existing.id);
     }
     return json({ ok: true, id: existing.id, merged: true }, 200);
@@ -332,7 +337,6 @@ export default async (request: Request): Promise<Response> => {
     // Queue the email to the background function so the visitor gets their
     // success state now. Inline fallback if queueing fails (e.g. the plan tier
     // rejects background functions): slower, but Chris still gets the email.
-    const origin = new URL(request.url).origin;
     if (await queueNotify(origin, payload, id)) {
       return json({ ok: true, id, notify: "queued" }, 200);
     }
