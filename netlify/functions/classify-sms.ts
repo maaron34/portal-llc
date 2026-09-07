@@ -50,9 +50,12 @@ const SYSTEM_WEBSITE =
   "NOT a customer only when the submission is clearly selling something TO the " +
   "contractor — SEO, web design, marketing, ads, lead generation, appointment " +
   "setting, virtual assistants, AI tools, software, recruiting, financing, " +
-  "insurance, business brokerage, invitations to bid on someone else's " +
-  "project — or is obvious bot output (random character strings for a name " +
-  "and message).\n" +
+  "insurance, business brokerage, bid-board or marketplace blasts inviting the " +
+  "contractor to bid on unnamed projects — or is obvious bot output (random " +
+  "character strings for a name and message). A builder, general contractor, " +
+  "landscaper, property manager or designer asking for an estimate on a " +
+  "specific project they are running is a CUSTOMER: they are hiring the " +
+  "concrete work.\n" +
   "When torn, choose customer (true): a stray pitch is one quick dismissal, a " +
   "missed customer is a lost job.\n" +
   "Respond with ONLY a JSON object, no prose: " +
@@ -67,7 +70,10 @@ const SYSTEM =
   "asking for a quote or estimate, describing a project, sharing an address, " +
   "photos, or dimensions, asking about scheduling or availability, or replying " +
   "to a prior message from Chris. Be INCLUSIVE here — if it could plausibly be " +
-  "a customer, call it a lead.\n" +
+  "a customer, call it a lead. A builder, general contractor, landscaper, " +
+  "property manager or designer asking for an estimate on a specific project " +
+  "they are running is a CUSTOMER (they are hiring the concrete work), not a " +
+  "vendor.\n" +
   "NOT a lead: spam, scams, marketing blasts, political/automated texts, wrong " +
   "numbers, and especially vendors selling services TO the contractor — lead-" +
   "generation or appointment-setting offers ('I book qualified appointments for " +

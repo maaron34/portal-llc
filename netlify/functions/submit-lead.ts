@@ -1,8 +1,8 @@
 /**
  * Netlify Function: capture a website lead to the Supabase `leads` table — the
- * canonical system-of-record — then hand off to notify-lead, which
- * emails Chris a lead notification with a vCard link. A failed email never
- * blocks capture.
+ * canonical system-of-record — then hand off to notify-lead, which drafts a
+ * suggested reply and emails Chris (see lib/lead-notify.ts for what that email
+ * is). A failed email never blocks capture.
  *
  * Wiring: Contact.tsx, LandingPage.tsx, and Refer.tsx AWAIT this call and gate
  * their success UI on the response — if capture fails, the lead went nowhere
@@ -178,7 +178,7 @@ async function mergeIntoLead(secret: string, existing: ExistingLead, payload: Le
  * so this await costs one local round-trip, not the whole notification.
  * Returns false on any failure so the caller can fall back to inline.
  */
-async function queueNotify(origin: string, payload: LeadPayload, id?: string): Promise<boolean> {
+async function queueNotify(origin: string, payload: LeadPayload, id?: string, merged = false): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4000);
   try {
@@ -188,7 +188,7 @@ async function queueNotify(origin: string, payload: LeadPayload, id?: string): P
         "Content-Type": "application/json",
         "x-internal-auth": process.env.SUPABASE_SECRET_KEY || "",
       },
-      body: JSON.stringify({ payload, id }),
+      body: JSON.stringify({ payload, id, merged }),
       signal: controller.signal,
     });
     if (!res.ok) console.error("notify-lead queue rejected:", res.status);
@@ -262,10 +262,12 @@ export default async (request: Request): Promise<Response> => {
     await mergeIntoLead(secret, existing, payload);
     // A form submission still emails Chris even though no new lead was created:
     // someone filling in the form is asking for a reply, and the whole point of
-    // merging is that he sees it against the context he already has. A texted
-    // photo (no message) doesn't email — QUO already put that on his phone.
+    // merging is that he sees it against the context he already has. A merged
+    // text or voicemail is NOT emailed from here: the cron that captured it
+    // appends it to the lead's timeline next, and correspondence-append emails
+    // Chris about the genuinely new messages (one email, never two).
     if (isWebsite) {
-      if (!(await queueNotify(origin, payload, existing.id))) await emailChris(payload, existing.id);
+      if (!(await queueNotify(origin, payload, existing.id, true))) await emailChris(payload, existing.id, { kind: "merged" });
     }
     return json({ ok: true, id: existing.id, merged: true }, 200);
   }
@@ -305,18 +307,29 @@ export default async (request: Request): Promise<Response> => {
       body: JSON.stringify(row),
     });
 
-    // Duplicate dedupe_key (same email/phone already a lead, e.g. a concurrent
-    // cron create or a form resubmit): return the existing lead's id instead of
-    // creating a second, and skip the draft/email so we don't re-notify Chris.
-    // Preserves the existing lead (no overwrite of its draft/stage/photos).
+    // Duplicate dedupe_key (same email already a lead, e.g. a returning customer
+    // who filled in the form again without a phone, or a concurrent cron create):
+    // fold the submission into the existing lead exactly like the phone match
+    // above, and email Chris about it when it came from the website. This branch
+    // used to return ok and drop the message on the floor, so a returning
+    // customer saw a thank-you page and Chris heard nothing.
     if (res.status === 409 && row.dedupe_key) {
       const ex = await fetch(
-        `${SUPABASE_URL}/rest/v1/leads?dedupe_key=eq.${encodeURIComponent(row.dedupe_key)}&select=id&limit=1`,
+        `${SUPABASE_URL}/rest/v1/leads?dedupe_key=eq.${encodeURIComponent(row.dedupe_key)}` +
+          `&select=id,name,email,address,message,phone,raw&limit=1`,
         { headers: { apikey: secret, Authorization: `Bearer ${secret}` } }
       );
       if (ex.ok) {
-        const rows = (await ex.json()) as { id?: string }[];
-        if (rows[0]?.id) return json({ ok: true, id: rows[0].id, duplicate: true }, 200);
+        const rows = (await ex.json()) as ExistingLead[];
+        const found = rows[0];
+        if (found?.id) {
+          if (junk || found.raw?.junk) return json({ ok: true, id: found.id, duplicate: true }, 200);
+          await mergeIntoLead(secret, found, payload);
+          if (isWebsite) {
+            if (!(await queueNotify(origin, payload, found.id, true))) await emailChris(payload, found.id, { kind: "merged" });
+          }
+          return json({ ok: true, id: found.id, merged: true, duplicate: true }, 200);
+        }
       }
       return json({ ok: true, duplicate: true }, 200);
     }
