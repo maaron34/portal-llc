@@ -356,15 +356,17 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const phoneButtons = () => {
     if (!phone) return;
     const parts: string[] = [];
+    // Both buttons need a US/Canadian number: tel is "" for anything else, and
+    // the Text back page refuses those numbers, so do not offer it.
     if (tel) parts.push(button(tel, `Call ${formatPhone(phone)}`));
-    if (leadId) parts.push(button(textUrl(origin, leadId), "Text back from Portal's number", { primary: phoneFirst }));
+    if (tel && leadId) parts.push(button(textUrl(origin, leadId), "Text back from Portal's number", { primary: phoneFirst }));
     if (!parts.length) return;
     actionsHtml.push(
       `<div>${parts.join("")}</div>` +
         smallNote(`Text back sends from ${esc(PORTAL_PHONE_DISPLAY)} after you tap Send on the next page${draft ? ", with the suggested reply filled in" : ""}.`)
     );
     if (tel) actionsText.push(`Call: ${tel}`);
-    if (leadId) actionsText.push(`Text back from Portal's number: ${textUrl(origin, leadId)}`);
+    if (tel && leadId) actionsText.push(`Text back from Portal's number: ${textUrl(origin, leadId)}`);
   };
   if (phoneFirst) {
     phoneButtons();
