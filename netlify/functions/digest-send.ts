@@ -9,14 +9,7 @@
 import { buildDigest, sendDigest } from "../lib/digest";
 import { validEmail } from "../lib/lead-links";
 
-const json = (body: unknown, status: number): Response =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
-
-function authorized(request: Request): boolean {
-  const provided = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-  const expected = process.env.OPS_PASSCODE;
-  return Boolean(expected) && provided === expected;
-}
+import { authorized, json } from "../lib/http";
 
 export default async (request: Request): Promise<Response> => {
   if (!authorized(request)) return json({ error: "Unauthorized" }, 401);

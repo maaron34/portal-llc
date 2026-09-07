@@ -41,7 +41,25 @@ export type LeadRow = {
 export const LEAD_SELECT =
   "id,created_at,name,email,phone,address,message,channel,stage,first_response_at,photos,gemini_notes,correspondence,raw";
 
-const auth = (secret: string) => ({ apikey: secret, Authorization: `Bearer ${secret}` });
+export const auth = (secret: string) => ({ apikey: secret, Authorization: `Bearer ${secret}` });
+
+/** Coerce the JSON columns to the shapes the code assumes (nulls become empties). */
+export function normalizeLead(row: LeadRow): LeadRow {
+  row.photos = Array.isArray(row.photos) ? row.photos : [];
+  row.correspondence = Array.isArray(row.correspondence) ? row.correspondence : [];
+  row.raw = row.raw && typeof row.raw === "object" ? row.raw : {};
+  return row;
+}
+
+/** Display name for a lead: name, else formatted phone, else email, else the fallback. */
+export function leadName(lead: Pick<LeadRow, "name" | "phone" | "email">, fallback = "this lead"): string {
+  const name = (lead.name || "").replace(/[\r\n]/g, " ").trim();
+  if (name) return name;
+  const d = (lead.phone || "").replace(/\D/g, "");
+  const ten = d.length === 10 ? d : d.length === 11 && d.startsWith("1") ? d.slice(1) : "";
+  if (ten) return `(${ten.slice(0, 3)}) ${ten.slice(3, 6)}-${ten.slice(6)}`;
+  return (lead.phone || "").trim() || (lead.email || "").trim() || fallback;
+}
 
 /** A string value out of `raw`, or "" when absent / not a string. */
 export function rawStr(raw: Record<string, unknown> | null | undefined, key: string): string {
@@ -58,11 +76,7 @@ export async function readLead(secret: string, id: string): Promise<LeadRow | nu
     if (!res.ok) return null;
     const rows = (await res.json()) as LeadRow[];
     const row = rows[0];
-    if (!row) return null;
-    row.photos = Array.isArray(row.photos) ? row.photos : [];
-    row.correspondence = Array.isArray(row.correspondence) ? row.correspondence : [];
-    row.raw = row.raw && typeof row.raw === "object" ? row.raw : {};
-    return row;
+    return row ? normalizeLead(row) : null;
   } catch {
     return null;
   }

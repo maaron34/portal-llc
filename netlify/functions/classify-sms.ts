@@ -51,7 +51,7 @@ const SYSTEM_WEBSITE =
   "contractor — SEO, web design, marketing, ads, lead generation, appointment " +
   "setting, virtual assistants, AI tools, software, recruiting, financing, " +
   "insurance, business brokerage, bid-board or marketplace blasts inviting the " +
-  "contractor to bid on unnamed projects — or is obvious bot output (random " +
+  "contractor to bid on unnamed projects - or is obvious bot output (random " +
   "character strings for a name and message). A builder, general contractor, " +
   "landscaper, property manager or designer asking for an estimate on a " +
   "specific project they are running is a CUSTOMER: they are hiring the " +

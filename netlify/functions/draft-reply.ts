@@ -15,14 +15,12 @@
 import { draftReply } from "../lib/draft-reply";
 import { UUID, mergeRaw, readLead, rawStr } from "../lib/lead-db";
 
-const json = (body: unknown, status: number): Response =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+import { authorized, json } from "../lib/http";
 
-function authorized(request: Request): boolean {
-  const provided = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-  const expected = process.env.OPS_PASSCODE;
-  return Boolean(expected) && provided === expected;
-}
+// This is a synchronous function and netlify.toml sets no timeout, so the
+// platform default of 10 seconds applies. The abort has to fire before that
+// so a slow model produces our own error JSON rather than a platform 502.
+const DRAFT_TIMEOUT_MS = 8000;
 
 type Body = {
   lead_id?: string;
@@ -65,7 +63,7 @@ export default async (request: Request): Promise<Response> => {
         gemini_notes: lead.gemini_notes,
         prior_messages: lead.correspondence.length,
       },
-      { timeoutMs: 20000 }
+      { timeoutMs: DRAFT_TIMEOUT_MS }
     );
     if (!draft) return json({ error: "Draft service failed" }, 502);
     if (body.save) {
@@ -87,7 +85,7 @@ export default async (request: Request): Promise<Response> => {
       message: body.message,
       channel: body.channel,
     },
-    { timeoutMs: 20000 }
+    { timeoutMs: DRAFT_TIMEOUT_MS }
   );
   if (!draft) return json({ error: "Draft service failed" }, 502);
   return json(draft, 200);

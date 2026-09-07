@@ -33,6 +33,13 @@ export function button(href: string, label: string, opts: { primary?: boolean } 
   );
 }
 
+/** The primary button as a real form submit (the one-tap pages). Same look as button(). */
+export const BUTTON_STYLE =
+  `${FONT}display:inline-block;padding:12px 18px;background:#1d4ed8;color:#fff;border:0;border-radius:6px;font-size:16px;font-weight:600;`;
+export function submitButton(label: string): string {
+  return `<button type="submit" style="${BUTTON_STYLE}">${esc(label)}</button>`;
+}
+
 /** A labeled block inside the 600px email table. */
 export function section(title: string, inner: string): string {
   return (

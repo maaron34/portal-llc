@@ -1,36 +1,39 @@
 /**
  * Netlify Background Function (`config.background: true` makes Netlify answer
  * 202 immediately and run the handler async, with automatic invocation
- * retries): email Chris about a lead. Three callers:
+ * retries on a non-2xx): email Chris about a lead. Three callers:
  *
  *   - submit-lead, right after a Supabase insert (kind "new") or after folding a
  *     website resubmission into an existing lead (kind "merged").
- *   - portal-ops correspondence-append, when a text or voicemail lands on a lead
- *     he already has (kind "update", with the new inbound entries).
+ *   - portal-ops correspondence-append, when a text or voicemail arrives on a
+ *     lead he already has (kind "update", with the new inbound entries).
  *
  * This is also where the suggested reply is drafted (one OpenRouter call, off
  * the visitor's request path) and stored in raw.draft_reply, only if Chris has
  * not already saved one. The draft goes into the email's reply buttons, never
  * its body (see lead-notify.ts).
  *
- * raw.notified_at is written at the START of every send. correspondence-append
- * uses it to skip entries that this email already covers, so a brand-new
- * voicemail lead produces one email, not a "new lead" and an "update".
+ * Writes, in order: one only-if-absent merge of {draft, topic, subject} before
+ * the send (those are needed by every later email about the lead, and keeping
+ * them stable is what threads the emails together), then raw.notified_at only
+ * AFTER Resend accepted the email. A failed send leaves no stamp, so nothing
+ * downstream ever treats an unsent email as sent.
  *
  * Internal-only: the caller must present the Supabase secret in
  * x-internal-auth. Both sites read the same env var and it never reaches the
  * browser, so a random visitor can't use this endpoint to send Chris
- * fabricated lead emails. Always answers 200 once past auth: a non-200 makes
- * Netlify retry a background function, which would double-send.
+ * fabricated lead emails. Answers 200 after any send attempt (a retry would
+ * double-send); answers 503 only when nothing was attempted because the lead
+ * could not be read, which is exactly when a retry is safe and wanted.
  */
 
 import { draftReply, type DraftResult } from "../lib/draft-reply";
 import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
-import { emailChris, fallbackTopic, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
+import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
 
-const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
 type Body = {
   payload?: LeadPayload;
@@ -42,30 +45,36 @@ type Body = {
 
 export default async (request: Request): Promise<Response> => {
   const secret = process.env.SUPABASE_SECRET_KEY;
-  if (!secret || request.headers.get("x-internal-auth") !== secret) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-  }
-  if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
-  }
+  if (!secret || request.headers.get("x-internal-auth") !== secret) return reply({ error: "Unauthorized" }, 401);
+  if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405);
 
   let body: Body;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+    return reply({ error: "Invalid JSON" }, 400);
   }
 
   const origin = new URL(request.url).origin;
   const now = new Date();
   const id = body.id;
-  const kind: NotifyKind = body.update ? "update" : body.merged ? "merged" : "new";
+  const entries = Array.isArray(body.entries) ? body.entries : [];
+  // Entries mean an update even if a caller forgot the flag; a missing flag
+  // must never turn a follow-up text into a "NEW LEAD" email.
+  const kind: NotifyKind = body.update || entries.length ? "update" : body.merged ? "merged" : "new";
+  if (kind !== "update" && !body.payload) return reply({ error: "Missing payload" }, 400);
 
   try {
     const lead = id ? await readLead(secret, id) : null;
-    if (kind === "update" && (!lead || !Array.isArray(body.entries) || !body.entries.length)) {
-      console.log("notify-lead: update with nothing to send", JSON.stringify({ id }));
-      return ok({ ok: true, skipped: "no entries" });
+    if (kind === "update") {
+      if (!entries.length) return reply({ ok: true, skipped: "no entries" });
+      // readLead returns null for "row missing" and for "Supabase unavailable"
+      // alike. Nothing has been sent yet, so let Netlify retry rather than drop
+      // the customer's message on a transient error.
+      if (!lead) {
+        console.error("notify-lead: lead unreadable for update", JSON.stringify({ id }));
+        return reply({ error: "Lead unreadable" }, 503);
+      }
     }
 
     // The payload for an update is the lead itself; submit-lead sends the
@@ -79,9 +88,6 @@ export default async (request: Request): Promise<Response> => {
       channel: lead?.channel,
     };
 
-    // Stamp first so correspondence-append can tell what this email covers.
-    if (id) await mergeRaw(secret, id, { notified_at: now.toISOString() });
-
     // Draft: reuse a stored one; generate only while the lead is unanswered.
     let draft: DraftResult | null = null;
     const stored = rawStr(lead?.raw, "draft_reply");
@@ -94,35 +100,39 @@ export default async (request: Request): Promise<Response> => {
           address: lead?.address || payload.address,
           project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
           timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? body.entries!.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
+          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
           channel: lead?.channel || payload.channel,
           gemini_notes: lead?.gemini_notes,
           prior_messages: lead?.correspondence?.length || 0,
         },
         { timeoutMs: 15000 }
       );
-      if (draft && id) {
-        const patch: Record<string, unknown> = { draft_reply: draft.draft, draft_at: now.toISOString() };
-        if (draft.topic) patch.draft_topic = draft.topic;
-        await mergeRaw(secret, id, patch, true);
-        if (draft.caller_name && lead && !(lead.name || "").trim()) {
-          await patchLead(secret, id, { name: draft.caller_name });
-          lead.name = draft.caller_name;
-        }
+      if (draft?.caller_name && lead && id && !(lead.name || "").trim()) {
+        await patchLead(secret, id, { name: draft.caller_name });
+        lead.name = draft.caller_name;
       }
     }
 
-    // One topic per lead, so every email about it shares a subject and threads.
+    // One topic and one subject per lead: every email about it reuses them.
     const topic = rawStr(lead?.raw, "draft_topic") || draft?.topic || fallbackTopic(payload, lead);
-    if (id && !rawStr(lead?.raw, "draft_topic")) await mergeRaw(secret, id, { draft_topic: topic }, true);
+    const rendered = renderLeadEmail(payload, id, { lead, draft, kind, entries, origin, topic, now });
+    if (id) {
+      const keep: Record<string, unknown> = { draft_topic: topic, notify_subject: rendered.baseSubject };
+      if (draft && !stored) {
+        keep.draft_reply = draft.draft;
+        keep.draft_at = now.toISOString();
+      }
+      await mergeRaw(secret, id, keep, true);
+    }
 
-    const emailed = await emailChris(payload, id, { lead, draft, kind, entries: body.entries, origin, topic, now });
+    const emailed = await emailChris(payload, id, { lead, draft, kind, entries, origin, topic, now });
+    if (emailed && id) await mergeRaw(secret, id, { notified_at: now.toISOString() });
     // A background function's response body is discarded, so the function log is
     // the only place to see whether the email went out.
     console.log("notify-lead result:", JSON.stringify({ id, kind, emailed, drafted: Boolean(draft) }));
-    return ok({ ok: true, emailed });
+    return reply({ ok: true, emailed });
   } catch (err) {
     console.error("notify-lead threw:", err);
-    return ok({ ok: false });
+    return reply({ ok: false });
   }
 };

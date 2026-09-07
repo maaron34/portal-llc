@@ -40,6 +40,7 @@ import {
   CHRIS_EMAIL,
   INGEST_BCC,
   PORTAL_PHONE_DISPLAY,
+  PROD_ORIGIN,
   QUO_INBOX_URL,
   formatPhone,
   gmailComposeUrl,
@@ -55,8 +56,10 @@ import type { DraftResult } from "./draft-reply";
 // Where lead notifications go. Env override so QA can redirect without a code change.
 const NOTIFY_TO = process.env.LEAD_NOTIFY_TO || CHRIS_EMAIL;
 export const FROM = `Portal Leads <${CHRIS_EMAIL}>`;
-const PROD_ORIGIN = "https://buildwithportal.com";
 const TZ = "America/Los_Angeles";
+const DAY_KEY = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+const TIME_FMT = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
+const DAY_FMT = new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric" });
 
 export type LeadPayload = {
   name?: string;
@@ -121,7 +124,7 @@ export function channelWord(ch?: string | null): string {
   }
 }
 
-const STAGE_LABEL: Record<string, string> = {
+export const STAGE_LABEL: Record<string, string> = {
   new: "not yet answered",
   contacted: "contacted",
   quoted: "quoted",
@@ -137,21 +140,18 @@ export function fmtWhen(iso: string | null | undefined, now = new Date()): strin
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const dayKey = (x: Date) =>
-    new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(x);
-  const time = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" }).format(d);
-  const k = dayKey(d);
-  if (k === dayKey(now)) return `today at ${time}`;
-  if (k === dayKey(new Date(now.getTime() - 86_400_000))) return `yesterday at ${time}`;
-  const day = new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric" }).format(d);
-  return `${day} at ${time}`;
+  const time = TIME_FMT.format(d);
+  const k = DAY_KEY.format(d);
+  if (k === DAY_KEY.format(now)) return `today at ${time}`;
+  if (k === DAY_KEY.format(new Date(now.getTime() - 86_400_000))) return `yesterday at ${time}`;
+  return `${DAY_FMT.format(d)} at ${time}`;
 }
 
 export function fmtDay(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric" }).format(d);
+  return DAY_FMT.format(d);
 }
 
 /** Who this email is about, for the subject: name, else a formatted phone, else the email. */
@@ -165,7 +165,15 @@ export function leadWho(lead: LeadRow | null | undefined, payload: LeadPayload):
 
 /** Default topic when the draft did not produce one. */
 export function fallbackTopic(payload: LeadPayload, lead?: LeadRow | null): string {
-  const pt = (payload.project_type || rawStr(lead?.raw, "project_type")).trim();
+  // Goes into a mail subject, so control characters and stray whitespace are
+  // stripped the way leadWho strips them from the name.
+  const pt = (payload.project_type || rawStr(lead?.raw, "project_type"))
+    .split("")
+    .map((c) => (c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127 ? " " : c))
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
   return pt ? pt.toLowerCase() : "concrete project";
 }
 
@@ -177,7 +185,7 @@ export function statusLine(kind: NotifyKind, payload: LeadPayload, lead: LeadRow
   const ch = channelWord(lead?.channel && kind !== "merged" ? lead.channel : payload.channel || lead?.channel);
   const who = leadWho(lead, payload);
   const since = lead?.created_at ? fmtDay(lead.created_at) : "";
-  const answered = lead?.first_response_at ? `you answered ${fmtWhen(lead.first_response_at, now)}` : "not yet answered";
+  const answered = lead?.first_response_at ? `you answered it ${fmtWhen(lead.first_response_at, now)}` : "it has not been answered yet";
   const stage = lead?.stage ? STAGE_LABEL[lead.stage] || lead.stage : "not yet answered";
 
   if (kind === "new") {
@@ -185,22 +193,22 @@ export function statusLine(kind: NotifyKind, payload: LeadPayload, lead: LeadRow
     let head: string;
     switch (ch) {
       case "voicemail":
-        head = `Voicemail left ${when} on ${PORTAL_PHONE_DISPLAY}. If QUO also emailed you this voicemail, this is the same call.`;
+        head = `A voicemail was left ${when} on ${PORTAL_PHONE_DISPLAY}. If QUO also emailed you this voicemail, this is the same call.`;
         break;
       case "text":
-        head = `Text to ${PORTAL_PHONE_DISPLAY} ${when}.`;
+        head = `A text came in to ${PORTAL_PHONE_DISPLAY} ${when}.`;
         break;
       case "email":
-        head = `Email from ${who} ${when}. You have the original in your inbox; this adds it to Portal's records.`;
+        head = `An email came in from ${who} ${when}. You have the original in your inbox; this adds it to Portal's records.`;
         break;
       default:
-        head = `Website form sent ${when}.`;
+        head = `A website form came in ${when}.`;
     }
-    return `${head} New lead, not yet answered.`;
+    return `${head} This is a new lead and it has not been answered yet.`;
   }
 
   if (kind === "merged") {
-    return `${who} filled in the website form again ${fmtWhen(now.toISOString(), now)}. Lead since ${since}, ${answered}. Stage: ${stage}.`;
+    return `${who} filled in the website form again ${fmtWhen(now.toISOString(), now)}. The lead has been open since ${since} and ${answered}. Stage: ${stage}.`;
   }
 
   // update: new messages on a lead he already has
@@ -211,7 +219,7 @@ export function statusLine(kind: NotifyKind, payload: LeadPayload, lead: LeadRow
   const n = inbound.length || 1;
   const what = n === 1 ? `a new ${noun}` : `${n} new ${noun}s`;
   const same = noun === "voicemail" ? " If QUO also emailed you this voicemail, this is the same call." : "";
-  return `${who} sent ${what} ${fmtWhen(latest || now.toISOString(), now)}.${same} Lead since ${since}, ${answered}. Stage: ${stage}.`;
+  return `${who} sent ${what} ${fmtWhen(latest || now.toISOString(), now)}.${same} The lead has been open since ${since} and ${answered}. Stage: ${stage}.`;
 }
 
 /** Strip the "--- date, via channel ---" separators mergeIntoLead adds, for a clean quote. */
@@ -221,6 +229,8 @@ function cleanMessage(m: string | null | undefined): string {
 
 export type RenderedEmail = {
   subject: string;
+  /** The subject without "Re: ", stored on the lead so every later email reuses it and threads. */
+  baseSubject: string;
   html: string;
   text: string;
   replyTo?: string;
@@ -252,7 +262,12 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const quoUrl = payload.quo_conversation_url || rawStr(lead?.raw, "quo_conversation_url") || QUO_INBOX_URL;
   const status = statusLine(kind, payload, lead, entries, now);
 
-  const baseSubject = `NEW LEAD (${ch}): ${who} - ${topic}`;
+  // The first email's subject is kept on the lead (raw.notify_subject) and
+  // reused verbatim: after a merge fills in a name, or a website form joins a
+  // texted lead, a rebuilt subject would differ and Gmail's subject threading
+  // (the fallback if Resend ignores the custom Message-ID) would split the
+  // conversation.
+  const baseSubject = rawStr(lead?.raw, "notify_subject") || `NEW LEAD (${ch}): ${who} - ${topic}`;
   const subject = kind === "new" ? baseSubject : `Re: ${baseSubject}`;
 
   // ---- what they said -------------------------------------------------------
@@ -382,14 +397,19 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const footerBits: string[] = [];
   if (phone) footerBits.push(`<a href="${esc(quoUrl)}" style="color:#6b7280;">Also in QUO</a>`);
   if (leadId) footerBits.push(`<a href="${esc(`${OPS_SITE}/leads/${leadId}`)}" style="color:#6b7280;">Open in the CRM</a>`);
-  const footerHtml = smallNote(
-    [
-      ...footerBits,
-      email ? `Replying to this email goes straight to ${esc(name || email)}.` : "",
-    ]
-      .filter(Boolean)
-      .join(" &middot; ")
-  );
+  // With no customer email there is no Reply-To, so Gmail's Reply would go to
+  // Chris himself; say so, and point at the buttons that do reach the customer.
+  const replyNote = email
+    ? `Replying to this email goes straight to ${esc(name || email)}.`
+    : phone
+      ? `No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back above.`
+      : "";
+  const footerHtml = smallNote([...footerBits, replyNote].filter(Boolean).join(" &middot; "));
+  const replyNoteText = email
+    ? `Replying to this email goes straight to ${name || email}.`
+    : phone
+      ? "No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back."
+      : "";
 
   // ---- assemble ---------------------------------------------------------------
   const rows: string[] = [];
@@ -412,6 +432,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     "",
     ...actionsText,
     "",
+    replyNoteText,
     phone ? `Also in QUO: ${quoUrl}` : "",
     leadId ? `Open in the CRM: ${OPS_SITE}/leads/${leadId}` : "",
   ]
@@ -432,7 +453,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     }
   }
 
-  return { subject, html, text, replyTo: email, headers };
+  return { subject, baseSubject, html, text, replyTo: email, headers };
 }
 
 /**

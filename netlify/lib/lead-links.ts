@@ -22,6 +22,7 @@ export const INGEST_BCC = process.env.LEAD_INGEST_BCC || "reggie.ministation+por
 export const PORTAL_PHONE_E164 = "+12068296396";
 export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
+export const PROD_ORIGIN = "https://buildwithportal.com";
 
 export type LinkAction = "handled" | "reply" | "text";
 
@@ -48,10 +49,19 @@ export const textUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-text?id=${id}&t=${signLink("text", id)}`;
 export const vcardUrl = (origin: string, id: string): string => `${origin}/.netlify/functions/vcard?id=${id}`;
 
-/** Last 10 digits of a US number, or "" when it isn't one. Same rule as submit-lead. */
+/**
+ * The 10 digits of a US or Canadian number, or "" when the input is not one.
+ * Accepts exactly 10 digits, or 11 starting with the country code 1. Anything
+ * else (a UK or Mexican number, a number with an extension) returns "" rather
+ * than the last ten digits: those used to be prefixed with +1 and would have
+ * pointed a Text back send at an unrelated US number. submit-lead uses this
+ * same function as the dedupe key, so the rule has one definition.
+ */
 export function digits10(phone: string | null | undefined): string {
   const d = (phone || "").replace(/\D/g, "");
-  return d.length >= 10 ? d.slice(-10) : "";
+  if (d.length === 10) return d;
+  if (d.length === 11 && d.startsWith("1")) return d.slice(1);
+  return "";
 }
 
 export const e164 = (phone: string | null | undefined): string => {

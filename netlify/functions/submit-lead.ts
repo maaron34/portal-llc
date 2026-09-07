@@ -18,6 +18,7 @@
  */
 
 import { emailChris, type LeadPayload } from "../lib/lead-notify";
+import { digits10 } from "../lib/lead-links";
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 
@@ -65,18 +66,9 @@ async function isVendorSpam(origin: string, text: string, from?: string): Promis
   }
 }
 
-/**
- * Last 10 digits of a phone number, or "" if it isn't a usable US number.
- * Collapses every format we actually receive — "+12067181940", "2067181940",
- * "(206) 718-1940", "206-718-1940" — onto one comparable key.
- */
-function digits10(phone: string): string {
-  const d = (phone || "").replace(/\D/g, "");
-  return d.length >= 10 ? d.slice(-10) : "";
-}
-
 type ExistingLead = {
   id: string;
+  created_at?: string;
   name: string | null;
   email: string | null;
   address: string | null;
@@ -267,7 +259,7 @@ export default async (request: Request): Promise<Response> => {
     // appends it to the lead's timeline next, and correspondence-append emails
     // Chris about the genuinely new messages (one email, never two).
     if (isWebsite) {
-      if (!(await queueNotify(origin, payload, existing.id, true))) await emailChris(payload, existing.id, { kind: "merged" });
+      if (!(await queueNotify(origin, payload, existing.id, true))) await emailChris(payload, existing.id, { kind: "merged", origin });
     }
     return json({ ok: true, id: existing.id, merged: true }, 200);
   }
@@ -316,7 +308,7 @@ export default async (request: Request): Promise<Response> => {
     if (res.status === 409 && row.dedupe_key) {
       const ex = await fetch(
         `${SUPABASE_URL}/rest/v1/leads?dedupe_key=eq.${encodeURIComponent(row.dedupe_key)}` +
-          `&select=id,name,email,address,message,phone,raw&limit=1`,
+          `&select=id,created_at,name,email,address,message,phone,raw&limit=1`,
         { headers: { apikey: secret, Authorization: `Bearer ${secret}` } }
       );
       if (ex.ok) {
@@ -325,8 +317,12 @@ export default async (request: Request): Promise<Response> => {
         if (found?.id) {
           if (junk || found.raw?.junk) return json({ ok: true, id: found.id, duplicate: true }, 200);
           await mergeIntoLead(secret, found, payload);
-          if (isWebsite) {
-            if (!(await queueNotify(origin, payload, found.id, true))) await emailChris(payload, found.id, { kind: "merged" });
+          // A lead created seconds ago lost a race with another capture path
+          // (a cron insert and this form in the same moment); its "new lead"
+          // email is already on its way and carries the same person.
+          const justCreated = found.created_at ? Date.now() - new Date(found.created_at).getTime() < 2 * 60 * 1000 : false;
+          if (isWebsite && !justCreated) {
+            if (!(await queueNotify(origin, payload, found.id, true))) await emailChris(payload, found.id, { kind: "merged", origin });
           }
           return json({ ok: true, id: found.id, merged: true, duplicate: true }, 200);
         }
@@ -353,7 +349,7 @@ export default async (request: Request): Promise<Response> => {
     if (await queueNotify(origin, payload, id)) {
       return json({ ok: true, id, notify: "queued" }, 200);
     }
-    const emailed = await emailChris(payload, id);
+    const emailed = await emailChris(payload, id, { origin });
 
     return json({ ok: true, id, emailed }, 200);
   } catch (err) {

@@ -8,7 +8,7 @@
  */
 
 import { button, esc, htmlResponse, nl2br, page } from "../lib/html";
-import { UUID, readLead, rawStr } from "../lib/lead-db";
+import { rawStr } from "../lib/lead-db";
 import {
   INGEST_BCC,
   formatPhone,
@@ -19,27 +19,18 @@ import {
   textUrl,
   validEmail,
   vcardUrl,
-  verifyLink,
 } from "../lib/lead-links";
 import { channelWord, fallbackTopic, fmtWhen } from "../lib/lead-notify";
+import { loadSignedPage } from "../lib/signed-page";
 
 export default async (request: Request): Promise<Response> => {
-  const secret = process.env.SUPABASE_SECRET_KEY;
-  if (!secret) return htmlResponse(page("Portal", "<p>Server config missing.</p>"), 500);
-  if (request.method !== "GET") return htmlResponse(page("Portal", "<p>Method not allowed.</p>"), 405);
+  const signed = await loadSignedPage(request, "reply", {
+    methods: ["GET"],
+    hint: "Open the summary email again and tap the link there.",
+  });
+  if (signed instanceof Response) return signed;
+  const { id, lead, name, origin } = signed;
 
-  const url = new URL(request.url);
-  const id = url.searchParams.get("id") || "";
-  const t = url.searchParams.get("t") || "";
-  if (!UUID.test(id) || !verifyLink("reply", id, t)) {
-    return htmlResponse(page("Portal", "<h2>This link is not valid.</h2><p>Open the summary email again and tap the link there.</p>"), 403);
-  }
-
-  const lead = await readLead(secret, id);
-  if (!lead) return htmlResponse(page("Portal", "<h2>Lead not found.</h2>"), 404);
-
-  const origin = url.origin;
-  const name = (lead.name || "").trim() || formatPhone(lead.phone) || lead.email || "this lead";
   const email = validEmail(lead.email);
   const tel = telUrl(lead.phone);
   const draft = lead.stage === "new" ? rawStr(lead.raw, "draft_reply") : "";
@@ -68,8 +59,10 @@ export default async (request: Request): Promise<Response> => {
     actions.push(button(mailtoUrl(email, replySubject, draft, INGEST_BCC), draft ? "Reply with this draft (phone)" : "Reply (phone)", { primary: !tel }));
     actions.push(button(gmailComposeUrl(email, replySubject, draft, INGEST_BCC), "Reply in Gmail (computer)"));
   }
-  if (tel) actions.push(button(tel, `Call ${formatPhone(lead.phone)}`));
-  if (lead.phone) actions.push(button(textUrl(origin, id), "Text back from Portal's number", { primary: Boolean(tel) && !email }));
+  if (tel) {
+    actions.push(button(tel, `Call ${formatPhone(lead.phone)}`));
+    actions.push(button(textUrl(origin, id), "Text back from Portal's number", { primary: !email }));
+  }
   actions.push(button(handledUrl(origin, id), "Mark as handled"));
   actions.push(button(vcardUrl(origin, id), "Add to contacts"));
   parts.push(`<div>${actions.join("")}</div>`);
@@ -77,6 +70,8 @@ export default async (request: Request): Promise<Response> => {
     parts.push(
       `<p style="font-size:13px;color:#6b7280;">The reply buttons open a new email to ${esc(name)} with nothing quoted. A blind copy goes to Portal's records so this lead shows as answered.</p>`
     );
+  } else if (!tel && lead.phone) {
+    parts.push(`<p style="font-size:13px;color:#6b7280;">The number on file, ${esc(lead.phone)}, is not a US number, so Text back is unavailable.</p>`);
   }
 
   return htmlResponse(page(`Reply to ${name}`, parts.join("")));

@@ -36,8 +36,8 @@ const BASE =
   "estimate: clear photos of the area, rough dimensions (length x width, plus " +
   "thickness or height if they know it), and site access details (driveway or gate " +
   "width, slope, anything blocking a pour). Warm but direct, first person as Chris. " +
-  "Never quote a price or invent details. Never use an em dash; use a period, comma, " +
-  "or parentheses instead. No bracketed placeholders. If a triage note about their " +
+  "Never quote a price or invent details. Never use an em dash; when a sentence wants " +
+  "a dash, use a spaced hyphen ( - ) or a comma. No bracketed placeholders. If a triage note about their " +
   "photos is provided, ask only for what it says is still missing.";
 
 const EMAIL_STYLE = "This reply is an email: 3-5 sentences, and sign off as Chris.";

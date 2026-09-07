@@ -6,6 +6,7 @@
  */
 
 import { sendDigest } from "../lib/digest";
+import { PROD_ORIGIN } from "../lib/lead-links";
 
 export const config = { schedule: "0 14 * * 1" };
 
@@ -17,7 +18,7 @@ export default async (request: Request): Promise<Response> => {
     /* no body */
   }
   try {
-    const result = await sendDigest({ origin: "https://buildwithportal.com" });
+    const result = await sendDigest({ origin: PROD_ORIGIN });
     console.log("digest-weekly:", JSON.stringify({ ...result, next_run: nextRun }));
   } catch (err) {
     console.error("digest-weekly threw:", err);

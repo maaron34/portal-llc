@@ -14,49 +14,16 @@
  * so a scanner can never mark a lead handled by itself.
  */
 
-import { button, esc, htmlResponse, page } from "../lib/html";
-import { UUID, appendCorrespondence, readLead } from "../lib/lead-db";
-import { formatPhone, replyUrl, verifyLink } from "../lib/lead-links";
-
-const STAGE_LABEL: Record<string, string> = {
-  contacted: "contacted",
-  quoted: "quoted",
-  signed: "signed",
-  deposit_paid: "deposit paid",
-  booked: "booked",
-  completed: "completed",
-  lost: "lost",
-};
-
-const BUTTON_STYLE =
-  "display:inline-block;padding:12px 18px;background:#1d4ed8;color:#fff;border:0;border-radius:6px;font-size:16px;font-weight:600;";
+import { button, esc, htmlResponse, page, submitButton } from "../lib/html";
+import { appendCorrespondence } from "../lib/lead-db";
+import { replyUrl } from "../lib/lead-links";
+import { STAGE_LABEL } from "../lib/lead-notify";
+import { loadSignedPage } from "../lib/signed-page";
 
 export default async (request: Request): Promise<Response> => {
-  const secret = process.env.SUPABASE_SECRET_KEY;
-  if (!secret) return htmlResponse(page("Portal", "<p>Server config missing.</p>"), 500);
-
-  let id = "";
-  let t = "";
-  if (request.method === "POST") {
-    const form = await request.formData();
-    id = String(form.get("id") || "");
-    t = String(form.get("t") || "");
-  } else if (request.method === "GET") {
-    const url = new URL(request.url);
-    id = url.searchParams.get("id") || "";
-    t = url.searchParams.get("t") || "";
-  } else {
-    return htmlResponse(page("Portal", "<p>Method not allowed.</p>"), 405);
-  }
-
-  if (!UUID.test(id) || !verifyLink("handled", id, t)) {
-    return htmlResponse(page("Portal", "<h2>This link is not valid.</h2><p>Open the lead email again and tap the button there.</p>"), 403);
-  }
-
-  const lead = await readLead(secret, id);
-  if (!lead) return htmlResponse(page("Portal", "<h2>Lead not found.</h2><p>It may have been merged into another lead or removed.</p>"), 404);
-  const name = (lead.name || "").trim() || formatPhone(lead.phone) || lead.email || "this lead";
-  const origin = new URL(request.url).origin;
+  const signed = await loadSignedPage(request, "handled");
+  if (signed instanceof Response) return signed;
+  const { id, token, lead, name, origin } = signed;
 
   const isTap = request.headers.get("sec-fetch-mode") === "navigate";
   if (request.method === "GET" && !isTap) {
@@ -64,8 +31,8 @@ export default async (request: Request): Promise<Response> => {
       page(
         "Mark as handled",
         `<h2 style="margin-top:0;">Mark ${esc(name)} as handled?</h2>` +
-          `<form method="post"><input type="hidden" name="id" value="${esc(id)}"><input type="hidden" name="t" value="${esc(t)}">` +
-          `<button type="submit" style="${BUTTON_STYLE}">Yes, mark as handled</button></form>`
+          `<form method="post"><input type="hidden" name="id" value="${esc(id)}"><input type="hidden" name="t" value="${esc(token)}">` +
+          `${submitButton("Yes, mark as handled")}</form>`
       )
     );
   }
@@ -92,7 +59,7 @@ export default async (request: Request): Promise<Response> => {
     },
   ]);
   if (!result.ok) {
-    return htmlResponse(page("Portal", `<h2>Could not save that.</h2><p>Try the link again in a minute. Nothing was changed.</p>`), 502);
+    return htmlResponse(page("Portal", `<h2 style="margin-top:0;">Could not save that.</h2><p>Try the link again in a minute. Nothing was changed.</p>`), 502);
   }
 
   return htmlResponse(
