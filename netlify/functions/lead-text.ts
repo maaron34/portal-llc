@@ -21,8 +21,7 @@
 import { button, esc, htmlResponse, nl2br, page, submitButton } from "../lib/html";
 import { appendCorrespondence, rawStr } from "../lib/lead-db";
 import { PORTAL_PHONE_DISPLAY, PORTAL_PHONE_E164, e164, formatPhone, handledUrl } from "../lib/lead-links";
-import { fmtWhen } from "../lib/lead-notify";
-import { loadSignedPage } from "../lib/signed-page";
+import { loadSignedPage, saidBlock } from "../lib/signed-page";
 
 const OPENPHONE_MESSAGES = "https://api.openphone.com/v1/messages";
 const MAX_BODY = 1000;
@@ -47,19 +46,7 @@ export default async (request: Request): Promise<Response> => {
     );
   }
 
-  const inbound = lead.correspondence.filter((e) => e.direction === "in").slice(-3);
-  const context = inbound.length
-    ? `<div style="font-size:13px;color:#6b7280;margin-bottom:4px;">What they said</div>` +
-      inbound
-        .map(
-          (e) =>
-            `<div style="margin-bottom:8px;padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:15px;">` +
-            `<span style="color:#6b7280;font-size:12px;">${esc(fmtWhen(e.at))}${e.type === "voicemail" ? ", voicemail" : ""}</span><br>${nl2br(e.body)}</div>`
-        )
-        .join("")
-    : lead.message
-      ? `<div style="font-size:13px;color:#6b7280;margin-bottom:4px;">What they said</div><div style="margin-bottom:8px;padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:15px;">${nl2br(lead.message)}</div>`
-      : "";
+  const context = saidBlock(lead);
 
   // The onsubmit handler disables the button as soon as it is tapped, so a
   // second tap while the send is in flight submits nothing.

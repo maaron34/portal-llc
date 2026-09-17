@@ -6,9 +6,10 @@
  * fallback in the display name).
  */
 
-import { htmlResponse, page } from "./html";
+import { esc, htmlResponse, nl2br, page } from "./html";
 import { UUID, leadName, readLead, type LeadRow } from "./lead-db";
 import { verifyLink, type LinkAction } from "./lead-links";
+import { fmtWhen } from "./lead-notify";
 
 export type SignedPage = {
   id: string;
@@ -59,4 +60,25 @@ export async function loadSignedPage(
     );
   }
   return { id, token, lead, name: leadName(lead), origin: new URL(request.url).origin, form };
+}
+
+/**
+ * The "What they said" block the send pages (Text back, Email back) show above
+ * the reply box: the last three inbound messages, or the form message when
+ * nothing has come in since. One definition so the two pages cannot drift.
+ */
+export function saidBlock(lead: LeadRow): string {
+  const inbound = lead.correspondence.filter((e) => e.direction === "in").slice(-3);
+  const label = `<div style="font-size:13px;color:#6b7280;margin-bottom:4px;">What they said</div>`;
+  const box = (inner: string) =>
+    `<div style="margin-bottom:8px;padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:15px;">${inner}</div>`;
+  if (inbound.length) {
+    return (
+      label +
+      inbound
+        .map((e) => box(`<span style="color:#6b7280;font-size:12px;">${esc(fmtWhen(e.at))}${e.type === "voicemail" ? ", voicemail" : ""}</span><br>${nl2br(e.body)}`))
+        .join("")
+    );
+  }
+  return lead.message ? label + box(nl2br(lead.message)) : "";
 }

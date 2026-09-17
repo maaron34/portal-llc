@@ -13,8 +13,8 @@ import {
   INGEST_BCC,
   formatPhone,
   gmailComposeUrl,
+  emailUrl,
   handledUrl,
-  mailtoUrl,
   telUrl,
   textUrl,
   validEmail,
@@ -56,7 +56,7 @@ export default async (request: Request): Promise<Response> => {
 
   const actions: string[] = [];
   if (email) {
-    actions.push(button(mailtoUrl(email, replySubject, draft, INGEST_BCC), draft ? "Reply with this draft (phone)" : "Reply (phone)", { primary: !tel }));
+    actions.push(button(emailUrl(origin, id), "Email back from Portal", { primary: !tel }));
     actions.push(button(gmailComposeUrl(email, replySubject, draft, INGEST_BCC), "Reply in Gmail (computer)"));
   }
   if (tel) {
@@ -68,7 +68,7 @@ export default async (request: Request): Promise<Response> => {
   parts.push(`<div>${actions.join("")}</div>`);
   if (email) {
     parts.push(
-      `<p style="font-size:13px;color:#6b7280;">The reply buttons open a new email to ${esc(name)} with nothing quoted. A blind copy goes to Portal's records so this lead shows as answered.</p>`
+      `<p style="font-size:13px;color:#6b7280;">Email back opens a page with the suggested reply; you edit it and tap Send, and it goes to ${esc(name)} from chris@buildwithportal.com and is saved to this lead. Reply in Gmail opens a compose in your own Gmail and blind-copies Portal's records.</p>`
     );
   } else if (!tel && lead.phone) {
     parts.push(`<p style="font-size:13px;color:#6b7280;">The number on file, ${esc(lead.phone)}, is not a US number, so Text back is unavailable.</p>`);
