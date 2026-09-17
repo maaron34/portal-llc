@@ -347,8 +347,8 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
       `<div>${button(m, `${label} (phone)`, { primary: !phoneFirst })}${button(g, `${label.replace("this draft", "draft")} in Gmail (computer)`)}</div>` +
         smallNote(
           draft
-            ? `Opens a new email to ${esc(name || email)} with a suggested reply you can edit before sending. A blind copy goes to Portal's records, which is how this lead gets marked answered.`
-            : `Opens a new email to ${esc(name || email)}. A blind copy goes to Portal's records, which is how this lead gets marked answered.`
+            ? `Use this instead of Reply. It opens a new email to ${esc(name || email)} with a suggested reply you can edit, and blind-copies Portal's records, which is what marks this lead answered.`
+            : `Use this instead of Reply. It opens a new email to ${esc(name || email)} and blind-copies Portal's records, which is what marks this lead answered.`
         )
     );
     actionsText.push(`${label} (phone): ${m}`, `${label} in Gmail (computer): ${g}`);
@@ -399,16 +399,21 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const footerBits: string[] = [];
   if (phone) footerBits.push(`<a href="${esc(quoUrl)}" style="color:#6b7280;">Also in QUO</a>`);
   if (leadId) footerBits.push(`<a href="${esc(`${OPS_SITE}/leads/${leadId}`)}" style="color:#6b7280;">Open in the CRM</a>`);
-  // With no customer email there is no Reply-To, so Gmail's Reply would go to
-  // Chris himself; say so, and point at the buttons that do reach the customer.
+  // Reply-To is the customer, so Gmail's own Reply reaches them and works. It
+  // carries no BCC, so the answer is never recorded and the lead sits at "new"
+  // forever. Measured 2026-09-17: 12 inbound customer replies over 10 days and
+  // zero outbound from a chris@ address, every one of them on a thread he had
+  // answered. This note therefore names what plain Reply costs instead of
+  // advertising it. With no customer email there is no Reply-To at all and
+  // Gmail's Reply goes to Chris himself, so say that instead.
   const replyNote = email
-    ? `Replying to this email goes straight to ${esc(name || email)}.`
+    ? `Hitting Reply also reaches ${esc(name || email)}, but Portal never sees it and this lead stays marked unanswered.`
     : phone
       ? `No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back above.`
       : "";
   const footerHtml = smallNote([...footerBits, replyNote].filter(Boolean).join(" &middot; "));
   const replyNoteText = email
-    ? `Replying to this email goes straight to ${name || email}.`
+    ? `Hitting Reply also reaches ${name || email}, but Portal never sees it and this lead stays marked unanswered.`
     : phone
       ? "No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back."
       : "";
