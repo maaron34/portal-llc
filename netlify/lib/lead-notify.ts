@@ -20,9 +20,14 @@
  *   - puts the suggested reply behind buttons, NOT in the body. PR #44 (July
  *     2026) removed the draft from the body at Chris's request because Gmail
  *     quoted the whole notification, draft included, back at the customer when
- *     he hit Reply. The "Reply with this draft" links open a fresh compose with
- *     the draft filled in and nothing quoted, and BCC the ingest inbox so the
- *     system learns he replied. Phone leads get "Call back" and "Text back from
+ *     he hit Reply. "Email back from Portal" opens a page with the draft in an
+ *     editable box and one Send, which sends from chris@ and records the email
+ *     on the lead in the same request (lead-email.ts). "Reply in Gmail" opens a
+ *     fresh compose with the draft filled in and BCCs the ingest inbox, which
+ *     is the only way a Gmail-sent reply reaches the system: Reply-To is the
+ *     customer, so Gmail's own Reply works and records nothing (measured
+ *     2026-09-17: twelve customer replies in ten days, zero outbound from a
+ *     chris@ address). Phone leads get "Call back" and "Text back from
  *     Portal's number" instead; nothing requires the QUO app or the CRM.
  *
  * Email goes through Resend (RESEND_API_KEY), NOT Web3Forms: Web3Forms rejects
@@ -42,6 +47,7 @@ import {
   PORTAL_PHONE_DISPLAY,
   PROD_ORIGIN,
   QUO_INBOX_URL,
+  emailUrl,
   formatPhone,
   gmailComposeUrl,
   handledUrl,
@@ -56,6 +62,8 @@ import type { DraftResult } from "./draft-reply";
 // Where lead notifications go. Env override so QA can redirect without a code change.
 const NOTIFY_TO = process.env.LEAD_NOTIFY_TO || CHRIS_EMAIL;
 export const FROM = `Portal Leads <${CHRIS_EMAIL}>`;
+/** From for mail that goes to a customer (lead-email). The DBA, matching the reply subject and the Google listing. */
+export const CUSTOMER_FROM = `Portal Seattle Concrete <${CHRIS_EMAIL}>`;
 const TZ = "America/Los_Angeles";
 const DAY_KEY = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
 const TIME_FMT = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
@@ -340,8 +348,20 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
 
   const emailButtons = () => {
     if (!email) return;
-    const m = mailtoUrl(email, replySubject, draft, INGEST_BCC);
     const g = gmailComposeUrl(email, replySubject, draft, INGEST_BCC);
+    if (leadId) {
+      const p = emailUrl(origin, leadId);
+      actionsHtml.push(
+        `<div>${button(p, "Email back from Portal", { primary: !phoneFirst })}${button(g, "Reply in Gmail (computer)")}</div>` +
+          smallNote(
+            `Email back opens a page with ${draft ? "the suggested reply" : "an empty email"} to ${esc(name || email)}; edit it and tap Send, and it goes from ${esc(CHRIS_EMAIL)} and is saved to this lead, which is what marks it answered. Reply in Gmail opens a compose in your own Gmail and blind-copies Portal's records.`
+          )
+      );
+      actionsText.push(`Email back from Portal: ${p}`, `Reply in Gmail (computer): ${g}`);
+      return;
+    }
+    // No lead id (submit-lead's inline fallback): the compose links are the only path.
+    const m = mailtoUrl(email, replySubject, draft, INGEST_BCC);
     const label = draft ? "Reply with this draft" : "Reply";
     actionsHtml.push(
       `<div>${button(m, `${label} (phone)`, { primary: !phoneFirst })}${button(g, `${label.replace("this draft", "draft")} in Gmail (computer)`)}</div>` +
@@ -406,14 +426,15 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   // answered. This note therefore names what plain Reply costs instead of
   // advertising it. With no customer email there is no Reply-To at all and
   // Gmail's Reply goes to Chris himself, so say that instead.
+  const steer = leadId ? "Use Email back above instead." : "Use the reply button above instead.";
   const replyNote = email
-    ? `Hitting Reply also reaches ${esc(name || email)}, but Portal never sees it and this lead stays marked unanswered.`
+    ? `Hitting Reply also reaches ${esc(name || email)}, but Portal never sees it and this lead stays marked unanswered. ${steer}`
     : phone
       ? `No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back above.`
       : "";
   const footerHtml = smallNote([...footerBits, replyNote].filter(Boolean).join(" &middot; "));
   const replyNoteText = email
-    ? `Hitting Reply also reaches ${name || email}, but Portal never sees it and this lead stays marked unanswered.`
+    ? `Hitting Reply also reaches ${name || email}, but Portal never sees it and this lead stays marked unanswered. ${steer}`
     : phone
       ? "No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back."
       : "";
@@ -463,6 +484,57 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   return { subject, baseSubject, html, text, replyTo: email, headers };
 }
 
+export type ResendResult = {
+  ok: boolean;
+  /** False when RESEND_API_KEY is unset, so a page can say "not configured" rather than "failed". */
+  configured: boolean;
+  /** Resend's message id on success; "" otherwise. */
+  id: string;
+  status?: number;
+};
+
+/**
+ * Send one email through Resend and report how it went. Defaults to Chris as
+ * the recipient and `Portal Leads` as the sender; lead-email overrides both to
+ * write to a customer. Never throws: a failure is logged and returned.
+ */
+export async function sendResendMessage(msg: {
+  from?: string;
+  to?: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
+}): Promise<ResendResult> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return { ok: false, configured: false, id: "" };
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: msg.from || FROM,
+        to: [msg.to || NOTIFY_TO],
+        reply_to: msg.replyTo || undefined,
+        subject: msg.subject,
+        html: msg.html,
+        text: msg.text,
+        headers: msg.headers,
+      }),
+    });
+    if (!res.ok) {
+      console.error("Resend send failed:", res.status, (await res.text()).slice(0, 300));
+      return { ok: false, configured: true, id: "", status: res.status };
+    }
+    const data = (await res.json().catch(() => ({}))) as { id?: string };
+    return { ok: true, configured: true, id: typeof data.id === "string" ? data.id : "" };
+  } catch (err) {
+    console.error("Resend send threw:", err);
+    return { ok: false, configured: true, id: "" };
+  }
+}
+
 /**
  * Send one email to Chris through Resend. Best-effort: skipped when
  * RESEND_API_KEY is unset, and a send failure is logged, never thrown.
@@ -475,31 +547,7 @@ export async function sendResend(msg: {
   replyTo?: string;
   headers?: Record<string, string>;
 }): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: FROM,
-        to: [msg.to || NOTIFY_TO],
-        reply_to: msg.replyTo || undefined,
-        subject: msg.subject,
-        html: msg.html,
-        text: msg.text,
-        headers: msg.headers,
-      }),
-    });
-    if (!res.ok) {
-      console.error("Resend send failed:", res.status, (await res.text()).slice(0, 300));
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error("Resend send threw:", err);
-    return false;
-  }
+  return (await sendResendMessage(msg)).ok;
 }
 
 /**
