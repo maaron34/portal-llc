@@ -40,7 +40,7 @@
  */
 
 import { FONT, button, emailShell, esc, nl2br, section, smallNote } from "./html";
-import { OPS_SITE, readLead, rawStr, type CorrespondenceEntry, type LeadRow } from "./lead-db";
+import { OPS_SITE, readLead, rawStr, type CorrespondenceEntry, type DuplicateCandidate, type LeadRow } from "./lead-db";
 import {
   CHRIS_EMAIL,
   INGEST_BCC,
@@ -49,6 +49,7 @@ import {
   QUO_INBOX_URL,
   emailUrl,
   formatPhone,
+  mergeUrl,
   gmailComposeUrl,
   handledUrl,
   mailtoUrl,
@@ -109,6 +110,8 @@ export type NotifyExtras = {
   origin?: string;
   /** Subject topic; the same string on every email for a lead keeps the thread together. */
   topic?: string;
+  /** An older lead that looks like the same person, surfaced with a one-tap merge. */
+  duplicate?: DuplicateCandidate | null;
   now?: Date;
 };
 
@@ -440,8 +443,28 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
       : "";
 
   // ---- assemble ---------------------------------------------------------------
+  // ---- possible duplicate -------------------------------------------------
+  // Chris works out of his inbox, so the merge has to be offered where he
+  // notices the duplicate, which is this email. It is a suggestion: the lead was
+  // still created, and nothing changes unless he taps.
+  const dup = extras.duplicate ?? null;
+  let dupHtml = "";
+  const dupText: string[] = [];
+  if (dup && leadId && dup.id !== leadId) {
+    const who = (dup.name || "").trim() || "an earlier lead";
+    const via = channelWord(dup.channel);
+    const when = fmtDay(dup.created_at);
+    const url = mergeUrl(origin, leadId, dup.id);
+    dupHtml =
+      `<div>This looks like the same person as ${esc(who)}, who came in by ${esc(via)} on ${esc(when)}.</div>` +
+      `<div>${button(url, "Merge into one lead")}</div>` +
+      smallNote("Merging keeps everything from both: the photos, the messages and the whole history. Nothing happens until you tap, and you can leave them separate.");
+    dupText.push(`Possible duplicate: looks like ${who}, who came in by ${via} on ${when}.`, `Merge into one lead: ${url}`);
+  }
+
   const rows: string[] = [];
   rows.push(`<tr><td style="${FONT}font-size:15px;line-height:1.5;color:#111827;padding-bottom:6px;"><strong>${esc(status)}</strong></td></tr>`);
+  if (dupHtml) rows.push(section("Possible duplicate", dupHtml));
   if (contactRows.length) rows.push(section("Contact", contactRows.join("")));
   rows.push(section(saidTitle, saidHtml));
   if (photosHtml) rows.push(section("Photos", photosHtml));
@@ -452,6 +475,8 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const text = [
     status,
     "",
+    ...dupText,
+    dupText.length ? "" : "",
     ...contactText,
     "",
     `${saidTitle}:`,
