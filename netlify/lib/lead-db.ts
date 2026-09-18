@@ -67,6 +67,73 @@ export function rawStr(raw: Record<string, unknown> | null | undefined, key: str
   return typeof v === "string" ? v : "";
 }
 
+export type DuplicateCandidate = {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  channel: string;
+  stage: string;
+  created_at: string;
+};
+
+/**
+ * A name reduced to something two records can be compared on: lowercased,
+ * accents folded, anything but letters and spaces dropped, runs of space
+ * collapsed. "Jordan  Reyes." and "jordan reyes" come out the same.
+ */
+export function normalizeName(s: string | null | undefined): string {
+  return (s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * The most recent OTHER lead carrying the same person's name, or null.
+ *
+ * submit-lead already folds a repeat arrival into the lead on file when the
+ * phone matches, or when the email matches through the dedupe_key. Neither
+ * fires when someone texts from their mobile and then fills in the form with a
+ * different number, or emails from an address we have never seen, so those
+ * arrive as a second lead and Chris is left with one customer twice.
+ *
+ * Deliberately conservative, because this only ever SUGGESTS a merge to a human:
+ * - Needs at least two name words and five letters, so "Mike" or "J" never
+ *   matches every Mike on the list.
+ * - Skips junk-flagged rows.
+ * - Skips "lost" leads. merge-leads lets "lost" win outright over any other
+ *   stage (deliberately, so a closed lead is never resurrected), so merging a
+ *   live inquiry into one would silently mark the new inquiry lost.
+ * - Returns the newest match only. Two suggestions on one email is a decision,
+ *   not a nudge.
+ */
+export async function findDuplicateByName(
+  secret: string,
+  lead: Pick<LeadRow, "id" | "name">
+): Promise<DuplicateCandidate | null> {
+  const key = normalizeName(lead.name);
+  if (key.split(" ").length < 2 || key.replace(/\s/g, "").length < 5) return null;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?name=not.is.null&stage=neq.lost` +
+        `&select=id,name,phone,email,channel,stage,created_at,raw&order=created_at.desc&limit=500`,
+      { headers: auth(secret) }
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as (DuplicateCandidate & { raw?: { junk?: unknown } | null })[];
+    const hit = rows.find((r) => r.id !== lead.id && !r.raw?.junk && normalizeName(r.name) === key);
+    if (!hit) return null;
+    const { id, name, phone, email, channel, stage, created_at } = hit;
+    return { id, name, phone, email, channel, stage, created_at };
+  } catch {
+    return null;
+  }
+}
+
 export async function readLead(secret: string, id: string): Promise<LeadRow | null> {
   if (!UUID.test(id)) return null;
   try {

@@ -28,7 +28,7 @@
  */
 
 import { draftReply, type DraftResult } from "../lib/draft-reply";
-import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
+import { findDuplicateByName, mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
@@ -113,9 +113,17 @@ export default async (request: Request): Promise<Response> => {
       }
     }
 
+    // A second record for someone already on the list: offer the merge in the
+    // email, since that is where Chris notices it (ops#13). Only on a brand new
+    // lead. An "update" or "merged" email is about a record he already has, so
+    // the same suggestion there would just be noise on every follow-up. Best
+    // effort: a failed lookup must never cost the lead email.
+    const duplicate = kind === "new" && lead && id ? await findDuplicateByName(secret, lead) : null;
+    if (duplicate) console.log("notify-lead duplicate candidate:", JSON.stringify({ id, candidate: duplicate.id }));
+
     // One topic and one subject per lead: every email about it reuses them.
     const topic = rawStr(lead?.raw, "draft_topic") || draft?.topic || fallbackTopic(payload, lead);
-    const rendered = renderLeadEmail(payload, id, { lead, draft, kind, entries, origin, topic, now });
+    const rendered = renderLeadEmail(payload, id, { lead, draft, kind, entries, origin, topic, duplicate, now });
     if (id) {
       const keep: Record<string, unknown> = { draft_topic: topic, notify_subject: rendered.baseSubject };
       if (draft && !stored) {
@@ -125,7 +133,7 @@ export default async (request: Request): Promise<Response> => {
       await mergeRaw(secret, id, keep, true);
     }
 
-    const emailed = await emailChris(payload, id, { lead, draft, kind, entries, origin, topic, now });
+    const emailed = await emailChris(payload, id, { lead, draft, kind, entries, origin, topic, duplicate, now });
     if (emailed && id) await mergeRaw(secret, id, { notified_at: now.toISOString() });
     // A background function's response body is discarded, so the function log is
     // the only place to see whether the email went out.

@@ -24,7 +24,7 @@ export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
 export const PROD_ORIGIN = "https://buildwithportal.com";
 
-export type LinkAction = "handled" | "reply" | "text" | "email";
+export type LinkAction = "handled" | "reply" | "text" | "email" | "merge";
 
 function linkSecret(): string {
   return process.env.LEAD_LINK_SECRET || process.env.SUPABASE_SECRET_KEY || "";
@@ -49,6 +49,16 @@ export const textUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-text?id=${id}&t=${signLink("text", id)}`;
 export const emailUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-email?id=${id}&t=${signLink("email", id)}`;
+/**
+ * The merge page folds `from` into `into` and deletes `from`. The signature
+ * covers BOTH ids in one string, so neither can be swapped for another lead:
+ * a token minted for this pair does nothing for any other pair.
+ */
+export const mergeUrl = (origin: string, into: string, from: string): string =>
+  `${origin}/.netlify/functions/lead-merge?into=${into}&from=${from}&t=${mergeToken(into, from)}`;
+export const mergeToken = (into: string, from: string): string => signLink("merge", `${into}:${from}`);
+export const verifyMergeToken = (into: string, from: string, token: string | null | undefined): boolean =>
+  verifyLink("merge", `${into}:${from}`, token);
 export const vcardUrl = (origin: string, id: string): string => `${origin}/.netlify/functions/vcard?id=${id}`;
 
 /**
