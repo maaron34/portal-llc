@@ -125,11 +125,43 @@ function stopPreviewServer(server) {
   });
 }
 
+// ---- Third-party tags ----
+
+// Tracking hosts the build browser must never reach. Without this, every build
+// sent ~20 fake page views (from 127.0.0.1) to Meta and GA, and the scripts
+// those tags inject were snapshotted into the static HTML. Meta's per-pixel
+// config script, baked in with domain=127.0.0.1, then ran on every real visit
+// ahead of fbevents.js and threw "__fbeventsModules[e] is not a function".
+const BLOCKED_HOSTS = [
+  "connect.facebook.net",
+  "facebook.com",
+  "googletagmanager.com",
+  "google-analytics.com",
+  "doubleclick.net",
+  "posthog.com",
+];
+
+// The <script src> tags index.html ships with. Anything else pointing at a
+// blocked host was injected at runtime and must not be saved: the inline
+// snippets inject it again on a real visit.
+function isBlockedUrl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return BLOCKED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 // ---- Per-route prerender ----
 
 async function prerenderRoute(browser, route) {
   const url = `${PREVIEW_HOST}${route}`;
   const page = await browser.newPage();
+  await page.route(
+    (u) => isBlockedUrl(u.toString()),
+    (r) => r.abort()
+  );
 
   try {
     // Load and wait for everything to settle
@@ -146,6 +178,21 @@ async function prerenderRoute(browser, route) {
     // Give React's useEffect chain (SEO.tsx schema injection) a beat to settle
     // after any class changes trigger re-renders.
     await page.waitForTimeout(200);
+
+    // Drop tracking scripts injected at runtime, keeping only the tags that
+    // index.html itself ships (they carry data-static="1").
+    await page.evaluate((hosts) => {
+      document.querySelectorAll("script[src]").forEach((el) => {
+        if (el.dataset.static === "1") return;
+        let host = "";
+        try {
+          host = new URL(el.src).hostname;
+        } catch {
+          return;
+        }
+        if (hosts.some((h) => host === h || host.endsWith(`.${h}`))) el.remove();
+      });
+    }, BLOCKED_HOSTS);
 
     // Snapshot
     const html = await page.content();
