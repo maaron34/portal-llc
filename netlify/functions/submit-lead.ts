@@ -4,7 +4,7 @@
  * suggested reply and emails Chris (see lib/lead-notify.ts for what that email
  * is). A failed email never blocks capture.
  *
- * Wiring: Contact.tsx, LandingPage.tsx, and Refer.tsx AWAIT this call and gate
+ * Wiring: Contact.tsx and LandingPage.tsx AWAIT this call and gate
  * their success UI on the response — if capture fails, the lead went nowhere
  * (there is no other relay anymore), so the form must show its error state
  * instead of a false thank-you. The email is queued to a background function
