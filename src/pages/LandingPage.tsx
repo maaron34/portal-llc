@@ -12,6 +12,7 @@ import {
 import SEO from "../components/SEO";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
+import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
 
@@ -54,6 +55,13 @@ function firePixelEvents(data: FormData) {
       });
     }
   }
+
+  track("lead_submitted", {
+    form: "landing_page",
+    project_type: data.projectType,
+    timeline: data.timeline,
+    qualified: isQualifiedLead(data) ? "yes" : "no",
+  });
 
   // GA4: always track form submission
   if (typeof window !== "undefined" && window.gtag) {

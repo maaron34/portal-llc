@@ -3,6 +3,7 @@ import { Phone, Mail, Clock, Instagram, MapPin } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
+import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
 
@@ -44,6 +45,7 @@ export default function Contact() {
     });
 
     if (result.ok) {
+      track("lead_submitted", { form: "contact_page" });
       if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "generate_lead", {
           event_category: "form",
