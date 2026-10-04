@@ -110,9 +110,8 @@ export function attributionPayload(): Record<string, string> {
   for (const key of UTM_KEYS) {
     if (attr[key]) payload[key] = attr[key] as string;
   }
-  // Emitted as `http_referrer` (not `referrer`) so it can never be confused
-  // with Refer.tsx's `referrer_name`/`referrer_phone` (the referral-program
-  // person) when a downstream reader or the Make webhook maps the fields.
+  // Emitted as `http_referrer` (not `referrer`) so a downstream reader or the
+  // Make webhook never mistakes the referring website for a referring person.
   if (attr.referrer) payload.http_referrer = attr.referrer;
   if (attr.landing_page) payload.landing_page = attr.landing_page;
   return payload;

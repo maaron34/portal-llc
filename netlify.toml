@@ -52,6 +52,18 @@
   to = "/services"
   status = 301
 
+# The referral page was retired (Portal does not run a referral program).
+# Old links and bookmarks land on the contact page instead of a dead route.
+[[redirects]]
+  from = "/refer"
+  to = "/contact/"
+  status = 301
+
+[[redirects]]
+  from = "/refer/*"
+  to = "/contact/"
+  status = 301
+
 # SPA catch-all (must be last)
 [[redirects]]
   from = "/*"
