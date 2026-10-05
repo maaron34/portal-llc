@@ -235,7 +235,7 @@ export default function Contact() {
                       className="text-portal-accent shrink-0"
                     />
                     <div>
-                      <div className="font-semibold">@portal.llc</div>
+                      <div className="font-semibold">@portal_concrete</div>
                       <div className="text-sm text-portal-mid">
                         Follow our work
                       </div>

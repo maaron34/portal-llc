@@ -659,7 +659,7 @@ export const BUSINESS = {
   warrantySummary:
     "Portal warrants its workmanship for 1 year from substantial completion. Normal concrete cracking, misuse, and site conditions are excluded. Full terms at /terms.",
   founder: "Chris Hildebrand",
-  instagram: "https://www.instagram.com/portal.llc/",
+  instagram: "https://www.instagram.com/portal_concrete/",
   facebook: "https://www.facebook.com/people/Portal-Concrete/61587187841272/",
   address: {
     city: "Seattle",
