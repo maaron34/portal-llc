@@ -124,7 +124,6 @@ const HEARD_ABOUT: Record<string, string> = {
   nextdoor: "Nextdoor",
   "instagram-facebook": "Instagram or Facebook",
   "friend-past-customer": "a friend or past customer",
-  "saw-a-job": "saw a job or sign",
   other: "other",
 };
 const heardAboutText = (v: string): string => HEARD_ABOUT[(v || "").trim()] || "";
@@ -347,7 +346,8 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const tl = (payload.timeline || rawStr(lead?.raw, "timeline")).trim();
   const src = (payload.lead_source || "").trim();
   const heard = heardAboutText(rawStr(lead?.raw, "heard_about") || String((payload as { heard_about?: unknown }).heard_about || ""));
-  if (heard) extrasRows.push(`Heard about us: ${heard}`);
+  const heardOther = (rawStr(lead?.raw, "heard_about_other") || String((payload as { heard_about_other?: unknown }).heard_about_other || "")).trim();
+  if (heard) extrasRows.push(`Heard about us: ${heard === "other" && heardOther ? heardOther : heard}`);
   if (pt) extrasRows.push(`Project: ${pt}`);
   if (tl) extrasRows.push(`Timeline: ${tl}`);
   // The source line earns its place for website leads (which ad, which page);
