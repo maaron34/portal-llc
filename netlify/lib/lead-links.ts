@@ -92,6 +92,45 @@ export const telUrl = (phone: string | null | undefined): string => {
 };
 
 /**
+ * sms: link that opens Messages on Chris's phone, from his own number, with the
+ * body filled in. Nothing is sent: he edits and taps send himself (Chris,
+ * 2026-10-04: never send for him, and never from the Portal line). `?&body=`
+ * is the form both iOS and Android accept. "" for a non-US number.
+ */
+export const smsUrl = (phone: string | null | undefined, body = ""): string => {
+  const n = e164(phone);
+  if (!n) return "";
+  return body ? `sms:${n}?&body=${encodeURIComponent(body.slice(0, 1200))}` : `sms:${n}`;
+};
+
+/**
+ * The text Chris sends from his cell. When the customer first reached the
+ * Portal line (a text or a voicemail there), the reply now arrives from a
+ * different number, so one closing line says whose number it is.
+ */
+/**
+ * True when the customer first reached the Portal (QUO) line: the lead came in
+ * as a text or voicemail there, or a text or voicemail from them is on its
+ * timeline. A reply from Chris's cell then comes from a number they have not
+ * seen, which is what CELL_NOTE explains.
+ */
+export function cameViaPortalLine(lead: {
+  channel?: string | null;
+  correspondence?: { direction?: string; type?: string }[] | null;
+} | null | undefined): boolean {
+  if (!lead) return false;
+  if (["quo", "quo-sms", "text", "voicemail"].includes((lead.channel || "").toLowerCase())) return true;
+  return (lead.correspondence || []).some((e) => e.direction === "in" && (e.type === "text" || e.type === "voicemail"));
+}
+
+export const CELL_NOTE = "This is my cell, so text me here anytime.";
+export function textReplyBody(draft: string, cameViaPortalLine: boolean): string {
+  const d = (draft || "").trim();
+  if (!cameViaPortalLine) return d;
+  return d ? `${d}\n\n${CELL_NOTE}` : CELL_NOTE;
+}
+
+/**
  * A usable email address or undefined. Junk leads carry garbage here and a bad
  * reply_to makes Resend reject the whole send, so the email must go out without
  * one rather than not at all.
