@@ -24,6 +24,7 @@ type FormData = {
   address: string;
   city: string;
   heardAbout: string;
+  heardAboutOther: string;
   projectType: string;
   ownerStatus: string;
   timeline: string;
@@ -121,6 +122,7 @@ function LeadForm({
     address: "",
     city: "",
     heardAbout: "",
+    heardAboutOther: "",
     projectType: defaultProjectType,
     ownerStatus: "",
     timeline: "",
@@ -271,6 +273,17 @@ function LeadForm({
             </option>
           ))}
         </select>
+        {formState.heardAbout === "other" && (
+          <input
+            type="text"
+            name="heardAboutOther"
+            maxLength={120}
+            placeholder="Where did you hear about us?"
+            value={formState.heardAboutOther}
+            onChange={handleChange}
+            className={`${inputClass} mt-3 placeholder:text-portal-warm`}
+          />
+        )}
       </div>
 
       {(phoneError || error) && (
@@ -319,6 +332,7 @@ export default function LandingPage() {
       street: data.address.trim(),
       city: data.city.trim(),
       heard_about: data.heardAbout,
+      heard_about_other: data.heardAbout === "other" ? data.heardAboutOther.trim() || undefined : undefined,
       form_version: FORM_VERSION,
       message: data.message,
       project_type: data.projectType,

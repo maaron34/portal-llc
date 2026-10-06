@@ -6,11 +6,12 @@ import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
-import { FORM_VERSION, HEARD_ABOUT_OPTIONS, fullAddress, isUsPhone } from "../lib/lead-fields";
+import { FORM_VERSION, HEARD_ABOUT_OPTIONS, SELECT_ARROW_CLASS, fullAddress, isUsPhone } from "../lib/lead-fields";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [heardAboutChoice, setHeardAboutChoice] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -27,6 +28,7 @@ export default function Contact() {
     const street = ((formData.get("street") as string) || "").trim();
     const city = ((formData.get("city") as string) || "").trim();
     const heardAbout = (formData.get("heard_about") as string) || "";
+    const heardAboutOther = heardAbout === "other" ? ((formData.get("heard_about_other") as string) || "").trim() : "";
     const message = formData.get("message") as string;
 
     if (!isUsPhone(phone)) {
@@ -52,6 +54,7 @@ export default function Contact() {
       street,
       city,
       heard_about: heardAbout,
+      heard_about_other: heardAboutOther || undefined,
       form_version: FORM_VERSION,
       message,
       ...attribution,
@@ -215,8 +218,9 @@ export default function Contact() {
                     </label>
                     <select
                       name="heard_about"
-                      defaultValue=""
-                      className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
+                      value={heardAboutChoice}
+                      onChange={(e) => setHeardAboutChoice(e.target.value)}
+                      className={`w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent ${SELECT_ARROW_CLASS}`}
                     >
                       {HEARD_ABOUT_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
@@ -224,6 +228,15 @@ export default function Contact() {
                         </option>
                       ))}
                     </select>
+                    {heardAboutChoice === "other" && (
+                      <input
+                        type="text"
+                        name="heard_about_other"
+                        maxLength={120}
+                        placeholder="Where did you hear about us?"
+                        className="mt-3 w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm"
+                      />
+                    )}
                   </div>
                   {error && (
                     <p className="text-red-600 text-sm font-medium">{error}</p>
