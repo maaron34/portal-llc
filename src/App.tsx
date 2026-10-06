@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ContactBar from "./components/ContactBar";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -133,6 +134,7 @@ function AppRoutes() {
                 </Routes>
               </main>
               <Footer />
+              <ContactBar page="site" />
             </>
           }
         />

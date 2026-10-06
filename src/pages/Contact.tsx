@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Phone, Mail, Clock, Instagram, MapPin } from "lucide-react";
+import { Phone, Mail, Clock, Instagram, MapPin, MessageSquare } from "lucide-react";
 import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
@@ -267,12 +267,25 @@ export default function Contact() {
                     <div>
                       <div className="font-semibold">{BUSINESS.phone}</div>
                       <div className="text-sm text-portal-mid">
-                        Call or text
+                        Call
                       </div>
                     </div>
                   </a>
                   <a
-                    href={`mailto:${BUSINESS.email}`}
+                    href={BUSINESS.textHref}
+                    onClick={() => track("contact_tap", { method: "text", page: "contact_info" })}
+                    className="flex items-center gap-3 text-portal-gray no-underline hover:text-portal-accent transition-colors"
+                  >
+                    <MessageSquare size={20} className="text-portal-accent shrink-0" />
+                    <div>
+                      <div className="font-semibold">Text Chris</div>
+                      <div className="text-sm text-portal-mid">
+                        Opens a text with a starter message
+                      </div>
+                    </div>
+                  </a>
+                  <a
+                    href={BUSINESS.emailHref}
                     className="flex items-center gap-3 text-portal-gray no-underline hover:text-portal-accent transition-colors"
                   >
                     <Mail size={20} className="text-portal-accent shrink-0" />

@@ -637,6 +637,10 @@ export const BUSINESS = {
   tagline: "Elevated concrete craftsmanship for Seattle residences\u00a0and\u00a0businesses",
   phone: "(206) 829-6396",
   phoneHref: "tel:+12068296396",
+  // Texts go to Chris's own cell (his preference, Oct 4), pre-filled so the
+  // visitor only finishes the sentence. "?&body=" works on iPhone and Android.
+  textHref: `sms:+12064193880?&body=${encodeURIComponent("Hi Chris, I'd like a quote for ")}`,
+  emailHref: `mailto:chris@buildwithportal.com?subject=${encodeURIComponent("Concrete quote")}`,
   email: "chris@buildwithportal.com",
   url: "https://buildwithportal.com",
   hours: "Monday-Friday 7:30 AM - 5:00 PM, Saturday by appointment",
