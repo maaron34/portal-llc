@@ -44,6 +44,7 @@ import { OPS_SITE, readLead, rawStr, type CorrespondenceEntry, type DuplicateCan
 import {
   CHRIS_EMAIL,
   INGEST_BCC,
+  composeUrl,
   PORTAL_PHONE_DISPLAY,
   PROD_ORIGIN,
   QUO_INBOX_URL,
@@ -360,14 +361,14 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const emailButtons = () => {
     if (!email) return;
     const m = mailtoUrl(email, replySubject, draft, INGEST_BCC);
-    const g = gmailComposeUrl(email, replySubject, draft, INGEST_BCC);
+    const g = leadId ? composeUrl(origin, leadId) : gmailComposeUrl(email, replySubject, draft, INGEST_BCC);
     actionsHtml.push(
-      `<div>${button(m, "Reply by email", { primary: !phoneFirst })}${button(g, "Reply by email on a computer")}</div>` +
+      `<div>${button(m, "Reply by email", { primary: !phoneFirst })}${button(g, "Reply in Gmail on a computer")}</div>` +
         smallNote(
-          `Opens a new email to ${esc(name || email)}${draft ? " with the suggested reply filled in" : ""}, for you to edit and send. It goes to them only, with none of this history, and blind-copies Portal's records so the lead shows as answered.`
+          `Reply by email opens a new email in your phone's mail app; on a computer, use Reply in Gmail. Either way it goes to ${esc(name || email)} only${draft ? ", with the suggested reply filled in for you to edit" : ""}, with none of this history, and blind-copies Portal's records so the lead shows as answered.`
         )
     );
-    actionsText.push(`Reply by email: ${m}`, `Reply by email on a computer: ${g}`);
+    actionsText.push(`Reply by email: ${m}`, `Reply in Gmail on a computer: ${g}`);
   };
   const phoneButtons = () => {
     if (!phone) return;

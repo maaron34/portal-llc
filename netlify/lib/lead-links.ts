@@ -24,7 +24,7 @@ export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
 export const PROD_ORIGIN = "https://buildwithportal.com";
 
-export type LinkAction = "handled" | "reply" | "text" | "email" | "merge";
+export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "compose";
 
 function linkSecret(): string {
   return process.env.LEAD_LINK_SECRET || process.env.SUPABASE_SECRET_KEY || "";
@@ -47,6 +47,14 @@ export const replyUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-reply?id=${id}&t=${signLink("reply", id)}`;
 export const textUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-text?id=${id}&t=${signLink("text", id)}`;
+/**
+ * "Reply in Gmail on a computer". A link from an email straight into
+ * mail.google.com makes Gmail show a "Redirect Notice" page first (Michael's
+ * QA, 2026-10-05). Linking to buildwithportal.com, which redirects to the
+ * Gmail compose, avoids it and keeps the email short.
+ */
+export const composeUrl = (origin: string, id: string): string =>
+  `${origin}/.netlify/functions/lead-compose?id=${id}&t=${signLink("compose", id)}`;
 export const emailUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-email?id=${id}&t=${signLink("email", id)}`;
 /**
