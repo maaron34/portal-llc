@@ -12,7 +12,6 @@ import { button, esc, nl2br, page } from "./html";
 import { rawStr, type LeadRow } from "./lead-db";
 import {
   INGEST_BCC,
-  cameViaPortalLine,
   formatPhone,
   gmailComposeUrl,
   handledUrl,
@@ -37,8 +36,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   const textDraft = unanswered ? rawStr(lead.raw, "draft_reply_text") || draft : "";
   const topic = rawStr(lead.raw, "draft_topic") || fallbackTopic({}, lead);
   const subject = `About your ${topic} - Portal Seattle Concrete`;
-  const viaLine = cameViaPortalLine(lead);
-  const sms = smsUrl(lead.phone, textReplyBody(textDraft, viaLine));
+  const sms = smsUrl(lead.phone, textReplyBody(textDraft));
 
   const parts: string[] = [];
   parts.push(`<h2 style="margin-top:0;">Reply to ${esc(name)}</h2>`);
@@ -60,7 +58,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   else actions.push(emailBtns, textBtn);
   if (tel) actions.push(button(tel, `Call ${formatPhone(lead.phone)}`));
 
-  const shown = textFirst ? textReplyBody(textDraft, viaLine) : draft;
+  const shown = textFirst ? textReplyBody(textDraft) : draft;
   if (shown) {
     parts.push(`<div style="${LABEL}">Suggested reply</div>`);
     parts.push(`<div style="${BOX}">${nl2br(shown)}</div>`);
@@ -68,7 +66,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   parts.push(`<div>${actions.filter(Boolean).join("")}</div>`);
   parts.push(
     `<p style="font-size:13px;color:#6b7280;">Each button opens a draft for you to edit. Nothing sends until you tap send yourself. ` +
-      (sms ? "Reply by text uses your own number. " : "") +
+      (sms ? "Reply by text opens a group text from your own number with the Portal line copied, which is how the reply gets recorded. " : "") +
       (email ? "Reply by email goes to the customer only and blind-copies Portal's records so the lead shows as answered." : "") +
       `</p>`
   );

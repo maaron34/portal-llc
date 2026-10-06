@@ -47,7 +47,6 @@ import {
   PORTAL_PHONE_DISPLAY,
   PROD_ORIGIN,
   QUO_INBOX_URL,
-  cameViaPortalLine,
   formatPhone,
   mergeUrl,
   gmailComposeUrl,
@@ -373,7 +372,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const phoneButtons = () => {
     if (!phone) return;
     // Both need a US/Canadian number: telUrl and smsUrl return "" for anything else.
-    const body = textReplyBody(textDraft, cameViaPortalLine(lead) || phoneFirst);
+    const body = textReplyBody(textDraft);
     const s = smsUrl(phone, body);
     const parts: string[] = [];
     if (s) parts.push(button(s, "Reply by text", { primary: phoneFirst }));
@@ -381,7 +380,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     if (!parts.length) return;
     actionsHtml.push(
       `<div>${parts.join("")}</div>` +
-        (s ? smallNote(`Reply by text opens Messages from your own number${textDraft ? " with the suggested reply filled in" : ""}. Nothing sends until you tap send.`) : "")
+        (s ? smallNote(`Reply by text opens a group text from your own number to ${esc(name || "them")} and the Portal line${textDraft ? ", with the suggested reply filled in" : ""}. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
     );
     if (s) actionsText.push(`Reply by text: ${s}`);
     if (tel) actionsText.push(`Call: ${tel}`);
