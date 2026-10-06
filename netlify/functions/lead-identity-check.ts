@@ -8,6 +8,7 @@
 import { authorized, json } from "../lib/http";
 import { readLead } from "../lib/lead-db";
 import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates } from "../lib/lead-identity";
+import { checkScam, locate } from "../lib/lead-triage";
 
 export default async (request: Request): Promise<Response> => {
   if (!authorized(request)) return json({ error: "Unauthorized" }, 401);
@@ -20,5 +21,7 @@ export default async (request: Request): Promise<Response> => {
   const text = inboundText(lead);
   const found = await extractIdentity(text);
   const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, lead.id));
-  return json({ text: text.slice(0, 300), found, would_fill: found ? identityPatch(lead, found) : {}, match: match && { verdict: match.verdict, reason: match.reason, other: { id: match.other.id, name: match.other.name, channel: match.other.channel } } }, 200);
+  const area = await locate(lead.address);
+  const scam = await checkScam(text, lead.phone, /\d+\s+\S+/.test(lead.address || ""));
+  return json({ text: text.slice(0, 300), found, area, scam, would_fill: found ? identityPatch(lead, found) : {}, match: match && { verdict: match.verdict, reason: match.reason, other: { id: match.other.id, name: match.other.name, channel: match.other.channel } } }, 200);
 };

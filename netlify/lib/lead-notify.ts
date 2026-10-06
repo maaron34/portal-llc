@@ -44,6 +44,8 @@ import { OPS_SITE, readLead, rawStr, type CorrespondenceEntry, type DuplicateCan
 import {
   CHRIS_EMAIL,
   INGEST_BCC,
+  deleteUrl,
+  notScamUrl,
   PORTAL_PHONE_DISPLAY,
   PROD_ORIGIN,
   QUO_INBOX_URL,
@@ -113,6 +115,8 @@ export type NotifyExtras = {
   duplicate?: DuplicateCandidate | null;
   /** A text-shaped draft for Reply by text when the main draft is an email. */
   textDraft?: string | null;
+  /** Service-area and scam flags (lib/lead-triage.ts). */
+  triage?: { area?: { miles: number; verdict: string; place: string } | null; scam?: { scam: boolean; reasons: string[] } | null } | null;
   now?: Date;
 };
 
@@ -471,6 +475,30 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
 
   const rows: string[] = [];
   rows.push(`<tr><td style="${FONT}font-size:15px;line-height:1.5;color:#111827;padding-bottom:6px;"><strong>${esc(status)}</strong></td></tr>`);
+  // ---- check this lead (scam / service area) ---------------------------------
+  const tri = extras.triage || null;
+  const checkParts: string[] = [];
+  const checkText: string[] = [];
+  if (tri?.scam?.scam && leadId) {
+    const reasons = tri.scam.reasons.length ? tri.scam.reasons : ["Several common scam signs"];
+    checkParts.push(
+      `<div><strong>Looks like a scam.</strong></div>` +
+        `<ul style="margin:4px 0 8px 18px;padding:0;">${reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>` +
+        `<div>${button(deleteUrl(origin, leadId), "Delete this lead")}${button(notScamUrl(origin, leadId), "Not a scam")}</div>` +
+        smallNote("Nothing is deleted until you confirm on the next page.")
+    );
+    checkText.push(`Looks like a scam: ${reasons.join("; ")}`, `Delete this lead: ${deleteUrl(origin, leadId)}`, `Not a scam: ${notScamUrl(origin, leadId)}`);
+  }
+  if (tri?.area && tri.area.verdict !== "in") {
+    const where = tri.area.place.split(",")[0];
+    const line =
+      tri.area.verdict === "out"
+        ? `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), outside the service area. The suggested reply is the polite "outside our area" message.`
+        : `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), on the edge of the service area. Your call.`;
+    checkParts.push(`<div>${esc(line)}</div>`);
+    checkText.push(line);
+  }
+  if (checkParts.length) rows.push(section("Check this lead", checkParts.join("<div style=\"height:10px\"></div>")));
   if (dupHtml) rows.push(section("Possible duplicate", dupHtml));
   if (contactRows.length) rows.push(section("Contact", contactRows.join("")));
   rows.push(section(saidTitle, saidHtml));
@@ -482,6 +510,8 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const text = [
     status,
     "",
+    ...checkText,
+    checkText.length ? "" : "",
     ...dupText,
     dupText.length ? "" : "",
     ...contactText,

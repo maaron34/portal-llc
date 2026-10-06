@@ -30,6 +30,7 @@
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
 import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
 import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
+import { checkScam, locate, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
@@ -170,8 +171,39 @@ export default async (request: Request): Promise<Response> => {
     }
 
     // One topic and one subject per lead: every email about it reuses them.
+    // Service area and scam flags (lib/lead-triage.ts). Flags only: nothing is
+    // deleted or sent. Run while the lead is unanswered; each result is stored
+    // so a follow-up message does not re-run it.
+    let area: Area | null = null;
+    let scam: ScamCheck | null = null;
+    let areaOverride = false;
+    if (lead && id && lead.stage === "new") {
+      const raw = (lead.raw || {}) as Record<string, unknown>;
+      area = (raw.area as Area | undefined) || null;
+      if (!area && (lead.address || "").trim()) {
+        area = await locate(lead.address).catch(() => null);
+        if (area) await mergeRaw(secret, id, { area });
+      }
+      if (raw.scam_cleared !== true) {
+        scam = (raw.scam_check as ScamCheck | undefined) || null;
+        if (!scam || kind === "update") {
+          const street = /\d+\s+\S+/.test(lead.address || "");
+          scam = await checkScam(inboundText(lead), lead.phone, street).catch(() => null);
+          if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
+        }
+      }
+      // Well outside the area: the suggested reply becomes the polite decline.
+      if (area?.verdict === "out" && !raw.area_decline_drafted) {
+        const first = (lead.name || "").trim().split(/\s+/)[0] || "";
+        draft = { draft: outOfAreaReply(first, area.place, false), topic: draft?.topic || "", caller_name: null };
+        textDraft = outOfAreaReply(first, area.place, true);
+        areaOverride = true;
+      }
+    }
+    const triage = { area, scam };
+
     const topic = rawStr(lead?.raw, "draft_topic") || draft?.topic || fallbackTopic(payload, lead);
-    const rendered = renderLeadEmail(payload, id, { lead, draft, textDraft, kind, entries, origin, topic, duplicate, now });
+    const rendered = renderLeadEmail(payload, id, { lead, draft, textDraft, triage, kind, entries, origin, topic, duplicate, now });
     if (id) {
       const keep: Record<string, unknown> = { draft_topic: topic, notify_subject: rendered.baseSubject };
       if (draft && !stored) {
@@ -179,10 +211,13 @@ export default async (request: Request): Promise<Response> => {
         keep.draft_at = now.toISOString();
       }
       if (textDraft && !rawStr(lead?.raw, "draft_reply_text")) keep.draft_reply_text = textDraft;
+
       await mergeRaw(secret, id, keep, true);
+      // keep is only-if-absent; the decline must replace the earlier draft.
+      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true });
     }
 
-    const emailed = await emailChris(payload, id, { lead, draft, textDraft, kind, entries, origin, topic, duplicate, now });
+    const emailed = await emailChris(payload, id, { lead, draft, textDraft, triage, kind, entries, origin, topic, duplicate, now });
     if (emailed && id) await mergeRaw(secret, id, { notified_at: now.toISOString() });
     // A background function's response body is discarded, so the function log is
     // the only place to see whether the email went out.
