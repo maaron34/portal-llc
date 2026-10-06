@@ -6,6 +6,7 @@ import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
+import { FORM_VERSION, HEARD_ABOUT_OPTIONS, fullAddress, isUsPhone } from "../lib/lead-fields";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -20,11 +21,19 @@ export default function Contact() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
-    const neighborhood = formData.get("neighborhood") as string;
+    const name = ((formData.get("name") as string) || "").trim();
+    const email = ((formData.get("email") as string) || "").trim();
+    const phone = ((formData.get("phone") as string) || "").trim();
+    const street = ((formData.get("street") as string) || "").trim();
+    const city = ((formData.get("city") as string) || "").trim();
+    const heardAbout = (formData.get("heard_about") as string) || "";
     const message = formData.get("message") as string;
+
+    if (!isUsPhone(phone)) {
+      setError("Please enter a 10-digit phone number so Chris can reach you.");
+      setSubmitting(false);
+      return;
+    }
 
     // First-touch attribution (UTM / ad click IDs / referrer), captured at app
     // load and persisted across navigation so it survives /lp/* -> /contact.
@@ -39,13 +48,17 @@ export default function Contact() {
       name,
       email,
       phone,
-      address: neighborhood,
+      address: fullAddress(street, city),
+      street,
+      city,
+      heard_about: heardAbout,
+      form_version: FORM_VERSION,
       message,
       ...attribution,
     });
 
     if (result.ok) {
-      track("lead_submitted", { form: "contact_page" });
+      track("lead_submitted", { form: "contact_page", heard_about: heardAbout || undefined });
       if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "generate_lead", {
           event_category: "form",
@@ -63,7 +76,7 @@ export default function Contact() {
       // lead is already captured in Supabase and Chris's notification is
       // queued; a slow or down MailerLite shouldn't delay or obscure the
       // visitor's success state.
-      fetch("/.netlify/functions/add-to-mailerlite", {
+      if (email) fetch("/.netlify/functions/add-to-mailerlite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -136,36 +149,53 @@ export default function Contact() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-portal-dark mb-1.5">
-                        Phone
+                        Phone *
                       </label>
                       <input
                         type="tel"
                         name="phone"
+                        required
+                        autoComplete="tel"
                         className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
                       />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-portal-dark mb-1.5">
-                      Email *
+                      Email
                     </label>
                     <input
                       type="email"
                       name="email"
-                      required
+                      autoComplete="email"
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-portal-dark mb-1.5">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      name="neighborhood"
-                      placeholder="Street address"
-                      className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-semibold text-portal-dark mb-1.5">
+                        Street address *
+                      </label>
+                      <input
+                        type="text"
+                        name="street"
+                        required
+                        autoComplete="street-address"
+                        className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-portal-dark mb-1.5">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        name="city"
+                        required
+                        autoComplete="address-level2"
+                        className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-portal-dark mb-1.5">
@@ -178,6 +208,22 @@ export default function Contact() {
                       placeholder="What type of concrete work do you need? Any details about the project help us give you a better estimate."
                       className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent placeholder:text-portal-warm resize-y"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-portal-dark mb-1.5">
+                      How did you hear about us?
+                    </label>
+                    <select
+                      name="heard_about"
+                      defaultValue=""
+                      className="w-full px-4 py-3 rounded-lg border border-portal-warm bg-white text-portal-dark text-base focus:outline-none focus:ring-2 focus:ring-portal-accent focus:border-transparent"
+                    >
+                      {HEARD_ABOUT_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   {error && (
                     <p className="text-red-600 text-sm font-medium">{error}</p>

@@ -231,6 +231,23 @@ export default async (request: Request): Promise<Response> => {
     return json({ error: "Lead needs a name, email, or phone" }, 400);
   }
 
+  // The current website forms (form_version "2", Chris 2026-10-04) require a
+  // name, a US phone, a street address and a city. Older bundles still open in
+  // someone's browser send none of those markers and are accepted as before,
+  // so a visitor on a stale page never loses their request to this check.
+  if (String((payload as { form_version?: unknown }).form_version || "") === "2") {
+    const p = payload as { street?: unknown; city?: unknown };
+    const d = phone.replace(/\D/g, "");
+    const usPhone = d.length === 10 || (d.length === 11 && d.startsWith("1"));
+    const missing = [
+      !name && "name",
+      !usPhone && "a 10-digit phone number",
+      !String(p.street || "").trim() && "street address",
+      !String(p.city || "").trim() && "city",
+    ].filter(Boolean);
+    if (missing.length) return json({ error: `Please add your ${missing.join(", ")}.` }, 400);
+  }
+
   // Website-form submissions aren't pre-screened, so filter out vendor pitches
   // (SEO/marketing/VA spam) before they clutter the inbox or email Chris. Cron
   // sources (quo/email/voicemail) are already classified upstream.

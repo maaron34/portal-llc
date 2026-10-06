@@ -15,12 +15,15 @@ import { LANDING_PAGES } from "../data/landing-pages";
 import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
+import { FORM_VERSION, HEARD_ABOUT_OPTIONS, fullAddress, isUsPhone } from "../lib/lead-fields";
 
 type FormData = {
   name: string;
   phone: string;
   email: string;
   address: string;
+  city: string;
+  heardAbout: string;
   projectType: string;
   ownerStatus: string;
   timeline: string;
@@ -61,6 +64,7 @@ function firePixelEvents(data: FormData) {
     project_type: data.projectType,
     timeline: data.timeline,
     qualified: isQualifiedLead(data) ? "yes" : "no",
+    heard_about: data.heardAbout || undefined,
   });
 
   // GA4: always track form submission
@@ -115,6 +119,8 @@ function LeadForm({
     phone: "",
     email: "",
     address: "",
+    city: "",
+    heardAbout: "",
     projectType: defaultProjectType,
     ownerStatus: "",
     timeline: "",
@@ -129,8 +135,14 @@ function LeadForm({
     setFormState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const [phoneError, setPhoneError] = useState("");
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (!isUsPhone(formState.phone)) {
+      setPhoneError("Please enter a 10-digit phone number so Chris can reach you.");
+      return;
+    }
+    setPhoneError("");
     onSubmit(formState);
   };
 
@@ -167,28 +179,42 @@ function LeadForm({
       </div>
 
       <div>
-        <label className={labelClass}>Email *</label>
+        <label className={labelClass}>Email</label>
         <input
           type="email"
           name="email"
-          required
+          autoComplete="email"
           value={formState.email}
           onChange={handleChange}
           className={inputClass}
         />
       </div>
 
-      <div>
-        <label className={labelClass}>Address *</label>
-        <input
-          type="text"
-          name="address"
-          required
-          placeholder="Street address"
-          value={formState.address}
-          onChange={handleChange}
-          className={`${inputClass} placeholder:text-portal-warm`}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Street address *</label>
+          <input
+            type="text"
+            name="address"
+            required
+            autoComplete="street-address"
+            value={formState.address}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>City *</label>
+          <input
+            type="text"
+            name="city"
+            required
+            autoComplete="address-level2"
+            value={formState.city}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </div>
       </div>
 
       <div>
@@ -236,8 +262,19 @@ function LeadForm({
         />
       </div>
 
-      {error && (
-        <p className="text-red-600 text-sm font-medium">{error}</p>
+      <div>
+        <label className={labelClass}>How did you hear about us?</label>
+        <select name="heardAbout" value={formState.heardAbout} onChange={handleChange} className={selectClass}>
+          {HEARD_ABOUT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {(phoneError || error) && (
+        <p className="text-red-600 text-sm font-medium">{phoneError || error}</p>
       )}
       <button
         type="submit"
@@ -278,7 +315,11 @@ export default function LandingPage() {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      address: data.address,
+      address: fullAddress(data.address, data.city),
+      street: data.address.trim(),
+      city: data.city.trim(),
+      heard_about: data.heardAbout,
+      form_version: FORM_VERSION,
       message: data.message,
       project_type: data.projectType,
       timeline: data.timeline,
