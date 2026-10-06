@@ -28,7 +28,8 @@
  */
 
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
-import { findDuplicateByName, mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
+import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
+import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
@@ -134,13 +135,39 @@ export default async (request: Request): Promise<Response> => {
       textDraft = t?.draft || "";
     }
 
-    // A second record for someone already on the list: offer the merge in the
-    // email, since that is where Chris notices it (ops#13). Only on a brand new
-    // lead. An "update" or "merged" email is about a record he already has, so
-    // the same suggestion there would just be noise on every follow-up. Best
-    // effort: a failed lookup must never cost the lead email.
-    const duplicate = kind === "new" && lead && id ? await findDuplicateByName(secret, lead) : null;
-    if (duplicate) console.log("notify-lead duplicate candidate:", JSON.stringify({ id, candidate: duplicate.id }));
+    // One record per person (lib/lead-identity.ts). First fill blanks from the
+    // sender's own words, then look for the same person already on file. A
+    // "sure" match is merged into the OLDER lead right here; the email that
+    // follows is then about the survivor. A "maybe" gets the Merge button.
+    // Best effort throughout: a failure here must never cost the lead email.
+    let duplicate: Match["other"] | null = null;
+    if (lead && id && kind !== "merged") {
+      const found = await extractIdentity(inboundText(lead)).catch(() => null);
+      if (found) {
+        const fill = identityPatch(lead, found);
+        if (Object.keys(fill).length && (await patchLead(secret, id, fill))) {
+          Object.assign(lead, fill);
+          await mergeRaw(secret, id, { identity_filled: { ...fill, at: now.toISOString() } });
+          console.log("notify-lead identity filled:", JSON.stringify({ id, fields: Object.keys(fill) }));
+        }
+      }
+      const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, id));
+      if (match?.verdict === "sure") {
+        const survivor = await autoMerge(secret, id, match);
+        if (survivor) {
+          console.log("notify-lead auto-merged:", JSON.stringify({ from: id, into: survivor, reason: match.reason }));
+          // Re-read the survivor and continue as an update to it, so Chris gets
+          // one email about the lead he already has, not a second "new lead".
+          const merged = await readLead(secret, survivor);
+          if (merged) {
+            return finishAsUpdate(secret, merged, origin, now, entries.length ? entries : inboundEntriesOf(lead));
+          }
+        }
+      } else if (match?.verdict === "maybe" && kind === "new") {
+        duplicate = match.other;
+        console.log("notify-lead duplicate candidate:", JSON.stringify({ id, candidate: duplicate.id, reason: match.reason }));
+      }
+    }
 
     // One topic and one subject per lead: every email about it reuses them.
     const topic = rawStr(lead?.raw, "draft_topic") || draft?.topic || fallbackTopic(payload, lead);
@@ -166,3 +193,61 @@ export default async (request: Request): Promise<Response> => {
     return reply({ ok: false });
   }
 };
+
+const OPS = "https://portal-ops-dashboard.netlify.app/.netlify/functions";
+
+/**
+ * Fold `fromId` into the match (the older lead) through portal-ops' merge-leads,
+ * which keeps the richer value on every field and unions photos and messages.
+ * Returns the survivor's id, or null when the merge did not happen.
+ */
+async function autoMerge(secret: string, fromId: string, match: Match): Promise<string | null> {
+  const passcode = process.env.OPS_PASSCODE;
+  if (!passcode) return null;
+  const into = match.other.id;
+  try {
+    const res = await fetch(`${OPS}/merge-leads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${passcode}` },
+      body: JSON.stringify({ from: fromId, into }),
+    });
+    if (!res.ok) {
+      console.error("notify-lead auto-merge failed:", res.status, (await res.text()).slice(0, 200));
+      return null;
+    }
+    await mergeRaw(secret, into, { auto_merged_from: fromId, auto_merged_reason: match.reason, auto_merged_at: new Date().toISOString() });
+    return into;
+  } catch (err) {
+    console.error("notify-lead auto-merge threw:", err);
+    return null;
+  }
+}
+
+/** The inbound messages of a lead, for the "update" email after an auto-merge. */
+function inboundEntriesOf(lead: { correspondence?: CorrespondenceEntry[] | null; message?: string | null; channel?: string | null; created_at?: string }): CorrespondenceEntry[] {
+  const inbound = (lead.correspondence || []).filter((e) => e.direction === "in");
+  if (inbound.length) return inbound.slice(-3);
+  if ((lead.message || "").trim()) {
+    return [{ id: "msg", type: lead.channel === "email" ? "email" : "text", direction: "in", at: lead.created_at || new Date().toISOString(), body: lead.message!.trim(), source: lead.channel || null } as CorrespondenceEntry];
+  }
+  return [];
+}
+
+/** After an auto-merge: email Chris about the survivor as an update, with the merged-in messages. */
+async function finishAsUpdate(secret: string, lead: NonNullable<Awaited<ReturnType<typeof readLead>>>, origin: string, now: Date, entries: CorrespondenceEntry[]): Promise<Response> {
+  const payload: LeadPayload = {
+    name: lead.name || undefined,
+    email: lead.email || undefined,
+    phone: lead.phone || undefined,
+    address: lead.address || undefined,
+    message: lead.message || undefined,
+    channel: lead.channel,
+  };
+  const topic = rawStr(lead.raw, "draft_topic") || fallbackTopic(payload, lead);
+  const stored = rawStr(lead.raw, "draft_reply");
+  const draft: DraftResult | null = stored ? { draft: stored, topic, caller_name: null } : null;
+  const emailed = await emailChris(payload, lead.id, { lead, draft, kind: "update", entries, origin, topic, now });
+  if (emailed) await mergeRaw(secret, lead.id, { notified_at: now.toISOString() });
+  console.log("notify-lead result:", JSON.stringify({ id: lead.id, kind: "update-after-merge", emailed }));
+  return reply({ ok: true, merged_into: lead.id, emailed });
+}
