@@ -116,6 +116,19 @@ export type NotifyExtras = {
   now?: Date;
 };
 
+/** "How did you hear about us?" answer as a phrase (values from src/lib/lead-fields.ts). */
+const HEARD_ABOUT: Record<string, string> = {
+  "google-search": "Google search",
+  "ai-tool": "an AI tool like ChatGPT",
+  "google-ad": "a Google ad",
+  nextdoor: "Nextdoor",
+  "instagram-facebook": "Instagram or Facebook",
+  "friend-past-customer": "a friend or past customer",
+  "saw-a-job": "saw a job or sign",
+  other: "other",
+};
+const heardAboutText = (v: string): string => HEARD_ABOUT[(v || "").trim()] || "";
+
 /** The word for a channel as it appears in the subject and status line. */
 export function channelWord(ch?: string | null): string {
   switch ((ch || "").toLowerCase()) {
@@ -333,6 +346,8 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const pt = (payload.project_type || rawStr(lead?.raw, "project_type")).trim();
   const tl = (payload.timeline || rawStr(lead?.raw, "timeline")).trim();
   const src = (payload.lead_source || "").trim();
+  const heard = heardAboutText(rawStr(lead?.raw, "heard_about") || String((payload as { heard_about?: unknown }).heard_about || ""));
+  if (heard) extrasRows.push(`Heard about us: ${heard}`);
   if (pt) extrasRows.push(`Project: ${pt}`);
   if (tl) extrasRows.push(`Timeline: ${tl}`);
   // The source line earns its place for website leads (which ad, which page);
