@@ -42,7 +42,7 @@ const BASE =
 
 const EMAIL_STYLE = "This reply is an email: 3-5 sentences, and sign off as Chris.";
 const TEXT_STYLE =
-  "This reply is a text message sent from Chris's business number: 2-4 short " +
+  "This reply is a text message Chris sends from his own cell phone: 2-4 short " +
   "sentences, no greeting line on its own, no signature block, and it should read " +
   "naturally on a phone. If they left a voicemail, open by acknowledging the call.";
 
@@ -52,9 +52,17 @@ const OUTPUT =
   'first and last name only if they state it in their message or transcript, else null>", ' +
   '"draft": "<the reply>"}';
 
-const isPhoneChannel = (ch?: string | null): boolean => ["quo", "quo-sms", "text", "voicemail"].includes((ch || "").toLowerCase());
+export const isPhoneChannel = (ch?: string | null): boolean => ["quo", "quo-sms", "text", "voicemail"].includes((ch || "").toLowerCase());
 
-export async function draftReply(input: DraftInput, opts: { timeoutMs?: number } = {}): Promise<DraftResult | null> {
+/**
+ * `style` overrides the channel's default. A website or email lead that left a
+ * phone number gets a second, text-shaped draft for the Reply by text button,
+ * because the email draft (3-5 sentences, signed) reads wrong as a text.
+ */
+export async function draftReply(
+  input: DraftInput,
+  opts: { timeoutMs?: number; style?: "text" | "email" } = {}
+): Promise<DraftResult | null> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return null;
 
@@ -69,7 +77,8 @@ export async function draftReply(input: DraftInput, opts: { timeoutMs?: number }
     input.prior_messages ? `Messages already on this thread: ${input.prior_messages}` : "",
   ].filter(Boolean);
 
-  const system = [BASE, isPhoneChannel(input.channel) ? TEXT_STYLE : EMAIL_STYLE, OUTPUT].join(" ");
+  const asText = opts.style ? opts.style === "text" : isPhoneChannel(input.channel);
+  const system = [BASE, asText ? TEXT_STYLE : EMAIL_STYLE, OUTPUT].join(" ");
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 15000);

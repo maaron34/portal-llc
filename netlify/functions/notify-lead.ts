@@ -27,7 +27,7 @@
  * could not be read, which is exactly when a retry is safe and wanted.
  */
 
-import { draftReply, type DraftResult } from "../lib/draft-reply";
+import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
 import { findDuplicateByName, mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
@@ -113,6 +113,27 @@ export default async (request: Request): Promise<Response> => {
       }
     }
 
+    // A text-shaped draft for Reply by text, when the main draft is an email
+    // (a website or email lead that left a phone number). Best effort.
+    let textDraft = rawStr(lead?.raw, "draft_reply_text");
+    const phoneLead = isPhoneChannel(lead?.channel || payload.channel);
+    if (!textDraft && !phoneLead && (lead?.phone || payload.phone) && (!lead || lead.stage === "new")) {
+      const t = await draftReply(
+        {
+          name: lead?.name || payload.name,
+          address: lead?.address || payload.address,
+          project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
+          timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
+          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
+          channel: lead?.channel || payload.channel,
+          gemini_notes: lead?.gemini_notes,
+          prior_messages: lead?.correspondence?.length || 0,
+        },
+        { timeoutMs: 15000, style: "text" }
+      );
+      textDraft = t?.draft || "";
+    }
+
     // A second record for someone already on the list: offer the merge in the
     // email, since that is where Chris notices it (ops#13). Only on a brand new
     // lead. An "update" or "merged" email is about a record he already has, so
@@ -123,17 +144,18 @@ export default async (request: Request): Promise<Response> => {
 
     // One topic and one subject per lead: every email about it reuses them.
     const topic = rawStr(lead?.raw, "draft_topic") || draft?.topic || fallbackTopic(payload, lead);
-    const rendered = renderLeadEmail(payload, id, { lead, draft, kind, entries, origin, topic, duplicate, now });
+    const rendered = renderLeadEmail(payload, id, { lead, draft, textDraft, kind, entries, origin, topic, duplicate, now });
     if (id) {
       const keep: Record<string, unknown> = { draft_topic: topic, notify_subject: rendered.baseSubject };
       if (draft && !stored) {
         keep.draft_reply = draft.draft;
         keep.draft_at = now.toISOString();
       }
+      if (textDraft && !rawStr(lead?.raw, "draft_reply_text")) keep.draft_reply_text = textDraft;
       await mergeRaw(secret, id, keep, true);
     }
 
-    const emailed = await emailChris(payload, id, { lead, draft, kind, entries, origin, topic, duplicate, now });
+    const emailed = await emailChris(payload, id, { lead, draft, textDraft, kind, entries, origin, topic, duplicate, now });
     if (emailed && id) await mergeRaw(secret, id, { notified_at: now.toISOString() });
     // A background function's response body is discarded, so the function log is
     // the only place to see whether the email went out.

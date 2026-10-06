@@ -23,12 +23,19 @@ export const FONT =
   "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;";
 
 /** A tappable button that renders in Gmail (web, iOS, Android) and iOS Mail. */
+/**
+ * Dark text on a light fill with a visible border, never white text on a
+ * colored fill: some mail apps drop background colors, and a white label then
+ * vanishes. Measured 2026-10-05 in Michael's QA: the primary "Reply by text"
+ * and "Reply by email" buttons rendered as blank space.
+ */
 export function button(href: string, label: string, opts: { primary?: boolean } = {}): string {
-  const bg = opts.primary ? "#1d4ed8" : "#e5e7eb";
-  const fg = opts.primary ? "#ffffff" : "#111827";
+  const look = opts.primary
+    ? "background:#eff6ff;color:#1d4ed8;border:2px solid #1d4ed8;"
+    : "background:#f9fafb;color:#111827;border:1px solid #9ca3af;";
   return (
-    `<a href="${esc(href)}" style="${FONT}display:inline-block;padding:12px 18px;margin:4px 8px 6px 0;` +
-    `background:${bg};color:${fg};text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">` +
+    `<a href="${esc(href)}" style="${FONT}display:inline-block;padding:11px 17px;margin:4px 8px 6px 0;` +
+    `${look}text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">` +
     `${esc(label)}</a>`
   );
 }

@@ -20,15 +20,15 @@
  *   - puts the suggested reply behind buttons, NOT in the body. PR #44 (July
  *     2026) removed the draft from the body at Chris's request because Gmail
  *     quoted the whole notification, draft included, back at the customer when
- *     he hit Reply. "Email back from Portal" opens a page with the draft in an
- *     editable box and one Send, which sends from chris@ and records the email
- *     on the lead in the same request (lead-email.ts). "Reply in Gmail" opens a
- *     fresh compose with the draft filled in and BCCs the ingest inbox, which
- *     is the only way a Gmail-sent reply reaches the system: Reply-To is the
- *     customer, so Gmail's own Reply works and records nothing (measured
- *     2026-09-17: twelve customer replies in ten days, zero outbound from a
- *     chris@ address). Phone leads get "Call back" and "Text back from
- *     Portal's number" instead; nothing requires the QUO app or the CRM.
+ *     he hit Reply. Since 2026-10-05 every reply button only OPENS a draft
+ *     and never sends (Chris asked at the Oct 4 meeting to always see and edit
+ *     first). "Reply by email" is a fresh compose to the customer only, with
+ *     the draft filled in, BCC'ing the ingest inbox: that BCC is the only way a
+ *     Gmail-sent reply reaches the system, since Reply-To is the customer and
+ *     Gmail's own Reply records nothing (measured 2026-09-17: twelve customer
+ *     replies in ten days, zero outbound from a chris@ address). "Reply by
+ *     text" opens Messages from Chris's own cell, never the Portal line, with
+ *     a text-shaped draft (raw.draft_reply_text when the main draft is email).
  *
  * Email goes through Resend (RESEND_API_KEY), NOT Web3Forms: Web3Forms rejects
  * server-side API calls on the free tier and flags accounts that try, which
@@ -47,14 +47,13 @@ import {
   PORTAL_PHONE_DISPLAY,
   PROD_ORIGIN,
   QUO_INBOX_URL,
-  emailUrl,
   formatPhone,
   mergeUrl,
-  gmailComposeUrl,
   handledUrl,
   mailtoUrl,
+  smsUrl,
   telUrl,
-  textUrl,
+  textReplyBody,
   validEmail,
   vcardUrl,
 } from "./lead-links";
@@ -112,6 +111,8 @@ export type NotifyExtras = {
   topic?: string;
   /** An older lead that looks like the same person, surfaced with a one-tap merge. */
   duplicate?: DuplicateCandidate | null;
+  /** A text-shaped draft for Reply by text when the main draft is an email. */
+  textDraft?: string | null;
   now?: Date;
 };
 
@@ -259,6 +260,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const entries = extras.entries ?? [];
   const origin = extras.origin || PROD_ORIGIN;
   const draft = extras.draft?.draft?.trim() || "";
+  const textDraft = (extras.textDraft || rawStr(lead?.raw, "draft_reply_text") || "").trim() || draft;
   const who = leadWho(lead, payload);
   const ch = channelWord(kind === "merged" ? payload.channel : lead?.channel || payload.channel);
   const topic = (extras.topic || extras.draft?.topic || fallbackTopic(payload, lead)).trim();
@@ -349,47 +351,37 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const actionsText: string[] = [];
   const phoneFirst = ch === "text" || ch === "voicemail";
 
+  // Every reply button opens a draft Chris edits and sends himself; nothing
+  // here ever sends for him (Chris, 2026-10-04). Email opens a fresh compose to
+  // the customer only, so none of this notification or its history goes along,
+  // and blind-copies the ingest inbox so the reply is recorded. Text opens
+  // Messages from his own cell, never the Portal line.
   const emailButtons = () => {
     if (!email) return;
-    const g = gmailComposeUrl(email, replySubject, draft, INGEST_BCC);
-    if (leadId) {
-      const p = emailUrl(origin, leadId);
-      actionsHtml.push(
-        `<div>${button(p, "Email back from Portal", { primary: !phoneFirst })}${button(g, "Reply in Gmail (computer)")}</div>` +
-          smallNote(
-            `Email back opens a page with ${draft ? "the suggested reply" : "an empty email"} to ${esc(name || email)}; edit it and tap Send, and it goes from ${esc(CHRIS_EMAIL)} and is saved to this lead, which is what marks it answered. Reply in Gmail opens a compose in your own Gmail and blind-copies Portal's records.`
-          )
-      );
-      actionsText.push(`Email back from Portal: ${p}`, `Reply in Gmail (computer): ${g}`);
-      return;
-    }
-    // No lead id (submit-lead's inline fallback): the compose links are the only path.
     const m = mailtoUrl(email, replySubject, draft, INGEST_BCC);
-    const label = draft ? "Reply with this draft" : "Reply";
     actionsHtml.push(
-      `<div>${button(m, `${label} (phone)`, { primary: !phoneFirst })}${button(g, `${label.replace("this draft", "draft")} in Gmail (computer)`)}</div>` +
+      `<div>${button(m, "Reply by email", { primary: !phoneFirst })}</div>` +
         smallNote(
-          draft
-            ? `Use this instead of Reply. It opens a new email to ${esc(name || email)} with a suggested reply you can edit, and blind-copies Portal's records, which is what marks this lead answered.`
-            : `Use this instead of Reply. It opens a new email to ${esc(name || email)} and blind-copies Portal's records, which is what marks this lead answered.`
+          `Reply by email opens a new email to ${esc(name || email)} only${draft ? ", with the suggested reply filled in for you to edit" : ""}, with none of this history. It blind-copies Portal's records so the lead shows as answered.`
         )
     );
-    actionsText.push(`${label} (phone): ${m}`, `${label} in Gmail (computer): ${g}`);
+    actionsText.push(`Reply by email: ${m}`);
   };
   const phoneButtons = () => {
     if (!phone) return;
+    // Both need a US/Canadian number: telUrl and smsUrl return "" for anything else.
+    const body = textReplyBody(textDraft);
+    const s = smsUrl(phone, body);
     const parts: string[] = [];
-    // Both buttons need a US/Canadian number: tel is "" for anything else, and
-    // the Text back page refuses those numbers, so do not offer it.
+    if (s) parts.push(button(s, "Reply by text", { primary: phoneFirst }));
     if (tel) parts.push(button(tel, `Call ${formatPhone(phone)}`));
-    if (tel && leadId) parts.push(button(textUrl(origin, leadId), "Text back from Portal's number", { primary: phoneFirst }));
     if (!parts.length) return;
     actionsHtml.push(
       `<div>${parts.join("")}</div>` +
-        smallNote(`Text back sends from ${esc(PORTAL_PHONE_DISPLAY)} after you tap Send on the next page${draft ? ", with the suggested reply filled in" : ""}.`)
+        (s ? smallNote(`Reply by text opens a group text from your own number to ${esc(name || "them")} and the Portal line${textDraft ? ", with the suggested reply filled in" : ""}. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
     );
+    if (s) actionsText.push(`Reply by text: ${s}`);
     if (tel) actionsText.push(`Call: ${tel}`);
-    if (tel && leadId) actionsText.push(`Text back from Portal's number: ${textUrl(origin, leadId)}`);
   };
   if (phoneFirst) {
     phoneButtons();
@@ -429,17 +421,17 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   // answered. This note therefore names what plain Reply costs instead of
   // advertising it. With no customer email there is no Reply-To at all and
   // Gmail's Reply goes to Chris himself, so say that instead.
-  const steer = leadId ? "Use Email back above instead." : "Use the reply button above instead.";
+  const steer = "Use Reply by email above instead.";
   const replyNote = email
     ? `Hitting Reply also reaches ${esc(name || email)}, but Portal never sees it and this lead stays marked unanswered. ${steer}`
     : phone
-      ? `No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back above.`
+      ? `No email is on file for this lead, so replying to this message only reaches you. Use Reply by text or Call above.`
       : "";
   const footerHtml = smallNote([...footerBits, replyNote].filter(Boolean).join(" &middot; "));
   const replyNoteText = email
     ? `Hitting Reply also reaches ${name || email}, but Portal never sees it and this lead stays marked unanswered. ${steer}`
     : phone
-      ? "No email is on file for this lead, so replying to this message only reaches you. Use Call or Text back."
+      ? "No email is on file for this lead, so replying to this message only reaches you. Use Reply by text or Call."
       : "";
 
   // ---- assemble ---------------------------------------------------------------
