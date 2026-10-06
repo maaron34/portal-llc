@@ -12,7 +12,6 @@ import { button, esc, nl2br, page } from "./html";
 import { rawStr, type LeadRow } from "./lead-db";
 import {
   INGEST_BCC,
-  composeUrl,
   formatPhone,
   handledUrl,
   mailtoUrl,
@@ -51,8 +50,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   const actions: string[] = [];
   const textBtn = sms ? button(sms, "Reply by text", { primary: textFirst }) : "";
   const emailBtns = email
-    ? button(mailtoUrl(email, subject, draft, INGEST_BCC), "Reply by email", { primary: !textFirst }) +
-      button(composeUrl(origin, id), "Reply in Gmail on a computer")
+    ? button(mailtoUrl(email, subject, draft, INGEST_BCC), "Reply by email", { primary: !textFirst })
     : "";
   if (textFirst) actions.push(textBtn, emailBtns);
   else actions.push(emailBtns, textBtn);
