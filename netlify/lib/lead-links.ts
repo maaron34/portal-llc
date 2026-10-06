@@ -24,7 +24,7 @@ export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
 export const PROD_ORIGIN = "https://buildwithportal.com";
 
-export type LinkAction = "handled" | "reply" | "text" | "email" | "merge";
+export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "delete" | "notscam";
 
 function linkSecret(): string {
   return process.env.LEAD_LINK_SECRET || process.env.SUPABASE_SECRET_KEY || "";
@@ -47,6 +47,12 @@ export const replyUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-reply?id=${id}&t=${signLink("reply", id)}`;
 export const textUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-text?id=${id}&t=${signLink("text", id)}`;
+/** "Delete" on a lead flagged as a likely scam: a confirm page, then the delete. */
+export const deleteUrl = (origin: string, id: string): string =>
+  `${origin}/.netlify/functions/lead-delete?id=${id}&t=${signLink("delete", id)}`;
+/** "Not a scam": clears the flag so it never shows on this lead again. */
+export const notScamUrl = (origin: string, id: string): string =>
+  `${origin}/.netlify/functions/lead-notscam?id=${id}&t=${signLink("notscam", id)}`;
 export const emailUrl = (origin: string, id: string): string =>
   `${origin}/.netlify/functions/lead-email?id=${id}&t=${signLink("email", id)}`;
 /**
