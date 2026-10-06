@@ -240,12 +240,13 @@ export default async (request: Request): Promise<Response> => {
     const d = phone.replace(/\D/g, "");
     const usPhone = d.length === 10 || (d.length === 11 && d.startsWith("1"));
     const missing = [
-      !name && "name",
+      !name && "your name",
       !usPhone && "a 10-digit phone number",
-      !String(p.street || "").trim() && "street address",
-      !String(p.city || "").trim() && "city",
-    ].filter(Boolean);
-    if (missing.length) return json({ error: `Please add your ${missing.join(", ")}.` }, 400);
+      !String(p.street || "").trim() && "your street address",
+      !String(p.city || "").trim() && "your city",
+    ].filter((m): m is string => Boolean(m));
+    const list = missing.length > 1 ? `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}` : missing[0];
+    if (missing.length) return json({ error: `Please add ${list}.` }, 400);
   }
 
   // Website-form submissions aren't pre-screened, so filter out vendor pitches
