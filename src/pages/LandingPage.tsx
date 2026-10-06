@@ -10,6 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import SEO from "../components/SEO";
+import ContactBar from "../components/ContactBar";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
 import { track } from "../lib/analytics";
@@ -698,6 +699,7 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
+      <ContactBar page="landing" />
     </>
   );
 }
