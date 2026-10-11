@@ -289,6 +289,9 @@ export default async (request: Request): Promise<Response> => {
   // (SEO/marketing/VA spam) before they clutter the inbox or email Chris. Cron
   // sources (quo/email/voicemail) are already classified upstream.
   const isWebsite = !payload.channel || payload.channel === "website";
+  // A record written from an older signal (a PandaDoc signature, a QuickBooks
+  // payment): stored, merged, never emailed as news.
+  const quiet = (payload as { quiet?: unknown }).quiet === true;
   // A click we paid for is never auto-junked. Vendors pitching us arrive direct
   // or via a scraped list; they don't come through a Google/Meta ad we're billed
   // for. Suppressing one of these costs us the click AND the job, so the bar for
@@ -314,7 +317,7 @@ export default async (request: Request): Promise<Response> => {
     // text or voicemail is NOT emailed from here: the cron that captured it
     // appends it to the lead's timeline next, and correspondence-append emails
     // Chris about the genuinely new messages (one email, never two).
-    if (isWebsite) {
+    if (isWebsite && !quiet) {
       if (!(await queueNotify(origin, payload, existing.id, true))) await emailChris(payload, existing.id, { kind: "merged", origin });
     }
     return json({ ok: true, id: existing.id, merged: true }, 200);
@@ -377,7 +380,7 @@ export default async (request: Request): Promise<Response> => {
           // (a cron insert and this form in the same moment); its "new lead"
           // email is already on its way and carries the same person.
           const justCreated = found.created_at ? Date.now() - new Date(found.created_at).getTime() < 2 * 60 * 1000 : false;
-          if (isWebsite && !justCreated) {
+          if (isWebsite && !justCreated && !quiet) {
             if (!(await queueNotify(origin, payload, found.id, true))) await emailChris(payload, found.id, { kind: "merged", origin });
           }
           return json({ ok: true, id: found.id, merged: true, duplicate: true }, 200);
@@ -402,7 +405,7 @@ export default async (request: Request): Promise<Response> => {
     // A record written from an older signal (a PandaDoc signature or a
     // QuickBooks payment the CRM never saw as a lead) is not news to Chris: no
     // "NEW LEAD" email. Five of those went out on 2026-10-11 before this flag.
-    if ((payload as { quiet?: unknown }).quiet === true) return json({ ok: true, id, notify: "skipped" }, 200);
+    if (quiet) return json({ ok: true, id, notify: "skipped" }, 200);
 
     // Queue the email to the background function so the visitor gets their
     // success state now. Inline fallback if queueing fails (e.g. the plan tier

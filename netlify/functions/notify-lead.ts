@@ -30,7 +30,7 @@
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
 import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry, inboundBodies } from "../lib/lead-db";
 import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
-import { checkScam, locate, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
+import { checkScam, locateChecked, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
@@ -151,6 +151,12 @@ export default async (request: Request): Promise<Response> => {
           await mergeRaw(secret, id, { identity_filled: { ...fill, at: now.toISOString() } });
           console.log("notify-lead identity filled:", JSON.stringify({ id, fields: Object.keys(fill) }));
         }
+        // A city with no street ("we're in Spokane") is not an address, but it
+        // is enough for the service-area check below; kept in raw.city.
+        if (found.city && !found.street && !(lead.address || "").trim() && !rawStr(lead.raw, "city")) {
+          await mergeRaw(secret, id, { city: found.city });
+          (lead.raw as Record<string, unknown>).city = found.city;
+        }
       }
       const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, id));
       if (match?.verdict === "sure") {
@@ -180,16 +186,22 @@ export default async (request: Request): Promise<Response> => {
     if (lead && id && lead.stage === "new") {
       const raw = (lead.raw || {}) as Record<string, unknown>;
       area = (raw.area as Area | undefined) || null;
-      if (!area && (lead.address || "").trim()) {
-        area = await locate(lead.address).catch(() => null);
+      // Did a geocoder actually answer? Only a confirmed miss counts against the address.
+      let checked = Boolean(area);
+      const where = (lead.address || "").trim() || rawStr(raw, "city");
+      if (!area && where) {
+        const loc = await locateChecked(where).catch(() => ({ area: null, checked: false }));
+        area = loc.area;
+        checked = loc.checked;
         if (area) await mergeRaw(secret, id, { area });
       }
       if (raw.scam_cleared !== true) {
         scam = (raw.scam_check as ScamCheck | undefined) || null;
         if (!scam || kind === "update") {
           const street = /\d+\s+\S+/.test(lead.address || "");
-          // A street address that neither geocoder could place is itself a red flag.
-          const mapped = street ? Boolean(area) : null;
+          // A street address that both geocoders answered for and neither could
+          // place is itself a red flag; an outage or timeout is not.
+          const mapped = street && checked ? Boolean(area) : null;
           scam = await checkScam(inboundText(lead), lead.phone, street, mapped).catch(() => null);
           if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
         }

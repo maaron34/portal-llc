@@ -62,8 +62,17 @@ async function getJson(url: string, timeoutMs: number): Promise<unknown> {
 
 /** Where an address is, as miles from West Seattle. Null when it cannot be placed. */
 export async function locate(address: string | null | undefined): Promise<Area | null> {
+  return (await locateChecked(address)).area;
+}
+
+/**
+ * Same, plus whether a geocoder actually answered. "Not found" is evidence
+ * against an address only when a lookup ran and came back empty; a timeout or
+ * an outage says nothing, and must not count as a scam red flag.
+ */
+export async function locateChecked(address: string | null | undefined): Promise<{ area: Area | null; checked: boolean }> {
   const a = (address || "").trim();
-  if (a.length < 3) return null;
+  if (a.length < 3) return { area: null, checked: false };
   // Assume Washington when the address names no state; nearly every lead is local.
   const q = /\b(WA|Washington)\b/i.test(a) ? a : `${a}, WA`;
 
@@ -74,7 +83,7 @@ export async function locate(address: string | null | undefined): Promise<Area |
   const hit = census?.result?.addressMatches?.[0];
   if (hit) {
     const miles = milesFromBase(hit.coordinates.y, hit.coordinates.x);
-    return { miles: Math.round(miles * 10) / 10, verdict: areaVerdict(miles, `${hit.matchedAddress} ${a}`), place: hit.matchedAddress };
+    return { area: { miles: Math.round(miles * 10) / 10, verdict: areaVerdict(miles, `${hit.matchedAddress} ${a}`), place: hit.matchedAddress }, checked: true };
   }
 
   const osm = (await getJson(
@@ -84,9 +93,10 @@ export async function locate(address: string | null | undefined): Promise<Area |
   const o = osm?.[0];
   if (o) {
     const miles = milesFromBase(Number(o.lat), Number(o.lon));
-    return { miles: Math.round(miles * 10) / 10, verdict: areaVerdict(miles, `${o.display_name} ${a}`), place: o.display_name.split(",").slice(0, 3).join(",") };
+    return { area: { miles: Math.round(miles * 10) / 10, verdict: areaVerdict(miles, `${o.display_name} ${a}`), place: o.display_name.split(",").slice(0, 3).join(",") }, checked: true };
   }
-  return null;
+  // Both answered (non-null JSON) and neither placed it: a confirmed miss.
+  return { area: null, checked: census != null && osm != null };
 }
 
 /** The polite decline, for a lead well outside the area. Never sent on its own. */
