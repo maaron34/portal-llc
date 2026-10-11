@@ -221,10 +221,20 @@ export default async (request: Request): Promise<Response> => {
         const latest = fresh ? await readLead(secret, id) : null;
         if (fresh && latest && rawStr(latest.raw, "draft_reply") === declineText) {
           draft = fresh;
-          textDraft = t?.draft || "";
-          await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false, area_decline_text: "" });
+          // The text-shaped decline is replaced on the same terms: only while it
+          // is still the generated text. An edited one stays.
+          const smsDecline = rawStr(raw, "area_decline_text_sms");
+          const smsUntouched = !rawStr(latest.raw, "draft_reply_text") || rawStr(latest.raw, "draft_reply_text") === smsDecline;
+          const patch: Record<string, unknown> = { draft_reply: fresh.draft, area_decline_drafted: false, area_decline_text: "", area_decline_text_sms: "" };
+          if (smsUntouched) {
+            textDraft = t?.draft || "";
+            patch.draft_reply_text = textDraft;
+          } else {
+            textDraft = rawStr(latest.raw, "draft_reply_text");
+          }
+          await mergeRaw(secret, id, patch);
           // The email renders from this record too; the old decline must not survive in memory.
-          Object.assign(lead.raw as Record<string, unknown>, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false });
+          Object.assign(lead.raw as Record<string, unknown>, { ...patch, draft_reply_text: textDraft });
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
@@ -249,7 +259,7 @@ export default async (request: Request): Promise<Response> => {
 
       await mergeRaw(secret, id, keep, true);
       // keep is only-if-absent; the decline must replace the earlier draft.
-      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true, area_decline_text: draft.draft });
+      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true, area_decline_text: draft.draft, area_decline_text_sms: textDraft });
     }
 
     const emailed = await emailChris(payload, id, { lead, draft, textDraft, triage, kind, entries, origin, topic, duplicate, now });
