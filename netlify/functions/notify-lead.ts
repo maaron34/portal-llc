@@ -91,12 +91,14 @@ export default async (request: Request): Promise<Response> => {
     };
 
     // What the drafter is told about this lead; the same for every draft below.
-    const draftInput = () => ({
+    // `whole`: everything the person has written so far, not only this batch
+    // (a draft that replaces a decline must know the earlier details).
+    const draftInput = (whole = false) => ({
       name: lead?.name || payload.name,
       address: lead?.address || payload.address,
       project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
       timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-      message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
+      message: whole && lead ? inboundBodies(lead) : kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
       channel: lead?.channel || payload.channel,
       gemini_notes: lead?.gemini_notes,
       prior_messages: lead?.correspondence?.length || 0,
@@ -210,12 +212,15 @@ export default async (request: Request): Promise<Response> => {
       // is retried on the next message and a lead that gained a name still matches.
       const declineText = rawStr(raw, "area_decline_text") || (cachedArea ? outOfAreaReply((lead.name || "").trim().split(/\s+/)[0] || "", cachedArea.place, false) : "");
       if (raw.area_decline_drafted === true && area && area.verdict !== "out" && stored && stored === declineText) {
-        const fresh = await draftReply(draftInput(), { timeoutMs: 15000 });
-        if (fresh) {
+        const fresh = await draftReply(draftInput(true), { timeoutMs: 15000 });
+        // Drafting takes seconds; Chris may have edited the reply meanwhile.
+        // Replace only if the stored draft is still the generated decline.
+        const latest = fresh ? await readLead(secret, id) : null;
+        if (fresh && latest && rawStr(latest.raw, "draft_reply") === declineText) {
           draft = fresh;
           // A text or voicemail lead's draft is already text-shaped; a website
           // lead gets a second, text-shaped one for the Reply by text button.
-          const t = phoneLead ? fresh : lead.phone ? await draftReply(draftInput(), { timeoutMs: 15000, style: "text" }) : null;
+          const t = phoneLead ? fresh : lead.phone ? await draftReply(draftInput(true), { timeoutMs: 15000, style: "text" }) : null;
           textDraft = t?.draft || "";
           await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false, area_decline_text: "" });
           // The email renders from this record too; the old decline must not survive in memory.
