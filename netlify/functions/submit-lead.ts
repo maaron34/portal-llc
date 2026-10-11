@@ -279,6 +279,9 @@ export default async (request: Request): Promise<Response> => {
       !name && "your name",
       !usPhone && "a 10-digit phone number",
       !String(p.street || "").trim() && "your street address",
+      // A street with no number is not an address Chris can visit, and every
+      // bot that filled the field with letters ("Jcfkpi") stops here.
+      String(p.street || "").trim() && !/\d/.test(String(p.street)) && "your street number",
       !String(p.city || "").trim() && "your city",
     ].filter((m): m is string => Boolean(m));
     const list = missing.length > 1 ? `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}` : missing[0];
