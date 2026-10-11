@@ -16,6 +16,8 @@ export type LeadResult = {
   id?: string;
   duplicate?: boolean;
   junk?: boolean;
+  /** A 400 from the function carries a message written for the visitor ("Please add your street number."). */
+  error?: string;
 };
 
 export async function submitLead(payload: Record<string, unknown>): Promise<LeadResult> {
@@ -26,7 +28,7 @@ export async function submitLead(payload: Record<string, unknown>): Promise<Lead
       body: JSON.stringify(payload),
     });
     const data = (await res.json().catch(() => ({}))) as Partial<LeadResult>;
-    return { ...data, ok: res.ok && data.ok === true };
+    return { ...data, ok: res.ok && data.ok === true, error: res.status === 400 && typeof data.error === "string" ? data.error : undefined };
   } catch (err) {
     console.warn("Lead capture failed:", err);
     return { ok: false };

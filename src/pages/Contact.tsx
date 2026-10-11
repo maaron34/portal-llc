@@ -93,7 +93,8 @@ export default function Contact() {
 
       setSubmitted(true);
     } else {
-      setError("Something went wrong. Please call or email us directly.");
+      // A validation message names what to fix; anything else is our failure, not theirs.
+      setError(result.error || "Something went wrong. Please call or email us directly.");
     }
     setSubmitting(false);
   };
