@@ -28,9 +28,9 @@
  */
 
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
-import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
+import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry, inboundBodies } from "../lib/lead-db";
 import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
-import { checkScam, locate, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
+import { checkScam, locateChecked, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
 export const config = { background: true };
@@ -90,6 +90,20 @@ export default async (request: Request): Promise<Response> => {
       channel: lead?.channel,
     };
 
+    // What the drafter is told about this lead; the same for every draft below.
+    // `whole`: everything the person has written so far, not only this batch
+    // (a draft that replaces a decline must know the earlier details).
+    const draftInput = (whole = false) => ({
+      name: lead?.name || payload.name,
+      address: lead?.address || payload.address,
+      project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
+      timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
+      message: whole && lead ? inboundBodies(lead) : kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
+      channel: lead?.channel || payload.channel,
+      gemini_notes: lead?.gemini_notes,
+      prior_messages: lead?.correspondence?.length || 0,
+    });
+
     // Draft: reuse a stored one; generate only while the lead is unanswered.
     let draft: DraftResult | null = null;
     const stored = rawStr(lead?.raw, "draft_reply");
@@ -97,16 +111,7 @@ export default async (request: Request): Promise<Response> => {
       draft = { draft: stored, topic: rawStr(lead?.raw, "draft_topic"), caller_name: null };
     } else if (!lead || lead.stage === "new") {
       draft = await draftReply(
-        {
-          name: lead?.name || payload.name,
-          address: lead?.address || payload.address,
-          project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
-          timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
-          channel: lead?.channel || payload.channel,
-          gemini_notes: lead?.gemini_notes,
-          prior_messages: lead?.correspondence?.length || 0,
-        },
+        draftInput(),
         { timeoutMs: 15000 }
       );
       if (draft?.caller_name && lead && id && !(lead.name || "").trim()) {
@@ -121,16 +126,7 @@ export default async (request: Request): Promise<Response> => {
     const phoneLead = isPhoneChannel(lead?.channel || payload.channel);
     if (!textDraft && !phoneLead && (lead?.phone || payload.phone) && (!lead || lead.stage === "new")) {
       const t = await draftReply(
-        {
-          name: lead?.name || payload.name,
-          address: lead?.address || payload.address,
-          project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
-          timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
-          channel: lead?.channel || payload.channel,
-          gemini_notes: lead?.gemini_notes,
-          prior_messages: lead?.correspondence?.length || 0,
-        },
+        draftInput(),
         { timeoutMs: 15000, style: "text" }
       );
       textDraft = t?.draft || "";
@@ -150,6 +146,12 @@ export default async (request: Request): Promise<Response> => {
           Object.assign(lead, fill);
           await mergeRaw(secret, id, { identity_filled: { ...fill, at: now.toISOString() } });
           console.log("notify-lead identity filled:", JSON.stringify({ id, fields: Object.keys(fill) }));
+        }
+        // A city with no street ("we're in Spokane") is not an address, but it
+        // is enough for the service-area check below; kept in raw.city.
+        if (found.city && !found.street && !(lead.address || "").trim() && !rawStr(lead.raw, "city")) {
+          await mergeRaw(secret, id, { city: found.city });
+          (lead.raw as Record<string, unknown>).city = found.city;
         }
       }
       const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, id));
@@ -179,17 +181,68 @@ export default async (request: Request): Promise<Response> => {
     let areaOverride = false;
     if (lead && id && lead.stage === "new") {
       const raw = (lead.raw || {}) as Record<string, unknown>;
-      area = (raw.area as Area | undefined) || null;
-      if (!area && (lead.address || "").trim()) {
-        area = await locate(lead.address).catch(() => null);
+      const where = (lead.address || "").trim() || rawStr(raw, "city");
+      const cachedArea = (raw.area as Area | undefined) || null;
+      area = cachedArea;
+      // A result cached for a city-only lookup is stale once a street arrives.
+      if (area && typeof area.for === "string" && area.for !== where) area = null;
+      // Did a geocoder actually answer? Only a confirmed miss counts against the address.
+      let checked = Boolean(area);
+      if (!area && where) {
+        const loc = await locateChecked(where).catch(() => ({ area: null, checked: false }));
+        area = loc.area ? { ...loc.area, for: where } : null;
+        checked = loc.checked;
         if (area) await mergeRaw(secret, id, { area });
       }
       if (raw.scam_cleared !== true) {
         scam = (raw.scam_check as ScamCheck | undefined) || null;
         if (!scam || kind === "update") {
           const street = /\d+\s+\S+/.test(lead.address || "");
-          scam = await checkScam(inboundText(lead), lead.phone, street).catch(() => null);
+          // A street address that both geocoders answered for and neither could
+          // place is itself a red flag; an outage or timeout is not.
+          const mapped = street && checked ? Boolean(area) : null;
+          scam = await checkScam(inboundText(lead), lead.phone, street, mapped).catch(() => null);
           if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
+        }
+      }
+      // The decline drafted for a city-only location is wrong once a street
+      // inside the area arrives. Replace it only while the stored draft is still
+      // the generated text (raw.area_decline_text; an edit by Chris stays). The
+      // check does not depend on the cache or the name, so a failed regeneration
+      // is retried on the next message and a lead that gained a name still matches.
+      const declineText = rawStr(raw, "area_decline_text") || (cachedArea ? outOfAreaReply((lead.name || "").trim().split(/\s+/)[0] || "", cachedArea.place, false) : "");
+      if (raw.area_decline_drafted === true && area && area.verdict !== "out" && stored && stored === declineText) {
+        const fresh = await draftReply(draftInput(true), { timeoutMs: 15000 });
+        // A text or voicemail lead's draft is already text-shaped; a website
+        // lead gets a second, text-shaped one for the Reply by text button.
+        const t = !fresh ? null : phoneLead ? fresh : lead.phone ? await draftReply(draftInput(true), { timeoutMs: 15000, style: "text" }) : null;
+        // Drafting takes seconds; Chris may have edited the reply meanwhile.
+        // Replace only if the stored draft is still the generated decline.
+        const latest = fresh ? await readLead(secret, id) : null;
+        if (fresh && latest && rawStr(latest.raw, "draft_reply") === declineText) {
+          draft = fresh;
+          // The text-shaped decline is replaced on the same terms: only while it
+          // is still the generated text. An edited one stays.
+          const smsDecline = rawStr(raw, "area_decline_text_sms");
+          const smsUntouched = !rawStr(latest.raw, "draft_reply_text") || rawStr(latest.raw, "draft_reply_text") === smsDecline;
+          const patch: Record<string, unknown> = { draft_reply: fresh.draft, area_decline_drafted: false, area_decline_text: "", area_decline_text_sms: "" };
+          if (smsUntouched) {
+            // If the text-shaped call failed, the fresh email-shaped draft stands
+            // in: imperfect as a text, never a wrong decline, and never an empty
+            // key that a later generation could not fill.
+            textDraft = t?.draft || fresh.draft;
+            patch.draft_reply_text = textDraft;
+          } else {
+            textDraft = rawStr(latest.raw, "draft_reply_text");
+          }
+          await mergeRaw(secret, id, patch);
+          // The email renders from this record too; the old decline must not survive in memory.
+          Object.assign(lead.raw as Record<string, unknown>, { ...patch, draft_reply_text: textDraft });
+        } else if (fresh && latest) {
+          // Chris edited the reply while this ran: his edit is what the email shows.
+          draft = { draft: rawStr(latest.raw, "draft_reply") || fresh.draft, topic: rawStr(latest.raw, "draft_topic") || fresh.topic, caller_name: null };
+          textDraft = rawStr(latest.raw, "draft_reply_text");
+          Object.assign(lead.raw as Record<string, unknown>, latest.raw);
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
@@ -214,7 +267,7 @@ export default async (request: Request): Promise<Response> => {
 
       await mergeRaw(secret, id, keep, true);
       // keep is only-if-absent; the decline must replace the earlier draft.
-      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true });
+      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true, area_decline_text: draft.draft, area_decline_text_sms: textDraft });
     }
 
     const emailed = await emailChris(payload, id, { lead, draft, textDraft, triage, kind, entries, origin, topic, duplicate, now });
