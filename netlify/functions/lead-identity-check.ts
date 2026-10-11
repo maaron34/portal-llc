@@ -22,6 +22,7 @@ export default async (request: Request): Promise<Response> => {
   const found = await extractIdentity(text);
   const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, lead.id));
   const area = await locate(lead.address);
-  const scam = await checkScam(text, lead.phone, /\d+\s+\S+/.test(lead.address || ""));
+  const street = /\d+\s+\S+/.test(lead.address || "");
+  const scam = await checkScam(text, lead.phone, street, street ? Boolean(area) : null);
   return json({ text: text.slice(0, 300), found, area, scam, would_fill: found ? identityPatch(lead, found) : {}, match: match && { verdict: match.verdict, reason: match.reason, other: { id: match.other.id, name: match.other.name, channel: match.other.channel } } }, 200);
 };
