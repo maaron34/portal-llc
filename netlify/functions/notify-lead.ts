@@ -227,7 +227,10 @@ export default async (request: Request): Promise<Response> => {
           const smsUntouched = !rawStr(latest.raw, "draft_reply_text") || rawStr(latest.raw, "draft_reply_text") === smsDecline;
           const patch: Record<string, unknown> = { draft_reply: fresh.draft, area_decline_drafted: false, area_decline_text: "", area_decline_text_sms: "" };
           if (smsUntouched) {
-            textDraft = t?.draft || "";
+            // If the text-shaped call failed, the fresh email-shaped draft stands
+            // in: imperfect as a text, never a wrong decline, and never an empty
+            // key that a later generation could not fill.
+            textDraft = t?.draft || fresh.draft;
             patch.draft_reply_text = textDraft;
           } else {
             textDraft = rawStr(latest.raw, "draft_reply_text");
@@ -235,6 +238,11 @@ export default async (request: Request): Promise<Response> => {
           await mergeRaw(secret, id, patch);
           // The email renders from this record too; the old decline must not survive in memory.
           Object.assign(lead.raw as Record<string, unknown>, { ...patch, draft_reply_text: textDraft });
+        } else if (fresh && latest) {
+          // Chris edited the reply while this ran: his edit is what the email shows.
+          draft = { draft: rawStr(latest.raw, "draft_reply") || fresh.draft, topic: rawStr(latest.raw, "draft_topic") || fresh.topic, caller_name: null };
+          textDraft = rawStr(latest.raw, "draft_reply_text");
+          Object.assign(lead.raw as Record<string, unknown>, latest.raw);
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
