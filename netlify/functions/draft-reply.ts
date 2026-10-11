@@ -13,7 +13,7 @@
  */
 
 import { draftReply } from "../lib/draft-reply";
-import { UUID, mergeRaw, readLead, rawStr } from "../lib/lead-db";
+import { UUID, inboundBodies, mergeRaw, readLead, rawStr } from "../lib/lead-db";
 
 import { authorized, json } from "../lib/http";
 
@@ -58,7 +58,7 @@ export default async (request: Request): Promise<Response> => {
         address: lead.address,
         project_type: rawStr(lead.raw, "project_type"),
         timeline: rawStr(lead.raw, "timeline"),
-        message: lead.message,
+        message: inboundBodies(lead),
         channel: lead.channel,
         gemini_notes: lead.gemini_notes,
         prior_messages: lead.correspondence.length,

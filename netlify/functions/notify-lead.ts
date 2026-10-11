@@ -28,7 +28,7 @@
  */
 
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
-import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry } from "../lib/lead-db";
+import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry, inboundBodies } from "../lib/lead-db";
 import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
 import { checkScam, locate, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
@@ -102,7 +102,7 @@ export default async (request: Request): Promise<Response> => {
           address: lead?.address || payload.address,
           project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
           timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
+          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
           channel: lead?.channel || payload.channel,
           gemini_notes: lead?.gemini_notes,
           prior_messages: lead?.correspondence?.length || 0,
@@ -126,7 +126,7 @@ export default async (request: Request): Promise<Response> => {
           address: lead?.address || payload.address,
           project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
           timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || lead?.message,
+          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
           channel: lead?.channel || payload.channel,
           gemini_notes: lead?.gemini_notes,
           prior_messages: lead?.correspondence?.length || 0,
@@ -188,7 +188,9 @@ export default async (request: Request): Promise<Response> => {
         scam = (raw.scam_check as ScamCheck | undefined) || null;
         if (!scam || kind === "update") {
           const street = /\d+\s+\S+/.test(lead.address || "");
-          scam = await checkScam(inboundText(lead), lead.phone, street).catch(() => null);
+          // A street address that neither geocoder could place is itself a red flag.
+          const mapped = street ? Boolean(area) : null;
+          scam = await checkScam(inboundText(lead), lead.phone, street, mapped).catch(() => null);
           if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
         }
       }

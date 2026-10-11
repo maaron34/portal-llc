@@ -61,6 +61,22 @@ export function leadName(lead: Pick<LeadRow, "name" | "phone" | "email">, fallba
   return (lead.phone || "").trim() || (lead.email || "").trim() || fallback;
 }
 
+/**
+ * What the person has written or said, for drafting a reply: the message column
+ * when the lead came in with one (website, email), else the inbound timeline
+ * entries (a text or voicemail lead stores its words there and leaves the
+ * message column empty, which on 2026-10-08 produced a "draft" that asked Chris
+ * to supply the message).
+ */
+export function inboundBodies(lead: Pick<LeadRow, "message" | "correspondence">): string {
+  if ((lead.message || "").trim()) return lead.message!.trim();
+  return (lead.correspondence || [])
+    .filter((e) => e.direction === "in" && (e.body || "").trim())
+    .map((e) => e.body.trim())
+    .join("\n\n")
+    .slice(0, 6000);
+}
+
 /** A string value out of `raw`, or "" when absent / not a string. */
 export function rawStr(raw: Record<string, unknown> | null | undefined, key: string): string {
   const v = raw?.[key];

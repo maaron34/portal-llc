@@ -93,6 +93,42 @@ type ExistingLead = {
  * dismissed one. Best effort: any failure returns null and we create a new lead
  * as before, which is the old behavior rather than a lost lead.
  */
+/**
+ * The same message, word for word, from a different person is a bot. Form bots
+ * rotate the name, phone and address (fake ones that pass every required-field
+ * check) and keep the pitch; two "we are currently evaluating your products /
+ * services ... scope of work available for your review here" submissions arrived
+ * on 2026-10-09 under different names and were both emailed to Chris as leads.
+ * Short messages ("need a quote") are excluded: real people write those alike.
+ */
+function normalizeMessage(s: string | null | undefined): string {
+  return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+async function sameMessageFromSomeoneElse(secret: string, message: string, phone: string, email: string): Promise<boolean> {
+  const key = normalizeMessage(message);
+  if (key.length < 80) return false;
+  const since = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?select=phone,email,message&channel=eq.website&created_at=gte.${since}&order=created_at.desc&limit=600`,
+      { headers: { apikey: secret, Authorization: `Bearer ${secret}` } }
+    );
+    if (!res.ok) return false;
+    const rows = (await res.json()) as { phone: string | null; email: string | null; message: string | null }[];
+    const mine = digits10(phone);
+    const myEmail = email.toLowerCase();
+    return rows.some(
+      (r) =>
+        normalizeMessage(r.message) === key &&
+        !(mine && digits10(r.phone || "") === mine) &&
+        !(myEmail && (r.email || "").toLowerCase() === myEmail)
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function findLeadByPhone(secret: string, phone: string): Promise<ExistingLead | null> {
   const key = digits10(phone);
   if (!key) return null;
@@ -262,7 +298,9 @@ export default async (request: Request): Promise<Response> => {
   const paidClick = Boolean(payload.gclid || payload.fbclid || payload.utm_source);
   const screenText = [payload.project_type, payload.timeline, payload.message, name].filter(Boolean).join("\n");
   const origin = new URL(request.url).origin;
-  const junk = isWebsite && screenText && !paidClick ? await isVendorSpam(origin, screenText, email || phone) : false;
+  const vendor = isWebsite && screenText && !paidClick ? await isVendorSpam(origin, screenText, email || phone) : false;
+  const botCopy = isWebsite && !vendor && !paidClick ? await sameMessageFromSomeoneElse(secret, payload.message || "", phone, email) : false;
+  const junk = vendor || botCopy;
 
   // Same person, second channel? Fold it into the lead already on file instead
   // of opening a nameless second one. Junk submissions skip this: they should
@@ -302,7 +340,7 @@ export default async (request: Request): Promise<Response> => {
     landing_page: payload.landing_page || null,
     channel: payload.channel || "website",
     dedupe_key: email ? email.toLowerCase() : phone || null,
-    raw: junk ? { ...payload, junk: true } : payload,
+    raw: junk ? { ...payload, junk: true, junk_reason: botCopy ? "same message as another lead" : "vendor pitch" } : payload,
   };
 
   try {

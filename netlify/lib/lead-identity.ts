@@ -110,9 +110,10 @@ export function identityPatch(lead: Pick<LeadRow, "name" | "email" | "address">,
   const patch: Record<string, string> = {};
   if (found.name && !(lead.name || "").trim()) patch.name = found.name;
   if (found.email && !(lead.email || "").trim()) patch.email = found.email;
-  if (!(lead.address || "").trim()) {
-    const addr = [found.street, found.city].filter(Boolean).join(", ");
-    if (addr) patch.address = addr;
+  // A city alone ("Seattle", from a voicemail) is not an address; it fills the
+  // address field with something that looks checked and is not.
+  if (!(lead.address || "").trim() && found.street) {
+    patch.address = [found.street, found.city].filter(Boolean).join(", ");
   }
   return patch;
 }
