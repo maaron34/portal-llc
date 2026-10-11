@@ -204,16 +204,18 @@ export default async (request: Request): Promise<Response> => {
         }
       }
       // The decline drafted for a city-only location is wrong once a street
-      // inside the area arrives. Replace it only if it is still the generated
-      // text (an edit by Chris stays).
-      const first0 = (lead.name || "").trim().split(/\s+/)[0] || "";
-      if (raw.area_decline_drafted === true && cachedArea && area !== cachedArea && area?.verdict !== "out" && stored === outOfAreaReply(first0, cachedArea.place, false)) {
+      // inside the area arrives. Replace it only while the stored draft is still
+      // the generated text (raw.area_decline_text; an edit by Chris stays). The
+      // check does not depend on the cache or the name, so a failed regeneration
+      // is retried on the next message and a lead that gained a name still matches.
+      const declineText = rawStr(raw, "area_decline_text") || (cachedArea ? outOfAreaReply((lead.name || "").trim().split(/\s+/)[0] || "", cachedArea.place, false) : "");
+      if (raw.area_decline_drafted === true && area && area.verdict !== "out" && stored && stored === declineText) {
         const fresh = await draftReply(draftInput(), { timeoutMs: 15000 });
         if (fresh) {
           draft = fresh;
           const t = !phoneLead && lead.phone ? await draftReply(draftInput(), { timeoutMs: 15000, style: "text" }) : null;
           textDraft = t?.draft || "";
-          await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false });
+          await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false, area_decline_text: "" });
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
@@ -238,7 +240,7 @@ export default async (request: Request): Promise<Response> => {
 
       await mergeRaw(secret, id, keep, true);
       // keep is only-if-absent; the decline must replace the earlier draft.
-      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true });
+      if (areaOverride && draft) await mergeRaw(secret, id, { draft_reply: draft.draft, draft_reply_text: textDraft, area_decline_drafted: true, area_decline_text: draft.draft });
     }
 
     const emailed = await emailChris(payload, id, { lead, draft, textDraft, triage, kind, entries, origin, topic, duplicate, now });
