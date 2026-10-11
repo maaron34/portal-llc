@@ -399,6 +399,11 @@ export default async (request: Request): Promise<Response> => {
     // to Chris.
     if (junk) return json({ ok: true, id, junk: true }, 200);
 
+    // A record written from an older signal (a PandaDoc signature or a
+    // QuickBooks payment the CRM never saw as a lead) is not news to Chris: no
+    // "NEW LEAD" email. Five of those went out on 2026-10-11 before this flag.
+    if ((payload as { quiet?: unknown }).quiet === true) return json({ ok: true, id, notify: "skipped" }, 200);
+
     // Queue the email to the background function so the visitor gets their
     // success state now. Inline fallback if queueing fails (e.g. the plan tier
     // rejects background functions): slower, but Chris still gets the email.
