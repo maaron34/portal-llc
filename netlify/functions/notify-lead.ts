@@ -213,9 +213,13 @@ export default async (request: Request): Promise<Response> => {
         const fresh = await draftReply(draftInput(), { timeoutMs: 15000 });
         if (fresh) {
           draft = fresh;
-          const t = !phoneLead && lead.phone ? await draftReply(draftInput(), { timeoutMs: 15000, style: "text" }) : null;
+          // A text or voicemail lead's draft is already text-shaped; a website
+          // lead gets a second, text-shaped one for the Reply by text button.
+          const t = phoneLead ? fresh : lead.phone ? await draftReply(draftInput(), { timeoutMs: 15000, style: "text" }) : null;
           textDraft = t?.draft || "";
           await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false, area_decline_text: "" });
+          // The email renders from this record too; the old decline must not survive in memory.
+          Object.assign(lead.raw as Record<string, unknown>, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false });
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
