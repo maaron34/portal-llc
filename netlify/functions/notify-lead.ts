@@ -90,6 +90,18 @@ export default async (request: Request): Promise<Response> => {
       channel: lead?.channel,
     };
 
+    // What the drafter is told about this lead; the same for every draft below.
+    const draftInput = () => ({
+      name: lead?.name || payload.name,
+      address: lead?.address || payload.address,
+      project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
+      timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
+      message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
+      channel: lead?.channel || payload.channel,
+      gemini_notes: lead?.gemini_notes,
+      prior_messages: lead?.correspondence?.length || 0,
+    });
+
     // Draft: reuse a stored one; generate only while the lead is unanswered.
     let draft: DraftResult | null = null;
     const stored = rawStr(lead?.raw, "draft_reply");
@@ -97,16 +109,7 @@ export default async (request: Request): Promise<Response> => {
       draft = { draft: stored, topic: rawStr(lead?.raw, "draft_topic"), caller_name: null };
     } else if (!lead || lead.stage === "new") {
       draft = await draftReply(
-        {
-          name: lead?.name || payload.name,
-          address: lead?.address || payload.address,
-          project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
-          timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
-          channel: lead?.channel || payload.channel,
-          gemini_notes: lead?.gemini_notes,
-          prior_messages: lead?.correspondence?.length || 0,
-        },
+        draftInput(),
         { timeoutMs: 15000 }
       );
       if (draft?.caller_name && lead && id && !(lead.name || "").trim()) {
@@ -121,16 +124,7 @@ export default async (request: Request): Promise<Response> => {
     const phoneLead = isPhoneChannel(lead?.channel || payload.channel);
     if (!textDraft && !phoneLead && (lead?.phone || payload.phone) && (!lead || lead.stage === "new")) {
       const t = await draftReply(
-        {
-          name: lead?.name || payload.name,
-          address: lead?.address || payload.address,
-          project_type: payload.project_type || rawStr(lead?.raw, "project_type"),
-          timeline: payload.timeline || rawStr(lead?.raw, "timeline"),
-          message: kind === "update" ? entries.map((e) => e.body).join("\n\n") : payload.message || (lead ? inboundBodies(lead) : undefined),
-          channel: lead?.channel || payload.channel,
-          gemini_notes: lead?.gemini_notes,
-          prior_messages: lead?.correspondence?.length || 0,
-        },
+        draftInput(),
         { timeoutMs: 15000, style: "text" }
       );
       textDraft = t?.draft || "";
@@ -186,7 +180,8 @@ export default async (request: Request): Promise<Response> => {
     if (lead && id && lead.stage === "new") {
       const raw = (lead.raw || {}) as Record<string, unknown>;
       const where = (lead.address || "").trim() || rawStr(raw, "city");
-      area = (raw.area as Area | undefined) || null;
+      const cachedArea = (raw.area as Area | undefined) || null;
+      area = cachedArea;
       // A result cached for a city-only lookup is stale once a street arrives.
       if (area && typeof area.for === "string" && area.for !== where) area = null;
       // Did a geocoder actually answer? Only a confirmed miss counts against the address.
@@ -206,6 +201,19 @@ export default async (request: Request): Promise<Response> => {
           const mapped = street && checked ? Boolean(area) : null;
           scam = await checkScam(inboundText(lead), lead.phone, street, mapped).catch(() => null);
           if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
+        }
+      }
+      // The decline drafted for a city-only location is wrong once a street
+      // inside the area arrives. Replace it only if it is still the generated
+      // text (an edit by Chris stays).
+      const first0 = (lead.name || "").trim().split(/\s+/)[0] || "";
+      if (raw.area_decline_drafted === true && cachedArea && area !== cachedArea && area?.verdict !== "out" && stored === outOfAreaReply(first0, cachedArea.place, false)) {
+        const fresh = await draftReply(draftInput(), { timeoutMs: 15000 });
+        if (fresh) {
+          draft = fresh;
+          const t = !phoneLead && lead.phone ? await draftReply(draftInput(), { timeoutMs: 15000, style: "text" }) : null;
+          textDraft = t?.draft || "";
+          await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false });
         }
       }
       // Well outside the area: the suggested reply becomes the polite decline.
