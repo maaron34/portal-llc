@@ -74,7 +74,7 @@ type ExistingLead = {
   address: string | null;
   message: string | null;
   phone: string | null;
-  raw: { junk?: unknown } | null;
+  raw: { junk?: unknown; quiet?: unknown } | null;
 };
 
 /**
@@ -379,7 +379,8 @@ export default async (request: Request): Promise<Response> => {
           // A lead created seconds ago lost a race with another capture path
           // (a cron insert and this form in the same moment); its "new lead"
           // email is already on its way and carries the same person.
-          const justCreated = found.created_at ? Date.now() - new Date(found.created_at).getTime() < 2 * 60 * 1000 : false;
+          // A quiet record never queued one, so a real inquiry right behind it still emails.
+          const justCreated = found.raw?.quiet !== true && found.created_at ? Date.now() - new Date(found.created_at).getTime() < 2 * 60 * 1000 : false;
           if (isWebsite && !justCreated && !quiet) {
             if (!(await queueNotify(origin, payload, found.id, true))) await emailChris(payload, found.id, { kind: "merged", origin });
           }

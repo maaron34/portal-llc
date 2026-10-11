@@ -24,7 +24,8 @@ const BASE = { lat: 47.5615, lng: -122.387 };
 export const OUT_OF_AREA_MILES = 25;
 export const BORDERLINE_MILES = 15;
 
-export type Area = { miles: number; verdict: "in" | "borderline" | "out"; place: string };
+/** `for` is the text that was looked up, so a cached result is reused only for the same input. */
+export type Area = { miles: number; verdict: "in" | "borderline" | "out"; place: string; for?: string };
 
 export function milesFromBase(lat: number, lng: number): number {
   const R = 3958.8;

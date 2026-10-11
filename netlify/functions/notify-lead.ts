@@ -185,13 +185,15 @@ export default async (request: Request): Promise<Response> => {
     let areaOverride = false;
     if (lead && id && lead.stage === "new") {
       const raw = (lead.raw || {}) as Record<string, unknown>;
+      const where = (lead.address || "").trim() || rawStr(raw, "city");
       area = (raw.area as Area | undefined) || null;
+      // A result cached for a city-only lookup is stale once a street arrives.
+      if (area && typeof area.for === "string" && area.for !== where) area = null;
       // Did a geocoder actually answer? Only a confirmed miss counts against the address.
       let checked = Boolean(area);
-      const where = (lead.address || "").trim() || rawStr(raw, "city");
       if (!area && where) {
         const loc = await locateChecked(where).catch(() => ({ area: null, checked: false }));
-        area = loc.area;
+        area = loc.area ? { ...loc.area, for: where } : null;
         checked = loc.checked;
         if (area) await mergeRaw(secret, id, { area });
       }
