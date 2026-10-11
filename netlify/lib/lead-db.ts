@@ -69,12 +69,11 @@ export function leadName(lead: Pick<LeadRow, "name" | "phone" | "email">, fallba
  * to supply the message).
  */
 export function inboundBodies(lead: Pick<LeadRow, "message" | "correspondence">): string {
-  if ((lead.message || "").trim()) return lead.message!.trim();
-  return (lead.correspondence || [])
-    .filter((e) => e.direction === "in" && (e.body || "").trim())
-    .map((e) => e.body.trim())
-    .join("\n\n")
-    .slice(0, 6000);
+  const first = (lead.message || "").trim();
+  const later = (lead.correspondence || [])
+    .filter((e) => e.direction === "in" && (e.body || "").trim() && e.body.trim() !== first)
+    .map((e) => e.body.trim());
+  return [first, ...later].filter(Boolean).join("\n\n").slice(0, 6000);
 }
 
 /** A string value out of `raw`, or "" when absent / not a string. */

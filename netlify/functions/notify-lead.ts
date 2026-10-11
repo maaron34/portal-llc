@@ -213,14 +213,14 @@ export default async (request: Request): Promise<Response> => {
       const declineText = rawStr(raw, "area_decline_text") || (cachedArea ? outOfAreaReply((lead.name || "").trim().split(/\s+/)[0] || "", cachedArea.place, false) : "");
       if (raw.area_decline_drafted === true && area && area.verdict !== "out" && stored && stored === declineText) {
         const fresh = await draftReply(draftInput(true), { timeoutMs: 15000 });
+        // A text or voicemail lead's draft is already text-shaped; a website
+        // lead gets a second, text-shaped one for the Reply by text button.
+        const t = !fresh ? null : phoneLead ? fresh : lead.phone ? await draftReply(draftInput(true), { timeoutMs: 15000, style: "text" }) : null;
         // Drafting takes seconds; Chris may have edited the reply meanwhile.
         // Replace only if the stored draft is still the generated decline.
         const latest = fresh ? await readLead(secret, id) : null;
         if (fresh && latest && rawStr(latest.raw, "draft_reply") === declineText) {
           draft = fresh;
-          // A text or voicemail lead's draft is already text-shaped; a website
-          // lead gets a second, text-shaped one for the Reply by text button.
-          const t = phoneLead ? fresh : lead.phone ? await draftReply(draftInput(true), { timeoutMs: 15000, style: "text" }) : null;
           textDraft = t?.draft || "";
           await mergeRaw(secret, id, { draft_reply: fresh.draft, draft_reply_text: textDraft, area_decline_drafted: false, area_decline_text: "" });
           // The email renders from this record too; the old decline must not survive in memory.
