@@ -105,8 +105,8 @@ Text Chris a Photo for a Quote
 
 Descriptions:
 ```
-We repair, level and replace cracked concrete across Seattle. Text us a photo and get a fast answer.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+We repair, level and replace cracked concrete in Seattle. Text a photo for a fast answer.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Ad group 2: Driveways
@@ -138,8 +138,8 @@ Text Chris a Photo for a Quote
 
 Descriptions:
 ```
-We remove the old slab, prep the base and pour a driveway that lasts. Seattle homeowners, free estimates.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+We remove the old slab, prep the base and pour a driveway that lasts. Free estimates.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Ad group 3: Patios
@@ -171,8 +171,8 @@ Text Chris a Photo for a Quote
 
 Descriptions:
 ```
-A concrete patio built for Seattle rain: proper drainage, clean finish, done on schedule. Free estimates.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+A patio built for Seattle rain, with real drainage and a clean finish. Free estimates.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Ad group 4: Steps and walkways
@@ -202,8 +202,8 @@ Text Chris a Photo for a Quote
 
 Descriptions:
 ```
-Front steps, walkways and sidewalks poured to code, with the railings and drainage done right.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+Front steps, walkways and sidewalks poured to code, with railings and drainage done right.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Ad group 5: Retaining walls
@@ -232,8 +232,8 @@ Text Chris a Photo for a Quote
 
 Descriptions:
 ```
-Poured concrete retaining walls for Seattle hillsides, with drainage and footings built to last.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+Poured concrete retaining walls for Seattle slopes, with drainage and footings that last.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Ad group 6: Concrete contractor (general)
@@ -267,8 +267,8 @@ Concrete Done Once, Done Right
 
 Descriptions:
 ```
-Driveways, patios, steps, walls and repair across Seattle. Text a photo, get a fast answer, free estimate.
-Portal is a West Seattle crew that shows up, answers the phone and does the job once. Licensed and insured.
+Driveways, patios, steps, walls and repair in Seattle. Text a photo for a free estimate.
+A West Seattle crew that shows up, answers the phone and does it once. Licensed, insured.
 ```
 
 ### Negative keywords (campaign level, all ad groups)
