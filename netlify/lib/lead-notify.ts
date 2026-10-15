@@ -56,6 +56,7 @@ import {
   smsUrl,
   telUrl,
   textReplyBody,
+  textUrl,
   validEmail,
   vcardUrl,
 } from "./lead-links";
@@ -391,15 +392,21 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     // Both need a US/Canadian number: telUrl and smsUrl return "" for anything else.
     const body = textReplyBody(textDraft);
     const s = smsUrl(phone, body);
+    // Gmail does nothing when an sms: link inside an email is tapped (Chris,
+    // 2026-10-15: "nothing happens"), while the same link on a web page opens
+    // Messages. So the email links to the signed reply page, whose Reply by
+    // text button is the sms: link. One extra tap, but it works in every mail
+    // app. Without a lead id there is no page to link to, so the raw link stays.
+    const textHref = s ? (leadId ? textUrl(origin, leadId) : s) : "";
     const parts: string[] = [];
-    if (s) parts.push(button(s, "Reply by text", { primary: phoneFirst }));
+    if (textHref) parts.push(button(textHref, "Reply by text", { primary: phoneFirst }));
     if (tel) parts.push(button(tel, `Call ${formatPhone(phone)}`));
     if (!parts.length) return;
     actionsHtml.push(
       `<div>${parts.join("")}</div>` +
-        (s ? smallNote(`Reply by text opens a group text from your own number to ${esc(name || "them")} and the Portal line${textDraft ? ", with the suggested reply filled in" : ""}. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
+        (s ? smallNote(`Reply by text ${leadId ? "opens a page with the suggested reply; its Reply by text button starts" : "opens"} a group text from your own number to ${esc(name || "them")} and the Portal line${textDraft && !leadId ? ", with the suggested reply filled in" : ""}. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
     );
-    if (s) actionsText.push(`Reply by text: ${s}`);
+    if (textHref) actionsText.push(`Reply by text: ${textHref}`);
     if (tel) actionsText.push(`Call: ${tel}`);
   };
   if (phoneFirst) {
