@@ -72,5 +72,17 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
     parts.push(`<p style="font-size:13px;color:#6b7280;">The number on file, ${esc(lead.phone)}, is not a US number, so Reply by text is unavailable.</p>`);
   }
   parts.push(`<div>${button(handledUrl(origin, id), "Mark as handled")}${button(vcardUrl(origin, id), "Add to contacts")}</div>`);
+  // Opened from the lead email's Reply by text (prefer "text"): launch Messages
+  // straight away, so Chris goes from the email to an editable draft in one tap.
+  // Gmail will not open an sms: link inside an email, but a page it opened can
+  // (Chris, 2026-10-15). The button above stays as the fallback if the phone
+  // blocks it. Nothing sends: Messages opens with the draft for him to edit.
+  if (prefer === "text" && sms) {
+    parts.unshift(
+      `<p style="margin-top:0;font-size:15px;">Opening Messages with the suggested reply. If it does not open, tap Reply by text below.</p>`
+    );
+    const target = JSON.stringify(sms).replace(/</g, "\\u003c");
+    parts.push(`<script>setTimeout(function(){window.location.href=${target};},150);</script>`);
+  }
   return page(`Reply to ${name}`, parts.join(""));
 }
