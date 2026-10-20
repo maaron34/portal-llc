@@ -198,14 +198,17 @@ export function requestCopyBody(f: {
   const fits = (t: string) =>
     encodeURIComponent(`${head}\n\n${t}`.replace(/\r?\n/g, "\r\n")).length <= REQUEST_COPY_MAX_ENCODED;
   if (said && !fits(said)) {
+    // Cut by code point, never inside an emoji's surrogate pair (that would
+    // make encodeURIComponent throw and the whole email fail to render).
+    const chars = Array.from(said);
     let lo = 0;
-    let hi = said.length;
+    let hi = chars.length;
     while (lo < hi) {
       const mid = Math.ceil((lo + hi) / 2);
-      if (fits(said.slice(0, mid) + CUT)) lo = mid;
+      if (fits(chars.slice(0, mid).join("") + CUT)) lo = mid;
       else hi = mid - 1;
     }
-    said = said.slice(0, lo).trimEnd() + CUT;
+    said = chars.slice(0, lo).join("").trimEnd() + CUT;
   }
   return said ? `${head}\n\n${said}` : head;
 }
