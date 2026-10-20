@@ -20,6 +20,7 @@ import {
   textReplyBody,
   validEmail,
   vcardUrl,
+  requestCopyBody,
 } from "./lead-links";
 import { channelWord, fallbackTopic, fmtWhen } from "./lead-notify";
 import { saidBlock } from "./signed-page";
@@ -50,13 +51,33 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   const actions: string[] = [];
   const textBtn = sms ? button(sms, "Reply by text", { primary: textFirst }) : "";
   const emailBtns = email
-    ? button(mailtoUrl(email, subject, draft, INGEST_BCC), "Reply by email", { primary: !textFirst })
+    ? button(
+        mailtoUrl(
+          email,
+          subject,
+          requestCopyBody({
+            name: lead.name,
+            phone: lead.phone,
+            email,
+            address: lead.address,
+            project: rawStr(lead.raw, "project_type"),
+            timeline: rawStr(lead.raw, "timeline"),
+            message: lead.message,
+            later: (lead.correspondence || []).filter((e) => e.direction === "in").map((e) => e.body),
+          }),
+          INGEST_BCC
+        ),
+        "Reply by email",
+        { primary: !textFirst }
+      )
     : "";
   if (textFirst) actions.push(textBtn, emailBtns);
   else actions.push(emailBtns, textBtn);
   if (tel) actions.push(button(tel, `Call ${formatPhone(lead.phone)}`));
 
-  const shown = textFirst ? textReplyBody(textDraft) : draft;
+  // Reply by email no longer carries a draft (Chris, 2026-10-20), so the
+  // suggested reply is shown only when the text is the main action.
+  const shown = textFirst ? textReplyBody(textDraft) : "";
   if (shown) {
     parts.push(`<div style="${LABEL}">Suggested reply</div>`);
     parts.push(`<div style="${BOX}">${nl2br(shown)}</div>`);
@@ -65,7 +86,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   parts.push(
     `<p style="font-size:13px;color:#6b7280;">Each button opens a draft for you to edit. Nothing sends until you tap send yourself. ` +
       (sms ? "Reply by text opens a group text from your own number with the Portal line copied, which is how the reply gets recorded. " : "") +
-      (email ? "Reply by email goes to the customer only and blind-copies Portal's records so the lead shows as answered." : "") +
+      (email ? "Reply by email goes to the customer only, with a copy of their request below your writing space, and blind-copies Portal's records so the lead shows as answered." : "") +
       `</p>`
   );
   if (!sms && lead.phone) {

@@ -153,6 +153,69 @@ function fitBody(build: (body: string) => string, body: string): string {
   return url;
 }
 
+/**
+ * The body Reply by email starts with: empty lines for Chris to write in, then a
+ * copy of what the customer sent. Chris (2026-10-20): the drafted reply was
+ * never exactly right and took longer to delete than to write, and he wants
+ * their request in front of him while he answers so he does not forget what
+ * they said or what is missing. It sits below his writing space, like a quoted
+ * message, and the customer sees it too.
+ */
+export function requestCopyBody(f: {
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  project?: string | null;
+  timeline?: string | null;
+  message?: string | null;
+  /** Messages that came in after the first one, oldest first. */
+  later?: (string | null | undefined)[];
+}): string {
+  const rows: string[] = [];
+  const add = (label: string, v: string | null | undefined) => {
+    const t = (v || "").replace(/\s+/g, " ").trim();
+    if (t) rows.push(`${label}: ${t}`);
+  };
+  add("Name", f.name);
+  add("Phone", f.phone ? formatPhone(f.phone) || f.phone : "");
+  add("Email", f.email);
+  add("Address", f.address);
+  add("Project", f.project);
+  add("Timeline", f.timeline);
+  const first = (f.message || "").trim();
+  const seen = new Set(first ? [first] : []);
+  const later = (f.later || [])
+    .map((m) => (m || "").trim())
+    .filter((m) => m && !seen.has(m) && (seen.add(m), true));
+  let said = [first, ...later].filter(Boolean).join("\n\n");
+  if (!rows.length && !said) return "";
+  const head = ["", "", "", "---------- Your request ----------", ...rows].join("\n");
+  // mailto links are trimmed to fit the phone's limit (fitBody), and that trim
+  // cuts at a blank line, which could drop the whole message. Shorten the
+  // message here instead, so the start of what they wrote always survives.
+  const CUT = "\n[Message cut short. The full text is in the lead email.]";
+  const fits = (t: string) =>
+    encodeURIComponent(`${head}\n\n${t}`.replace(/\r?\n/g, "\r\n")).length <= REQUEST_COPY_MAX_ENCODED;
+  if (said && !fits(said)) {
+    // Cut by code point, never inside an emoji's surrogate pair (that would
+    // make encodeURIComponent throw and the whole email fail to render).
+    const chars = Array.from(said);
+    let lo = 0;
+    let hi = chars.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (fits(chars.slice(0, mid).join("") + CUT)) lo = mid;
+      else hi = mid - 1;
+    }
+    said = chars.slice(0, lo).join("").trimEnd() + CUT;
+  }
+  return said ? `${head}\n\n${said}` : head;
+}
+
+/** Room for the request copy inside MAX_COMPOSE_URL, after the address, subject and BCC. */
+const REQUEST_COPY_MAX_ENCODED = 5000;
+
 /** mailto: with to/subject/body (and a BCC). Opens the phone's mail app compose. */
 export function mailtoUrl(to: string, subject: string, body: string, bcc?: string): string {
   return fitBody((b) => {
