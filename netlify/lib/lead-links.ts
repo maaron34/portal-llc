@@ -174,7 +174,7 @@ export function requestCopyBody(f: {
 }): string {
   const rows: string[] = [];
   const add = (label: string, v: string | null | undefined) => {
-    const t = (v || "").replace(/\s+/g, " ").trim();
+    const t = wellFormed(v).replace(/\s+/g, " ").trim();
     if (t) rows.push(`${label}: ${t}`);
   };
   add("Name", f.name);
@@ -183,10 +183,10 @@ export function requestCopyBody(f: {
   add("Address", f.address);
   add("Project", f.project);
   add("Timeline", f.timeline);
-  const first = (f.message || "").trim();
+  const first = wellFormed(f.message).trim();
   const seen = new Set(first ? [first] : []);
   const later = (f.later || [])
-    .map((m) => (m || "").trim())
+    .map((m) => wellFormed(m).trim())
     .filter((m) => m && !seen.has(m) && (seen.add(m), true));
   let said = [first, ...later].filter(Boolean).join("\n\n");
   if (!rows.length && !said) return "";
@@ -211,6 +211,15 @@ export function requestCopyBody(f: {
     said = chars.slice(0, lo).join("").trimEnd() + CUT;
   }
   return said ? `${head}\n\n${said}` : head;
+}
+
+/**
+ * Replace lone surrogate halves (an emoji cut in two, e.g. by a stored body
+ * truncated at a fixed length) so encodeURIComponent cannot throw and stop the
+ * lead email from rendering.
+ */
+function wellFormed(v: string | null | undefined): string {
+  return (v || "").replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "\uFFFD");
 }
 
 /** Room for the request copy inside MAX_COMPOSE_URL, after the address, subject and BCC. */

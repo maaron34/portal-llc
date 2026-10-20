@@ -513,7 +513,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     const where = tri.area.place.split(",")[0];
     const line =
       tri.area.verdict === "out"
-        ? `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), outside the service area. A polite "outside our area" reply is ready on the lead in the CRM.`
+        ? `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), outside the service area.`
         : `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), on the edge of the service area. Your call.`;
     checkParts.push(`<div>${esc(line)}</div>`);
     checkText.push(line);
