@@ -55,6 +55,7 @@ import {
   mailtoUrl,
   smsUrl,
   telUrl,
+  requestCopyBody,
   textReplyBody,
   textUrl,
   validEmail,
@@ -378,11 +379,20 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   // Messages from his own cell, never the Portal line.
   const emailButtons = () => {
     if (!email) return;
-    const m = mailtoUrl(email, replySubject, draft, INGEST_BCC);
+    const body = requestCopyBody({
+      name,
+      phone,
+      email,
+      address,
+      project: pt,
+      timeline: tl,
+      message: cleanMessage(lead?.message || payload.message),
+    });
+    const m = mailtoUrl(email, replySubject, body, INGEST_BCC);
     actionsHtml.push(
       `<div>${button(m, "Reply by email", { primary: !phoneFirst })}</div>` +
         smallNote(
-          `Reply by email opens a new email to ${esc(name || email)} only${draft ? ", with the suggested reply filled in for you to edit" : ""}, with none of this history. It blind-copies Portal's records so the lead shows as answered.`
+          `Reply by email opens a new email to ${esc(name || email)} only, with space to write and a copy of their request below it. It blind-copies Portal's records so the lead shows as answered.`
         )
     );
     actionsText.push(`Reply by email: ${m}`);
