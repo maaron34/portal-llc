@@ -63,6 +63,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
             project: rawStr(lead.raw, "project_type"),
             timeline: rawStr(lead.raw, "timeline"),
             message: lead.message,
+            later: (lead.correspondence || []).filter((e) => e.direction === "in").map((e) => e.body),
           }),
           INGEST_BCC
         ),

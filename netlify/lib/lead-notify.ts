@@ -387,6 +387,11 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
       project: pt,
       timeline: tl,
       message: cleanMessage(lead?.message || payload.message),
+      // Follow-ups (and, on an update email, the new messages it reports).
+      later: [
+        ...(lead?.correspondence || []).filter((e) => e.direction === "in").map((e) => e.body),
+        ...entries.map((e) => e.body),
+      ],
     });
     const m = mailtoUrl(email, replySubject, body, INGEST_BCC);
     actionsHtml.push(

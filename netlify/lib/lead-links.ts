@@ -169,6 +169,8 @@ export function requestCopyBody(f: {
   project?: string | null;
   timeline?: string | null;
   message?: string | null;
+  /** Messages that came in after the first one, oldest first. */
+  later?: (string | null | undefined)[];
 }): string {
   const rows: string[] = [];
   const add = (label: string, v: string | null | undefined) => {
@@ -181,10 +183,35 @@ export function requestCopyBody(f: {
   add("Address", f.address);
   add("Project", f.project);
   add("Timeline", f.timeline);
-  const msg = (f.message || "").trim();
-  if (!rows.length && !msg) return "";
-  return ["", "", "", "---------- Your request ----------", ...rows, ...(msg ? ["", msg] : [])].join("\n");
+  const first = (f.message || "").trim();
+  const seen = new Set(first ? [first] : []);
+  const later = (f.later || [])
+    .map((m) => (m || "").trim())
+    .filter((m) => m && !seen.has(m) && (seen.add(m), true));
+  let said = [first, ...later].filter(Boolean).join("\n\n");
+  if (!rows.length && !said) return "";
+  const head = ["", "", "", "---------- Your request ----------", ...rows].join("\n");
+  // mailto links are trimmed to fit the phone's limit (fitBody), and that trim
+  // cuts at a blank line, which could drop the whole message. Shorten the
+  // message here instead, so the start of what they wrote always survives.
+  const CUT = "\n[Message cut short. The full text is in the lead email.]";
+  const fits = (t: string) =>
+    encodeURIComponent(`${head}\n\n${t}`.replace(/\r?\n/g, "\r\n")).length <= REQUEST_COPY_MAX_ENCODED;
+  if (said && !fits(said)) {
+    let lo = 0;
+    let hi = said.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (fits(said.slice(0, mid) + CUT)) lo = mid;
+      else hi = mid - 1;
+    }
+    said = said.slice(0, lo).trimEnd() + CUT;
+  }
+  return said ? `${head}\n\n${said}` : head;
 }
+
+/** Room for the request copy inside MAX_COMPOSE_URL, after the address, subject and BCC. */
+const REQUEST_COPY_MAX_ENCODED = 5000;
 
 /** mailto: with to/subject/body (and a BCC). Opens the phone's mail app compose. */
 export function mailtoUrl(to: string, subject: string, body: string, bcc?: string): string {
