@@ -56,7 +56,6 @@ import {
   smsUrl,
   telUrl,
   requestCopyBody,
-  textReplyBody,
   textUrl,
   validEmail,
   vcardUrl,
@@ -277,8 +276,6 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const kind: NotifyKind = extras.kind ?? "new";
   const entries = extras.entries ?? [];
   const origin = extras.origin || PROD_ORIGIN;
-  const draft = extras.draft?.draft?.trim() || "";
-  const textDraft = (extras.textDraft || rawStr(lead?.raw, "draft_reply_text") || "").trim() || draft;
   const who = leadWho(lead, payload);
   const ch = channelWord(kind === "merged" ? payload.channel : lead?.channel || payload.channel);
   const topic = (extras.topic || extras.draft?.topic || fallbackTopic(payload, lead)).trim();
@@ -405,8 +402,9 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
   const phoneButtons = () => {
     if (!phone) return;
     // Both need a US/Canadian number: telUrl and smsUrl return "" for anything else.
-    const body = textReplyBody(textDraft);
-    const s = smsUrl(phone, body);
+    // Empty on purpose (Chris, 2026-10-20): he writes every reply himself, so
+    // the text opens blank with nothing pre-written to delete.
+    const s = smsUrl(phone, "");
     // Gmail does nothing when an sms: link inside an email is tapped (Chris,
     // 2026-10-15: "nothing happens"), while the same link on a web page opens
     // Messages. So the email links to the signed reply page, whose Reply by
@@ -419,7 +417,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     if (!parts.length) return;
     actionsHtml.push(
       `<div>${parts.join("")}</div>` +
-        (s ? smallNote(`Reply by text ${leadId ? "opens a page with the suggested reply; its Reply by text button starts" : "opens"} a group text from your own number to ${esc(name || "them")} and the Portal line${textDraft && !leadId ? ", with the suggested reply filled in" : ""}. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
+        (s ? smallNote(`Reply by text opens a blank group text from your own number to ${esc(name || "them")} and the Portal line, for you to write. The Portal line copy is how the reply gets recorded. Nothing sends until you tap send.`) : "")
     );
     if (textHref) actionsText.push(`Reply by text: ${textHref}`);
     if (tel) actionsText.push(`Call: ${tel}`);
@@ -515,7 +513,7 @@ export function renderLeadEmail(payload: LeadPayload, leadId: string | undefined
     const where = tri.area.place.split(",")[0];
     const line =
       tri.area.verdict === "out"
-        ? `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), outside the service area. The suggested reply is the polite "outside our area" message.`
+        ? `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), outside the service area. A polite "outside our area" reply is ready on the lead in the CRM.`
         : `About ${Math.round(tri.area.miles)} miles from West Seattle (${where}), on the edge of the service area. Your call.`;
     checkParts.push(`<div>${esc(line)}</div>`);
     checkText.push(line);

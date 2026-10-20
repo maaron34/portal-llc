@@ -2,13 +2,13 @@
  * The one page behind every reply link that does not open a draft directly:
  * the weekly summary's "Reply", and the old "Text back" / "Email back" links
  * still sitting in Chris's inbox from before 2026-10-05. It shows what the
- * customer said and the suggested reply, then offers the same buttons the lead
+ * customer said, then offers the same buttons the lead
  * email does. Nothing on it sends anything (Chris, 2026-10-04): Reply by text
  * opens Messages from his own cell, Reply by email opens a fresh compose to the
  * customer only that blind-copies Portal's records.
  */
 
-import { button, esc, nl2br, page } from "./html";
+import { button, esc, page } from "./html";
 import { rawStr, type LeadRow } from "./lead-db";
 import {
   INGEST_BCC,
@@ -17,7 +17,6 @@ import {
   mailtoUrl,
   smsUrl,
   telUrl,
-  textReplyBody,
   validEmail,
   vcardUrl,
   requestCopyBody,
@@ -25,18 +24,14 @@ import {
 import { channelWord, fallbackTopic, fmtWhen } from "./lead-notify";
 import { saidBlock } from "./signed-page";
 
-const BOX = "padding:10px 12px;background:#eff6ff;border-radius:6px;font-size:15px;margin-bottom:12px;";
-const LABEL = "font-size:13px;color:#6b7280;margin-bottom:4px;";
 
 export function replyPage(lead: LeadRow, id: string, name: string, origin: string, prefer?: "text" | "email"): string {
   const email = validEmail(lead.email);
   const tel = telUrl(lead.phone);
-  const unanswered = lead.stage === "new";
-  const draft = unanswered ? rawStr(lead.raw, "draft_reply") : "";
-  const textDraft = unanswered ? rawStr(lead.raw, "draft_reply_text") || draft : "";
   const topic = rawStr(lead.raw, "draft_topic") || fallbackTopic({}, lead);
   const subject = `About your ${topic} - Portal Seattle Concrete`;
-  const sms = smsUrl(lead.phone, textReplyBody(textDraft));
+  // Blank on purpose (Chris, 2026-10-20): he writes every reply himself.
+  const sms = smsUrl(lead.phone, "");
 
   const parts: string[] = [];
   parts.push(`<h2 style="margin-top:0;">Reply to ${esc(name)}</h2>`);
@@ -75,17 +70,10 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   else actions.push(emailBtns, textBtn);
   if (tel) actions.push(button(tel, `Call ${formatPhone(lead.phone)}`));
 
-  // Reply by email no longer carries a draft (Chris, 2026-10-20), so the
-  // suggested reply is shown only when the text is the main action.
-  const shown = textFirst ? textReplyBody(textDraft) : "";
-  if (shown) {
-    parts.push(`<div style="${LABEL}">Suggested reply</div>`);
-    parts.push(`<div style="${BOX}">${nl2br(shown)}</div>`);
-  }
   parts.push(`<div>${actions.filter(Boolean).join("")}</div>`);
   parts.push(
-    `<p style="font-size:13px;color:#6b7280;">Each button opens a draft for you to edit. Nothing sends until you tap send yourself. ` +
-      (sms ? "Reply by text opens a group text from your own number with the Portal line copied, which is how the reply gets recorded. " : "") +
+    `<p style="font-size:13px;color:#6b7280;">Each button opens a blank reply for you to write. Nothing sends until you tap send yourself. ` +
+      (sms ? "Reply by text opens a blank group text from your own number with the Portal line copied, which is how the reply gets recorded. " : "") +
       (email ? "Reply by email goes to the customer only, with a copy of their request below your writing space, and blind-copies Portal's records so the lead shows as answered." : "") +
       `</p>`
   );
@@ -100,7 +88,7 @@ export function replyPage(lead: LeadRow, id: string, name: string, origin: strin
   // blocks it. Nothing sends: Messages opens with the draft for him to edit.
   if (prefer === "text" && sms) {
     parts.unshift(
-      `<p style="margin-top:0;font-size:15px;">Opening Messages with the suggested reply. If it does not open, tap Reply by text below.</p>`
+      `<p style="margin-top:0;font-size:15px;">Opening Messages. If it does not open, tap Reply by text below.</p>`
     );
     const target = JSON.stringify(sms).replace(/</g, "\\u003c");
     parts.push(`<script>setTimeout(function(){window.location.href=${target};},150);</script>`);
