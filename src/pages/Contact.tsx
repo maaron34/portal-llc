@@ -4,6 +4,7 @@ import SEO from "../components/SEO";
 import { PAGE_SEO } from "../data/seo";
 import { BUSINESS, SERVICE_AREAS } from "../data/content";
 import { track } from "../lib/analytics";
+import { trackOpenAILead } from "../lib/openai-pixel";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
 import { FORM_VERSION, HEARD_ABOUT_OPTIONS, SELECT_ARROW_CLASS, fullAddress, isUsPhone } from "../lib/lead-fields";
@@ -62,6 +63,7 @@ export default function Contact() {
 
     if (result.ok) {
       track("lead_submitted", { form: "contact_page", heard_about: heardAbout || undefined });
+      trackOpenAILead();
       // Meta counts a lead only when told; the landing pages already fire this,
       // the Contact page did not, so Meta saw none of its form fills.
       if (typeof window !== "undefined" && window.fbq) {
