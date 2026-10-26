@@ -14,6 +14,7 @@ import ContactBar from "../components/ContactBar";
 import { BUSINESS } from "../data/content";
 import { LANDING_PAGES } from "../data/landing-pages";
 import { track } from "../lib/analytics";
+import { trackOpenAILead } from "../lib/openai-pixel";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
 import { FORM_VERSION, HEARD_ABOUT_OPTIONS, fullAddress, isUsPhone } from "../lib/lead-fields";
@@ -43,6 +44,7 @@ function firePixelEvents(data: FormData) {
   if (typeof window !== "undefined" && window.fbq) {
     window.fbq("track", "Lead");
   }
+  trackOpenAILead();
 
   // Only fire QualifiedLead for leads that pass MQL filter
   if (isQualifiedLead(data)) {
