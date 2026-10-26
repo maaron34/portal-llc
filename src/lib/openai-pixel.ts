@@ -8,6 +8,8 @@ type Oaiq = ((...args: unknown[]) => void) & { q?: unknown[][] };
 
 export function initOpenAIPixel(): void {
   if (!PIXEL_ID || typeof window === "undefined" || window.oaiq) return;
+  // The build's Playwright prerender would bake the SDK tag into static HTML.
+  if (navigator.webdriver) return;
   const q: Oaiq = (...args: unknown[]) => {
     q.q!.push(args);
   };
