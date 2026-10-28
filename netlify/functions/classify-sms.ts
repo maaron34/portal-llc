@@ -84,15 +84,19 @@ const SYSTEM_EMAIL =
   "changes, a thank-you or a review after the work. A homeowner's family " +
   "member, property manager, builder or designer writing about a specific job " +
   "they are part of counts. A permit or inspection office asking about one " +
-  "of Chris's jobs counts.\n" +
+  "of Chris's jobs counts. A builder or general contractor sending plans or " +
+  "asking to meet at a site is a lead. A person describing one specific " +
+  "property is a lead even if they are contacting several contractors. Any " +
+  "repair or schedule change at the sender's own property is a lead.\n" +
   "NOT a lead (false): Chris's own business affairs - his insurance agent, " +
   "accountant, bank, lawyer, suppliers and equipment dealers; software, phone " +
   "and ad platforms; receipts, invoices, statements and account notices sent " +
   "TO Chris by a company; anyone selling a service to Chris (including pitches " +
-  "that describe Portal's own services back to him); bid invitations and RFPs " +
-  "sent to a list of contractors; personal or family mail with no job in it; " +
+  "that describe Portal's own services back to him); bid-board and RFP " +
+  "blasts from a bidding service or a list, with no single property described; personal or family mail with no job in it; " +
   "and short notes with no job in them (\"here you go\", a file with no project).\n" +
-  "If the email never touches a construction job for the sender, answer false.\n" +
+  "If the email names a specific property or job site of the sender's, answer " +
+  "true. If it never touches a construction job for the sender, answer false.\n" +
   "Respond with ONLY a JSON object, no prose: " +
   '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
