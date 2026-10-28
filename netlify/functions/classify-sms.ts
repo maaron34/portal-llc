@@ -10,9 +10,9 @@
  * lead:true so a real lead is never dropped by a classifier hiccup (Chris can
  * dismiss a stray spam far more cheaply than losing a job).
  *
- * Body: { text: string, from?: string, channel?: "website" }
- * `channel: "website"` switches to the form-submission prompt (see below); any
- * other value keeps the SMS rules.
+ * Body: { text: string, from?: string, channel?: "website" | "email" }
+ * `channel: "website"` switches to the form-submission prompt and `channel:
+ * "email"` to the email prompt (see below); any other value keeps the SMS rules.
  * Returns: { lead: boolean, confidence: number, reason: string }
  */
 
@@ -58,6 +58,36 @@ const SYSTEM_WEBSITE =
   "concrete work.\n" +
   "When torn, choose customer (true): a stray pitch is one quick dismissal, a " +
   "missed customer is a lost job.\n" +
+  "Respond with ONLY a JSON object, no prose: " +
+  '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
+
+/**
+ * Emails get the strictest prompt. The ingest cron only asks about an email
+ * whose sender is not already a lead, so a customer's reply never reaches this
+ * check. What does reach it is Chris's whole business inbox: his insurance
+ * representative, suppliers, receipts, paperwork. The SMS rules call anything
+ * that "reads like a real person" a lead, which turned Chris's insurance
+ * representative sending a document ("Here you go") into a NEW LEAD alert
+ * (2026-10-27). An email is a lead only when it is about concrete work.
+ */
+const SYSTEM_EMAIL =
+  "You classify a new email sent to a Seattle concrete contractor's business " +
+  "inbox by someone who is not yet a customer on file. Decide if the sender " +
+  "wants the contractor to do concrete work.\n" +
+  "LEAD (true) only when the email is about a concrete project the sender " +
+  "wants done or is asking about: a quote or estimate, a driveway, patio, " +
+  "slab, foundation, steps, walkway, retaining wall, repair, demolition or " +
+  "other flatwork, an address or photos of a job site, or scheduling a visit " +
+  "to look at a job. A builder, general contractor, property manager or " +
+  "designer asking for a bid on a specific project they are running is a lead.\n" +
+  "NOT a lead (false): anything that is not about concrete work for the " +
+  "sender. That includes the contractor's own insurance agent, accountant, " +
+  "bank, lawyer, suppliers and equipment dealers; software, phone and ad " +
+  "platforms; receipts, invoices, statements and account notices; documents " +
+  "or forms sent for paperwork; personal or family mail; and anyone selling a " +
+  "service to the contractor.\n" +
+  "A short note with no project in it (\"here you go\", a forwarded file, a " +
+  "thank-you) is NOT a lead. If the email never mentions concrete work, answer false.\n" +
   "Respond with ONLY a JSON object, no prose: " +
   '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
@@ -107,7 +137,7 @@ async function classify(
         max_tokens: 120,
         temperature: 0,
         messages: [
-          { role: "system", content: channel === "website" ? SYSTEM_WEBSITE : SYSTEM },
+          { role: "system", content: channel === "website" ? SYSTEM_WEBSITE : channel === "email" ? SYSTEM_EMAIL : SYSTEM },
           { role: "user", content: `From: ${from || "unknown"}\nText: ${text}` },
         ],
       }),
