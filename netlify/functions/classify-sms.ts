@@ -83,13 +83,13 @@ const SYSTEM_EMAIL =
   "progress: start dates, scheduling, permits, deposits, payment questions, " +
   "changes, a thank-you or a review after the work. A homeowner's family " +
   "member, property manager, builder or designer writing about a specific job " +
-  "they are part of counts. A permit or inspection office asking about one " +
-  "of Chris's jobs counts. A builder or general contractor sending plans or " +
+  "they are part of counts. Any email asking for, or introducing someone for, " +
+  "an estimate, quote or bid is a lead. A builder or general contractor sending plans or " +
   "asking to meet at a site is a lead. A person describing one specific " +
   "property is a lead even if they are contacting several contractors. Any " +
   "repair or schedule change at the sender's own property is a lead.\n" +
   "NOT a lead (false): Chris's own business affairs - his insurance agent, " +
-  "accountant, bank, lawyer, suppliers and equipment dealers; software, phone " +
+  "accountant, bank, lawyer, city permit and inspection staff, suppliers and equipment dealers; software, phone " +
   "and ad platforms; receipts, invoices, statements and account notices sent " +
   "TO Chris by a company; anyone selling a service to Chris (including pitches " +
   "that describe Portal's own services back to him); bid-board and RFP " +
