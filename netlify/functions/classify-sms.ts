@@ -84,8 +84,9 @@ const SYSTEM_EMAIL =
   "changes, a thank-you or a review after the work. A homeowner's family " +
   "member, property manager, builder or designer writing about a specific job " +
   "they are part of counts. Any email asking for, or introducing someone for, " +
-  "an estimate, quote or bid is a lead. A builder or general contractor sending plans or " +
-  "asking to meet at a site is a lead. A person describing one specific " +
+  "an estimate, quote or bid is a lead. A builder or general contractor sending plans, " +
+  "asking to meet at a site, or hiring Chris as the concrete subcontractor on " +
+  "their project is a lead. A person describing one specific " +
   "property is a lead even if they are contacting several contractors. Any " +
   "repair or schedule change at the sender's own property is a lead.\n" +
   "NOT a lead (false): Chris's own business affairs - his insurance agent, " +
