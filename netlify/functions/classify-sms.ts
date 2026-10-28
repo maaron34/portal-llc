@@ -68,26 +68,31 @@ const SYSTEM_WEBSITE =
  * representative, suppliers, receipts, paperwork. The SMS rules call anything
  * that "reads like a real person" a lead, which turned Chris's insurance
  * representative sending a document ("Here you go") into a NEW LEAD alert
- * (2026-10-27). An email is a lead only when it is about concrete work.
+ * (2026-10-27). An email is a lead only when it is about a job for the sender:
+ * new work, or one already underway (a customer emailing from a new address).
  */
 const SYSTEM_EMAIL =
-  "You classify a new email sent to a Seattle concrete contractor's business " +
-  "inbox by someone who is not yet a customer on file. Decide if the sender " +
-  "wants the contractor to do concrete work.\n" +
-  "LEAD (true) only when the email is about a concrete project the sender " +
-  "wants done or is asking about: a quote or estimate, a driveway, patio, " +
-  "slab, foundation, steps, walkway, retaining wall, repair, demolition or " +
-  "other flatwork, an address or photos of a job site, or scheduling a visit " +
-  "to look at a job. A builder, general contractor, property manager or " +
-  "designer asking for a bid on a specific project they are running is a lead.\n" +
-  "NOT a lead (false): anything that is not about concrete work for the " +
-  "sender. That includes the contractor's own insurance agent, accountant, " +
-  "bank, lawyer, suppliers and equipment dealers; software, phone and ad " +
-  "platforms; receipts, invoices, statements and account notices; documents " +
-  "or forms sent for paperwork; personal or family mail; and anyone selling a " +
-  "service to the contractor.\n" +
-  "A short note with no project in it (\"here you go\", a forwarded file, a " +
-  "thank-you) is NOT a lead. If the email never mentions concrete work, answer false.\n" +
+  "You classify a new email to a Seattle concrete contractor named Chris, sent " +
+  "from an address not yet on file. Decide if the email is about a concrete " +
+  "or site-work job for the sender: a project they want done OR one already " +
+  "underway with Chris.\n" +
+  "LEAD (true): asking for a quote, estimate or visit; describing a driveway, " +
+  "patio, slab, sidewalk, foundation, steps, walkway, retaining wall, window " +
+  "well, drainage, repair or demolition; sending an address, photos, plans or " +
+  "dimensions for a job; or a customer writing about their own job in " +
+  "progress: start dates, scheduling, permits, deposits, payment questions, " +
+  "changes, a thank-you or a review after the work. A homeowner's family " +
+  "member, property manager, builder or designer writing about a specific job " +
+  "they are part of counts. A permit or inspection office asking about one " +
+  "of Chris's jobs counts.\n" +
+  "NOT a lead (false): Chris's own business affairs - his insurance agent, " +
+  "accountant, bank, lawyer, suppliers and equipment dealers; software, phone " +
+  "and ad platforms; receipts, invoices, statements and account notices sent " +
+  "TO Chris by a company; anyone selling a service to Chris (including pitches " +
+  "that describe Portal's own services back to him); bid invitations and RFPs " +
+  "sent to a list of contractors; personal or family mail with no job in it; " +
+  "and short notes with no job in them (\"here you go\", a file with no project).\n" +
+  "If the email never touches a construction job for the sender, answer false.\n" +
   "Respond with ONLY a JSON object, no prose: " +
   '{"lead": true|false, "confidence": 0.0-1.0, "reason": "<=12 words"}';
 
