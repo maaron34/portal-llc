@@ -165,7 +165,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       "Retaining walls for view properties on the upper slopes",
       "Sloped driveway replacements and extensions",
       "View-deck and rooftop-style patios with high-end finishes",
-      "Foundation drainage work for hillside homes",
+      "Foundation and footing work for hillside homes",
       "Stair replacements on the iconic Queen Anne home types",
     ],
     freezeThaw:

@@ -229,7 +229,7 @@ export const SERVICES: Service[] = [
       "Uneven and sloping slab correction",
       "Self-leveling underlayment installation",
       "Concrete grinding and high-spot removal",
-      "Floor prep for LVP, tile, hardwood, and epoxy",
+      "Floor prep for LVP, tile, and hardwood",
       "Garage and shop floor leveling",
     ],
     extras: {
@@ -245,13 +245,13 @@ export const SERVICES: Service[] = [
       title: "Our Process",
       steps: [
         "On-site assessment - we measure the slope and map the low and high spots",
-        "Diagnose the cause - if water or drainage is moving the slab, we address that first",
+        "Diagnose the cause - if water is moving the slab, we tell you before any leveling starts",
         "Prep and grind - remove high spots and clean the surface for a solid bond",
         "Level - pour self-leveling underlayment or patch to a flat plane",
         "Cure - most floors are ready for finished flooring within about 24 hours",
       ],
     },
-    note: "The fix is not always more concrete on top. In Seattle, a moving basement slab is often a drainage problem. We will tell you honestly whether you need leveling, drainage work, or both, and we handle the French drains and foundation drainage too.",
+    note: "The fix is not always more concrete on top. In Seattle, a moving basement slab is often a water problem. If drainage is the real cause, we will tell you honestly before any leveling starts, so you can get that fixed first and the new floor stays flat.",
     galleryTitle: "What Floor Leveling Looks Like",
     galleryImages: [
       "/images/team/wix_team_pushing.jpeg",
