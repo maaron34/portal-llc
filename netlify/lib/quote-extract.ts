@@ -63,7 +63,7 @@ Rules:
 export async function extractQuote(text: string, opts: { timeoutMs?: number } = {}): Promise<Omit<QuotedEstimate, "source" | "at" | "message_id"> | null> {
   const key = process.env.OPENROUTER_API_KEY;
   // No dollar figure at all means no quote; skip the model call.
-  if (!key || !/\$\s?\d|\d\s?k\b|\d{1,3}(,\d{3})+/i.test(text)) return null;
+  if (!key || !/\$\s?\d|\d\s?k\b|\d{1,3}(,\d{3})+|\d{3,}|\d\s?(dollars|bucks)\b/i.test(text)) return null;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 8000);
   try {
@@ -112,7 +112,9 @@ export function parseQuote(p: Record<string, unknown>, text: string): Omit<Quote
   if (low == null) return null;
   const high = num(p.high);
   const flat = digitsIn(text);
-  const thousands = low % 1000 === 0 ? new RegExp(`\\b${low / 1000}(\\.0)?\\s?k\\b`, "i") : null;
+  // "15K", "15.5k": compare the thousands form, decimal point escaped.
+  const k = String(low / 1000).replace(".", "\\.");
+  const thousands = low % 100 === 0 ? new RegExp(`\\b${k}(\\.0)?\\s?k\\b`, "i") : null;
   if (!flat.includes(String(low)) && !(thousands && thousands.test(text))) return null;
   const str = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : "");
   const money = (n: number) => `$${n.toLocaleString("en-US")}`;

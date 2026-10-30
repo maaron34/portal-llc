@@ -49,6 +49,11 @@ export default async (request: Request): Promise<Response> => {
   // Never let an older message replace a newer quote already on file.
   if (cur?.at && found.at && cur.at > found.at) return reply({ ok: true, quoted: true, kept_newer: true }, 200);
 
+  // Re-check just before the write: another run for this lead may have saved
+  // a newer quote while the model was answering.
+  const fresh = await readLead(secret, lead.id);
+  const now = fresh?.raw?.quoted_estimate as { at?: string } | undefined;
+  if (now?.at && found.at && now.at > found.at) return reply({ ok: true, quoted: true, kept_newer: true }, 200);
   const saved = await mergeRaw(secret, lead.id, { quoted_estimate: found });
   return reply({ ok: saved, quoted: true, summary: found.summary }, saved ? 200 : 502);
 };
