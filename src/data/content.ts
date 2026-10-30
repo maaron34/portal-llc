@@ -766,7 +766,7 @@ export const FAQS = [
   {
     question: "How soon can you get started?",
     answer:
-      "We typically respond to estimate requests within 24 hours and are available to start most projects within 2 weeks. Timelines can vary depending on the season and project scope, but we'll give you a clear start date up front.",
+      "We typically respond to estimate requests within 24 hours. Start dates depend on the season and the size of the project, and we'll give you a clear start date up front.",
   },
   {
     question: "Can you pour concrete in the rain or during winter?",

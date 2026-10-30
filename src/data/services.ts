@@ -33,7 +33,7 @@ export const SERVICES: Service[] = [
       title: "Our Process",
       steps: [
         "Estimate visit - we walk the site and provide a written quote",
-        "Scheduling - typically available to start within 2 weeks",
+        "Scheduling - we agree on a clear start date up front",
         "Demo - remove existing concrete or prep the area",
         "Base prep - grade, compact, prepare substrate",
         "Pour & finish",
