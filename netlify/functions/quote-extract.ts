@@ -47,6 +47,8 @@ export default async (request: Request): Promise<Response> => {
 
   const cur = lead.raw?.quoted_estimate as { message_id?: string; at?: string } | undefined;
   if (cur?.message_id === found.message_id) return reply({ ok: true, quoted: true, unchanged: true }, 200);
+  // A quote with no readable date only fills an empty box.
+  if (!found.at && cur) return reply({ ok: true, quoted: true, kept_dated: true }, 200);
   // Never let an older message replace a newer quote already on file.
   if (cur?.at && found.at && cur.at > found.at) return reply({ ok: true, quoted: true, kept_newer: true }, 200);
 

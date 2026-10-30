@@ -64,8 +64,11 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
     // Gmail quotes his email one level deeper than the header ("> ..."); an
     // Outlook top-post copies it unmarked. Lines shallower than his block are
     // the customer writing between his lines, never his words.
-    const marked = lines.slice(start).find((l) => l.trim() && !/^\s*(Sent|To|Cc|Subject|Date):/i.test(strip(l)));
-    const want = marked && depth(marked) > d ? d + 1 : d;
+    // Any line one level deeper means his block is marked, even when the
+    // customer typed a line of their own right under the header.
+    const blockEnd = lines.slice(start).findIndex((l) => header(l) && depth(l) <= d);
+    const block = blockEnd < 0 ? lines.slice(start) : lines.slice(start, start + blockEnd);
+    const want = block.some((l) => l.trim() && depth(l) > d) ? d + 1 : d;
     const out: string[] = [];
     const rest = lines.slice(start);
     for (let j = 0; j < rest.length; j++) {
@@ -267,14 +270,16 @@ export async function latestQuote(entries: CorrespondenceEntry[]): Promise<Quote
     })
     .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
     // Every reply in a thread quotes the same email again; read it once.
-    .filter((c, i, all) => all.findIndex((o) => squash(o.words).slice(0, 400) === squash(c.words).slice(0, 400)) === i)
+    .filter((c, i, all) => all.findIndex((o) => squash(o.words) === squash(c.words)) === i)
     .slice(0, MAX_MESSAGES);
   for (const { e, words, at } of candidates) {
     const q = await extractQuote(words);
     // A message that could not be read stops the scan: an older price must not
     // stand in for a newer one nobody has read yet.
     if (q === FAILED) return FAILED;
-    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at: at || e.at, message_id: e.id };
+    // An unreadable date stays empty: quote-extract then saves it only when the
+    // lead has no price yet, so it never outranks a dated one.
+    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at, message_id: e.id };
   }
   return null;
 }
