@@ -86,13 +86,14 @@ action, exactly one:
 - "reply": the customer asked a question or sent something and is waiting on Chris's written answer; also a new request Chris has not answered yet.
 - "schedule": a site visit is being arranged but no time is settled (the customer offered times, or asked when he can come).
 - "estimate": Chris has what he needs (visited, or has photos/plans) and owes a price or a revised price.
-- "visit_booked": a specific day and time for Chris to visit is agreed by both sides and has not happened yet.
+- "visit_booked": Chris and the customer agreed a specific day AND clock time for him to come look at the job (a site visit or walk-through), and it has not happened yet. A pour, a work day or a start date is not a visit. "I'll try to stop by Friday" or "aiming for tomorrow afternoon" with no agreed time is "schedule", not booked.
 - "waiting": Chris is waiting on the customer: photos, dimensions, drawings, an address, or their decision on a quote.
 - "closed": nothing left to do: Chris declined the job, the customer said no or went elsewhere, or the job is finished and paid.
 
-next_step: one plain sentence, under 90 characters, what Chris should know or do, with the specific detail. Examples: "Can meet Mon or Tue before 3pm. Book the site visit." "Asked you to call back about a retaining wall." "Waiting on photos of the stairs." "Deciding on the $14,000 shed pad quote." "Visit Fri Oct 30 at 4:30pm." Use the customer's details, not generic words. No em dashes.
-visit_at: only with "visit_booked": the agreed time in Seattle local time, resolved to a full date using the message dates and today's date. Otherwise null.
-evidence: the few words from one message your answer rests on, copied exactly (under 120 characters), or null.
+next_step: one plain sentence, 80 characters at most (hard limit), what Chris should know or do, with the specific detail. Examples: "Can meet Mon or Tue before 3pm. Book the site visit." "Asked you to call back about a retaining wall." "Waiting on photos of the stairs." "Deciding on the $14,000 shed pad quote." "Visit Fri Oct 30 at 4:30pm." Use the customer's details, not generic words. No em dashes.
+visit_at: only with "visit_booked": the agreed time in Seattle local time, resolved to a full date using the message dates and today's date. Never invent a time that is not written in the messages. Otherwise null.
+If a customer offered times that have all passed, say so ("Offered times have passed. Ask for new ones.").
+evidence: the few words from one message your answer rests on, copied exactly (under 120 characters), or null. For "visit_booked" it must include the agreed time as written ("tomorrow around 4:30").
 suggest_stage: "signed" or "booked" when the messages show the job is agreed or underway (deposit, start date, pour, invoice) but the CRM stage is still new/contacted/quoted; "lost" when Chris declined or the customer said no; else null.
 
 Read the newest messages most carefully: a later message overrides an earlier one. If the last word is the customer's and asks for something, the action is Chris's. Never invent a date, time or price that is not in the messages.`;
@@ -105,6 +106,27 @@ export function requestPrint(message: string | null | undefined): string {
   let h = 0;
   for (let i = 0; i < m.length; i++) h = (Math.imul(31, h) + m.charCodeAt(i)) | 0;
   return `${m.length}:${(h >>> 0).toString(36)}`;
+}
+
+const HOUR_WORD = "(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)";
+const CLOCK = new RegExp(
+  [
+    "\\b\\d{1,2}(:\\d{2})?\\s*(am|pm|a\\.m\\.|p\\.m\\.)",
+    "\\b\\d{1,2}:\\d{2}\\b",
+    "\\bnoon\\b",
+    `\\b${HOUR_WORD}(\\s*(thirty|fifteen|forty-five))?\\s*(o'?clock|am|pm|in the (morning|afternoon|evening))`,
+    "\\b\\d{1,2}\\s*(o'?clock|in the (morning|afternoon|evening))",
+    // "at four thirty", "around ten"
+    `\\b(at|around|by)\\s+(${HOUR_WORD}|\\d{1,2})\\b`,
+  ].join("|"),
+  "i"
+);
+
+/** At most max characters, cut at a word, never mid-word. */
+export function clip(s: string, max = 100): string {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max / 2)).replace(/[\s,;:.-]+$/, "")}\u2026`;
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
@@ -125,11 +147,14 @@ export function parseNext(p: Record<string, unknown>, text: string, now = new Da
       if (t > now.getTime() - 30 * 86_400_000 && t < now.getTime() + 90 * 86_400_000) visit = new Date(t).toISOString();
     }
   }
+  const ev = typeof p.evidence === "string" && p.evidence.trim() && norm(text).includes(norm(p.evidence)) ? p.evidence.trim().slice(0, 160) : null;
+  // A booked visit needs its time written in the thread, quoted as evidence; the
+  // model put "2pm" on a visit nobody had set (Paolina, 2026-10-30).
+  if (visit && !(ev && CLOCK.test(ev))) visit = null;
   // "Booked" without a date it can show is only a visit being arranged.
   const finalAction: NextAction = action === "visit_booked" && !visit ? "schedule" : action;
-  const ev = typeof p.evidence === "string" && p.evidence.trim() && norm(text).includes(norm(p.evidence)) ? p.evidence.trim().slice(0, 160) : null;
   const stage = STAGE_HINTS.find((s) => s === p.suggest_stage) ?? null;
-  return { action: finalAction, next_step: step.slice(0, 120), visit_at: visit, evidence: ev, suggest_stage: stage };
+  return { action: finalAction, next_step: clip(step), visit_at: visit, evidence: ev, suggest_stage: stage };
 }
 
 export async function readNext(
