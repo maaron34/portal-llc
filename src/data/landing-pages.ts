@@ -228,4 +228,110 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
       canonical: "https://buildwithportal.com/lp/estimate",
     },
   },
+  "retaining-walls": {
+    slug: "retaining-walls",
+    headline: "Seattle's Most Trusted Retaining Wall\u00A0Contractor",
+    subheadline:
+      "Poured concrete walls on real footings, built for Seattle slopes and wet winters. Same crew, owner on site.",
+    heroImage: "/images/walls/walls_7_retaining_wall.jpeg",
+    galleryTitle: "Recent Retaining Wall Work",
+    defaultProjectType: "retaining-wall",
+    trustBadges: [
+      "100+ Five-Star Reviews",
+      "Licensed & Insured",
+      "35+ Years Experience",
+      "Free Estimates",
+    ],
+    reviews: [
+      {
+        text: "Portal replaced our crumbling retaining wall. They handled the permits, kept us informed every step of the way, and the wall looks incredible.",
+        author: "David H.",
+      },
+      {
+        text: "Portal and its owner, Chris, did an amazing job constructing a concrete retaining wall on our property. Chris was great to work with, always communicated in a timely manner, explained everything clearly, and offered competitive pricing. The Portal team's execution truly exceeded our expectations. We'd highly recommend Portal to all of our friends and family.",
+        author: "Jordan G.",
+      },
+      {
+        text: "Chris at Portal gave a thorough consult on our retaining wall project to ensure we were on the same page before it started. He was very communicative throughout the project. Him and the crew did great in building a challenging new retaining wall. Would recommend for any concrete project.",
+        author: "Brooke C.",
+      },
+      {
+        text: "We had an excellent experience with Portal. Chris and his crew built a U-shaped 24 foot long retaining wall and concrete steps. They took particular care in getting the forms just right, and it shows in the end product. Professional and easy to communicate with.",
+        author: "Tom V.",
+      },
+      {
+        text: "Chris and the Portal gang did a beautiful job for us on a supporting wall for a new fence. I especially appreciate Chris's commitment to meeting our requirements for this job, which were pretty tough. Highly recommended!",
+        author: "Ray B.",
+      },
+      {
+        text: "We were very impressed with Chris and his team. The cost to have an old driveway demolished and a new concrete driveway, retaining wall, and steps added was quite reasonable. They did a beautiful job! The front of the house has never looked better. Done on time with no unexpected expense.",
+        author: "Susan W.",
+      },
+    ],
+    galleryImages: [
+      "/images/walls/walls_7_retaining_wall.jpeg",
+      "/images/walls/walls_5_blue_slope.jpeg",
+      "/images/walls/walls_11_grass_long.jpeg",
+      "/images/walls/walls_10_step_down.jpeg",
+    ],
+    seo: {
+      title: "Seattle Retaining Wall Contractor - Free Estimate | Portal",
+      description:
+        "Poured concrete retaining walls for Seattle homes, built on real footings. Leaning wall? 100+ five-star reviews, free estimates. Call (206) 829-6396.",
+      canonical: "https://buildwithportal.com/lp/retaining-walls",
+    },
+  },
+  repair: {
+    slug: "repair",
+    headline: "Seattle Concrete Repair Before You\u00A0Replace",
+    subheadline:
+      "Cracked steps, walkways and driveways repaired and reconditioned. We'll tell you honestly whether repair or replacement is the right call.",
+    heroImage: "/images/before-after/after-stairs2.jpeg",
+    galleryTitle: "Recent Repair Work",
+    defaultProjectType: "repair",
+    trustBadges: [
+      "100+ Five-Star Reviews",
+      "Licensed & Insured",
+      "35+ Years Experience",
+      "Free Estimates",
+    ],
+    reviews: [
+      {
+        text: "Chris and his guys were stellar. On time, kind and courteous, with competitive pricing. This job was repairing a broken concrete stairway wall and refinishing the beat up steps. Both parts were done very well. Highly recommend.",
+        author: "Matt C.",
+      },
+      {
+        text: "Portal repaired our uneven sidewalks at a very reasonable cost! What sets a great organization apart is how hiccups are handled when they come up. Portal did a great job handling things and were generally very communicative.",
+        author: "Elizabeth M.",
+      },
+      {
+        text: "Great service from Chris and the team on some crack repairs to our foundation. Would recommend them if you are looking for any concrete work.",
+        author: "Ryan N.",
+      },
+      {
+        text: "Portal replaced and resurfaced a portion of our concrete stairs and landing. Chris and team were courteous, professional, and efficient. I would highly recommend their services.",
+        author: "Lisa M.",
+      },
+      {
+        text: "Chris and his team did a great job helping to repair our driveway. He was able to find a perfect color match and was very quick with the repair.",
+        author: "Urban Storage",
+      },
+      {
+        text: "Chris has been the best in response to my small concrete jobs. He has worked on several of my Moms rentals that needed concrete repairs. I will always call Portal.",
+        author: "Marilyn C.",
+      },
+    ],
+    galleryImages: [
+      "/images/before-after/after-stairs.jpeg",
+      "/images/before-after/after-stairs2.jpeg",
+      "/images/before-after/after-stairs3.jpeg",
+      "/images/before-after/after-stairs4.jpeg",
+    ],
+    seo: {
+      title: "Seattle Concrete Repair - Free Estimate | Portal",
+      description:
+        "Concrete crack repair and reconditioning for Seattle steps, walkways and driveways, often far less than replacement. 100+ five-star reviews. Call (206) 829-6396.",
+      canonical: "https://buildwithportal.com/lp/repair",
+    },
+  },
 };
