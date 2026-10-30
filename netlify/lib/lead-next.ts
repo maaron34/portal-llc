@@ -195,9 +195,12 @@ export async function readNext(
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content;
     const match = typeof raw === "string" ? raw.match(/\{[\s\S]*\}/) : null;
-    if (!match) return FAILED;
-    const parsed = parseNext(JSON.parse(match[0]) as Record<string, unknown>, text, now);
-    if (!parsed) return FAILED;
+    const parsed = match ? parseNext(JSON.parse(match[0]) as Record<string, unknown>, text, now) : null;
+    if (!parsed) {
+      // The answer is the only clue to a failure, and it holds no secrets.
+      console.error("lead-next unusable answer:", String(raw).slice(0, 400));
+      return FAILED;
+    }
     return { ...parsed, based_on: { id: newest?.id ?? null, at: newest?.at ?? null, request: requestPrint(lead.message) }, at: now.toISOString(), model: OPENROUTER_MODEL };
   } catch (err) {
     console.error("lead-next threw:", err);
