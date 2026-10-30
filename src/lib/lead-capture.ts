@@ -16,6 +16,8 @@ export type LeadResult = {
   id?: string;
   duplicate?: boolean;
   junk?: boolean;
+  /** Lets the thank-you screen attach photos or plans to this lead for two hours (netlify/functions/lead-upload.ts). */
+  upload_token?: string;
   /** A 400 from the function carries a message written for the visitor ("Please add your street number."). */
   error?: string;
 };

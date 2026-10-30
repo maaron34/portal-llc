@@ -18,7 +18,7 @@
  */
 
 import { emailChris, type LeadPayload } from "../lib/lead-notify";
-import { digits10 } from "../lib/lead-links";
+import { digits10, uploadToken } from "../lib/lead-links";
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 
@@ -229,7 +229,20 @@ async function queueNotify(origin: string, payload: LeadPayload, id?: string, me
   }
 }
 
+/**
+ * A real lead (new or merged into one on file) gets an upload token, so the
+ * thank-you screen can attach photos or plans to it (lead-upload.ts). Junk and
+ * a junk duplicate get none: nothing should be able to add files to them.
+ */
 export default async (request: Request): Promise<Response> => {
+  const res = await capture(request);
+  if (res.status !== 200) return res;
+  const body = (await res.json()) as { ok?: boolean; id?: string; junk?: boolean; duplicate?: boolean; merged?: boolean };
+  const real = body.ok && body.id && !body.junk && (!body.duplicate || body.merged);
+  return json(real ? { ...body, upload_token: uploadToken(body.id as string) } : body, 200);
+};
+
+async function capture(request: Request): Promise<Response> {
   // CORS preflight (browsers send this before cross-origin POSTs).
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -424,4 +437,4 @@ export default async (request: Request): Promise<Response> => {
     console.error("Supabase fetch threw:", err);
     return json({ error: "Network error reaching Supabase" }, 502);
   }
-};
+}
