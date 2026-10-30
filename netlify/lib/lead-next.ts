@@ -129,7 +129,8 @@ export function clip(s: string, max = 100): string {
   return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max / 2)).replace(/[\s,;:.-]+$/, "")}\u2026`;
 }
 
-const HEADER = /\bOn (Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,|\bwrote:|^\s*(Sent|Date):/im;
+// A reply header carries a year with its weekday ("On Wed, Sep 30, 2026 at 9:18 PM"), or "wrote:", or "Sent:".
+const HEADER = /\bOn (Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,? [A-Z][a-z]{2,8}\.? \d{1,2},? \d{4}|\bwrote:|^\s*(Sent|Date):/im;
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
