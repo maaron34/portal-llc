@@ -229,6 +229,25 @@ async function queueNotify(origin: string, payload: LeadPayload, id?: string, me
   }
 }
 
+/** Queue the CRM's next-step read for this lead (lead-next.ts). Never fails the submit. */
+async function queueNext(origin: string, id: string): Promise<void> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
+  try {
+    const res = await fetch(`${origin}/.netlify/functions/lead-next`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-auth": process.env.SUPABASE_SECRET_KEY || "" },
+      body: JSON.stringify({ lead_id: id }),
+      signal: controller.signal,
+    });
+    if (!res.ok) console.error("lead-next queue rejected:", res.status);
+  } catch (err) {
+    console.error("lead-next queue failed:", err);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * A real lead (new or merged into one on file) gets an upload token, so the
  * thank-you screen can attach photos or plans to it (lead-upload.ts). Junk and
@@ -418,6 +437,9 @@ async function capture(request: Request): Promise<Response> {
     // Vendor spam is recorded (raw.junk) but stays out of the inbox — no email
     // to Chris.
     if (junk) return json({ ok: true, id, junk: true }, 200);
+
+    // The CRM's next-step line for the new lead (lead-next.ts). Best effort.
+    if (id) await queueNext(origin, id);
 
     // A record written from an older signal (a PandaDoc signature or a
     // QuickBooks payment the CRM never saw as a lead) is not news to Chris: no

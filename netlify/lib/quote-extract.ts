@@ -114,7 +114,7 @@ export function dateIn(s: string): string | null {
 }
 
 /** Seattle's offset from UTC in minutes on that date (-420 in summer, -480 in winter). */
-function seattleOffsetMinutes(d: Date): number {
+export function seattleOffsetMinutes(d: Date): number {
   const name = new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", timeZoneName: "shortOffset" })
     .formatToParts(d)
     .find((p) => p.type === "timeZoneName")?.value;
