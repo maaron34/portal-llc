@@ -14,7 +14,7 @@
  */
 
 import { mergeRaw, readLead } from "../lib/lead-db";
-import { FAILED, readNext, realEntries } from "../lib/lead-next";
+import { FAILED, readNext, realEntries, requestPrint } from "../lib/lead-next";
 
 export const config = { background: true };
 
@@ -43,7 +43,7 @@ export default async (request: Request): Promise<Response> => {
 
   const fresh = await readLead(secret, lead.id);
   const newest = realEntries(fresh?.correspondence ?? []).at(-1);
-  if ((newest?.id ?? null) !== next.based_on.id) return reply({ ok: true, lead_id: leadId, stale: true }, 200);
+  if ((newest?.id ?? null) !== next.based_on.id || requestPrint(fresh?.message) !== next.based_on.request) return reply({ ok: true, lead_id: leadId, stale: true }, 200);
 
   const saved = await mergeRaw(secret, lead.id, { next });
   return reply({ ok: saved, lead_id: leadId, action: next.action, next_step: next.next_step }, saved ? 200 : 502);

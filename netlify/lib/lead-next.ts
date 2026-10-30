@@ -29,8 +29,12 @@ export type LeadNext = {
   /** The customer's or Chris's words the label rests on, copied from the thread. */
   evidence: string | null;
   suggest_stage: (typeof STAGE_HINTS)[number] | null;
-  /** id and time of the newest message read; the CRM ignores a result a newer message has overtaken. */
-  based_on: { id: string | null; at: string | null };
+  /**
+   * The newest message read and a fingerprint of the request text; the CRM
+   * ignores a result a newer message has overtaken, and lead-next drops one a
+   * merged form submission overtook.
+   */
+  based_on: { id: string | null; at: string | null; request: string };
   at: string;
   model: string;
 };
@@ -55,7 +59,11 @@ export function transcript(lead: Pick<LeadRow, "created_at" | "message" | "stage
   lines.push(`Lead: ${lead.name || "unknown"}, came in ${seattle(lead.created_at)}, CRM stage "${lead.stage}"`);
   const quoted = (lead.raw?.quoted_estimate as { summary?: unknown } | undefined)?.summary;
   if (typeof quoted === "string") lines.push(`Price Chris quoted: ${quoted}`);
-  if (lead.message) lines.push(`Original request: ${lead.message.replace(/\s+/g, " ").slice(0, 500)}`);
+  if (lead.message) {
+    // A repeat form submission is appended to the end of the request, so keep the end.
+    const m = lead.message.replace(/\s+/g, " ").trim();
+    lines.push(`Request from the form: ${m.length > 900 ? `${m.slice(0, 300)} ... ${m.slice(-600)}` : m}`);
+  }
   lines.push("");
   const recent = realEntries(entries).slice(-MAX_MESSAGES);
   if (!recent.length) lines.push("(No messages yet.)");
@@ -90,6 +98,14 @@ suggest_stage: "signed" or "booked" when the messages show the job is agreed or 
 Read the newest messages most carefully: a later message overrides an earlier one. If the last word is the customer's and asks for something, the action is Chris's. Never invent a date, time or price that is not in the messages.`;
 
 export const FAILED = "failed" as const;
+
+/** Short fingerprint of the request text, to notice a form submission merged in mid-read. */
+export function requestPrint(message: string | null | undefined): string {
+  const m = message || "";
+  let h = 0;
+  for (let i = 0; i < m.length; i++) h = (Math.imul(31, h) + m.charCodeAt(i)) | 0;
+  return `${m.length}:${(h >>> 0).toString(36)}`;
+}
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
@@ -153,7 +169,7 @@ export async function readNext(
     if (!match) return FAILED;
     const parsed = parseNext(JSON.parse(match[0]) as Record<string, unknown>, text, now);
     if (!parsed) return FAILED;
-    return { ...parsed, based_on: { id: newest?.id ?? null, at: newest?.at ?? null }, at: now.toISOString(), model: OPENROUTER_MODEL };
+    return { ...parsed, based_on: { id: newest?.id ?? null, at: newest?.at ?? null, request: requestPrint(lead.message) }, at: now.toISOString(), model: OPENROUTER_MODEL };
   } catch (err) {
     console.error("lead-next threw:", err);
     return FAILED;
