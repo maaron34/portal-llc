@@ -68,6 +68,8 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [sent, setSent] = useState(0);
+  // Any PDF among them makes the confirmation say "files" instead of "photos".
+  const [anyFile, setAnyFile] = useState(false);
   const [note, setNote] = useState("");
 
   if (!leadId || !token) return null;
@@ -84,7 +86,10 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
     setProgress({ done: 0, total: queue.length });
     let good = 0;
     for (let i = 0; i < queue.length; i++) {
-      if (await uploadOne(leadId, token, queue[i])) good++;
+      if (await uploadOne(leadId, token, queue[i])) {
+        good++;
+        if (!typeOf(queue[i]).startsWith("image/")) setAnyFile(true);
+      }
       setProgress({ done: i + 1, total: queue.length });
     }
     setSent((n) => n + good);
@@ -104,7 +109,7 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
         <p className="flex items-start gap-2 text-portal-dark">
           <CheckCircle size={20} className="mt-0.5 shrink-0 text-green-600" />
           <span>
-            Got {sent === 1 ? "it" : sent === 2 ? "both" : `all ${sent}`}. Chris will see {sent === 1 ? "it" : "them"} with your request.
+            We got your {anyFile ? "files" : "photos"} and Chris will be in touch.
           </span>
         </p>
       ) : (
