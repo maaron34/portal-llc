@@ -57,7 +57,13 @@ async function uploadOne(id: string, t: string, file: File): Promise<boolean> {
       body: file,
     });
     if (!put.ok) return false;
-    return Boolean(await post({ ...meta, step: "finish", slot: start.slot }));
+    // The bytes are already in storage; a failed save is retried without
+    // uploading them again, so a hiccup does not use up another slot.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (await post({ ...meta, step: "finish", slot: start.slot })) return true;
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+    return false;
   } catch {
     return false;
   }
