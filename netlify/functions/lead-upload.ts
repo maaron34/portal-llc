@@ -1,0 +1,210 @@
+/**
+ * Netlify Function: photos and plans a visitor adds on the thank-you screen,
+ * right after submitting a lead form. Files go straight to Supabase Storage
+ * (the same private `lead-photos` bucket the CRM's email ingest uses), so they
+ * show on the lead in the CRM: images in the Photos grid, PDFs and anything
+ * the grid cannot draw (an iPhone HEIC from a desktop browser) as named files.
+ *
+ * Two steps per file, because Netlify caps a request body at 6 MB and a phone
+ * photo or a plan set can be bigger:
+ *   1. { step: "start", id, t } returns { upload_url, slot }: a one-time
+ *      Supabase upload link for the lead's next free slot. The browser PUTs
+ *      the bytes there.
+ *   2. { step: "finish", id, t, slot, filename } checks what storage actually
+ *      holds (type, size) and records the file on the lead.
+ *
+ * Open to the internet, so every call needs the upload token submit-lead
+ * returned for that lead (good for two hours), and a lead takes at most
+ * MAX_FILES files this way (see slotPath).
+ */
+
+import { verifyUploadToken } from "../lib/lead-links";
+import { SUPABASE_URL, UUID, auth, mergeRaw } from "../lib/lead-db";
+
+const BUCKET = "lead-photos";
+const SIGN_TTL = 315_360_000; // ~10 years, same as the CRM ingest: <img> on a private bucket
+export const MAX_FILES = 10;
+export const MAX_BYTES = 25 * 1024 * 1024;
+// Images the CRM's photo grid can draw. Anything else allowed is stored as a file.
+const GRID_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+const json = (body: unknown, status: number): Response =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+export const allowedType = (t: string): boolean => t.startsWith("image/") || t === "application/pdf";
+
+/**
+ * Each lead has exactly MAX_FILES upload slots, `<lead>/web/0` to `/9`, and a
+ * slot can be written once (the upload link is signed without upsert). That
+ * caps what one token can put in the bucket at ten objects, however many links
+ * a caller asks for, with no counter to keep in step.
+ */
+export const slotPath = (id: string, slot: number): string => `${id}/web/${slot}`;
+
+type Body = {
+  step?: string;
+  id?: string;
+  t?: string;
+  slot?: number;
+  filename?: string;
+};
+
+type LeadFile = { path?: string };
+type LeadRow = { id: string; photos?: string[] | null; raw?: Record<string, unknown> | null };
+
+async function signedUrl(secret: string, path: string): Promise<string | null> {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${BUCKET}/${path}`, {
+    method: "POST",
+    headers: { ...auth(secret), "Content-Type": "application/json" },
+    body: JSON.stringify({ expiresIn: SIGN_TTL }),
+  });
+  if (!r.ok) return null;
+  const d = (await r.json()) as { signedURL?: string };
+  return d.signedURL ? `${SUPABASE_URL}/storage/v1${d.signedURL}` : null;
+}
+
+// The lead the token was issued for, or the older lead notify-lead folded it
+// into a moment after submit (it records raw.auto_merged_from on the survivor).
+async function findLead(secret: string, id: string): Promise<LeadRow | null> {
+  const sel = "select=id,photos,raw";
+  for (const q of [`id=eq.${id}`, `raw->>auto_merged_from=eq.${id}`]) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?${q}&${sel}&limit=1`, { headers: auth(secret) });
+    const rows = r.ok ? ((await r.json()) as LeadRow[]) : [];
+    if (rows.length) return rows[0];
+  }
+  return null;
+}
+
+// What storage actually holds, not what the browser said it would send.
+async function objectInfo(secret: string, path: string): Promise<{ size: number; type: string } | null> {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/info/${BUCKET}/${path}`, { headers: auth(secret) });
+  if (!r.ok) return null;
+  const d = (await r.json()) as { size?: number; content_type?: string; metadata?: { size?: number; mimetype?: string } };
+  const size = Number(d.size ?? d.metadata?.size ?? NaN);
+  const type = String(d.content_type ?? d.metadata?.mimetype ?? "").toLowerCase();
+  return Number.isFinite(size) ? { size, type } : null;
+}
+
+// Slots already written for this lead. A returning customer whose second
+// submission merged into the same lead starts from where the first one left off.
+async function usedSlots(secret: string, id: string): Promise<Set<number>> {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
+    method: "POST",
+    headers: { ...auth(secret), "Content-Type": "application/json" },
+    body: JSON.stringify({ prefix: `${id}/web/`, limit: 100 }),
+  });
+  const rows = r.ok ? ((await r.json()) as { name?: string }[]) : [];
+  return new Set(rows.map((o) => Number(o.name)).filter((n) => Number.isInteger(n)));
+}
+
+async function removeObject(secret: string, path: string): Promise<void> {
+  await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, { method: "DELETE", headers: auth(secret) }).catch(() => {});
+}
+
+export default async (request: Request): Promise<Response> => {
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  const secret = process.env.SUPABASE_SECRET_KEY;
+  if (!secret) return json({ error: "Server config missing" }, 500);
+
+  let body: Body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "Invalid JSON" }, 400);
+  }
+
+  const id = body.id && UUID.test(body.id) ? body.id : "";
+  if (!id || !verifyUploadToken(id, body.t)) return json({ error: "This upload link has expired." }, 403);
+
+  if (body.step === "start") {
+    const used = await usedSlots(secret, id);
+    const slot = Array.from({ length: MAX_FILES }, (_, i) => i).find((i) => !used.has(i));
+    if (slot === undefined) return json({ error: `Up to ${MAX_FILES} files per request.` }, 429);
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/${BUCKET}/${slotPath(id, slot)}`, {
+      method: "POST",
+      headers: auth(secret),
+    });
+    if (!r.ok) return json({ error: "Could not create upload link" }, 502);
+    const d = (await r.json()) as { url?: string };
+    if (!d.url) return json({ error: "Could not create upload link" }, 502);
+    return json({ ok: true, upload_url: `${SUPABASE_URL}/storage/v1${d.url}`, slot }, 200);
+  }
+
+  if (body.step === "finish") {
+    const slot = Number(body.slot);
+    if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_FILES) return json({ error: "Bad slot" }, 400);
+    const path = slotPath(id, slot);
+    const info = await objectInfo(secret, path);
+    if (!info) return json({ error: "File not found in storage" }, 404);
+    if (!allowedType(info.type) || info.size <= 0 || info.size > MAX_BYTES) {
+      await removeObject(secret, path);
+      return json({ error: "Photos and PDFs up to 25 MB only." }, 400);
+    }
+
+    const url = await signedUrl(secret, path);
+    if (!url) return json({ error: "File not found in storage" }, 404);
+
+    // Two tries: notify-lead can fold this lead into an older one between the
+    // read and the write, and a write to the deleted row matches nothing. The
+    // second try re-resolves the survivor. Success means the file is on a lead.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const lead = await findLead(secret, id);
+      if (!lead) return json({ error: "Lead not found" }, 404);
+      if (await attach(secret, lead, path, url, info, body.filename)) return json({ ok: true }, 200);
+    }
+    return json({ error: "Could not save the file on your request" }, 502);
+  }
+
+  return json({ error: 'step must be "start" or "finish"' }, 400);
+};
+
+const hasFile = (lead: LeadRow, path: string): boolean => {
+  const photos = Array.isArray(lead.photos) ? lead.photos : [];
+  const files = Array.isArray(lead.raw?.files) ? (lead.raw!.files as LeadFile[]) : [];
+  return photos.some((u) => u.includes(`${path}?`)) || files.some((f) => f?.path === path);
+};
+
+// Photos are their own column. Files go through merge_raw, which replaces only
+// the `files` key, so the notes notify-lead writes to raw at the same moment
+// (draft reply, scam check) are never overwritten. Either way, re-read after
+// and report only what is actually on the lead.
+async function attach(
+  secret: string,
+  lead: LeadRow,
+  path: string,
+  url: string,
+  info: { size: number; type: string },
+  filename?: string
+): Promise<boolean> {
+  if (hasFile(lead, path)) return true;
+  const photos = Array.isArray(lead.photos) ? lead.photos : [];
+  const raw = (lead.raw && typeof lead.raw === "object" ? lead.raw : {}) as Record<string, unknown>;
+  const files = Array.isArray(raw.files) ? (raw.files as LeadFile[]) : [];
+  if (GRID_TYPES.has(info.type)) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}`, {
+      method: "PATCH",
+      headers: { ...auth(secret), "Content-Type": "application/json" },
+      body: JSON.stringify({ photos: [...photos, url] }),
+    });
+    if (!res.ok) return false;
+  } else {
+    const ok = await mergeRaw(secret, lead.id, {
+      files: [
+        ...files,
+        {
+          url,
+          path,
+          name: (filename || "file").slice(0, 160),
+          content_type: info.type,
+          size: info.size,
+          added_at: new Date().toISOString(),
+          from: "website form",
+        },
+      ],
+    });
+    if (!ok) return false;
+  }
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}&select=id,photos,raw&limit=1`, { headers: auth(secret) });
+  const rows = r.ok ? ((await r.json()) as LeadRow[]) : [];
+  return rows.length > 0 && hasFile(rows[0], path);
+}

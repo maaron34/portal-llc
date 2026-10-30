@@ -24,7 +24,7 @@ export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
 export const PROD_ORIGIN = "https://buildwithportal.com";
 
-export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "delete" | "notscam";
+export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "delete" | "notscam" | "upload";
 
 function linkSecret(): string {
   return process.env.LEAD_LINK_SECRET || process.env.SUPABASE_SECRET_KEY || "";
@@ -39,6 +39,26 @@ export function verifyLink(action: LinkAction, id: string, token: string | null 
   const expected = Buffer.from(signLink(action, id));
   const given = Buffer.from(token);
   return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+/**
+ * The thank-you screen lets a visitor add photos or plans to the lead they just
+ * created. The token proves the upload comes from that submission, and it
+ * expires so a token copied out of a browser cannot attach files for long.
+ * Format: "<expiry ms>.<signature>".
+ */
+export const UPLOAD_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+export function uploadToken(id: string, now = Date.now()): string {
+  const exp = now + UPLOAD_WINDOW_MS;
+  return `${exp}.${signLink("upload", `${id}:${exp}`)}`;
+}
+
+export function verifyUploadToken(id: string, token: string | null | undefined, now = Date.now()): boolean {
+  const [expStr, sig] = (token || "").split(".");
+  const exp = Number(expStr);
+  if (!Number.isFinite(exp) || exp < now || exp > now + UPLOAD_WINDOW_MS) return false;
+  return verifyLink("upload", `${id}:${exp}`, sig);
 }
 
 export const handledUrl = (origin: string, id: string): string =>

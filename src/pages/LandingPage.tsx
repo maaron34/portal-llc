@@ -17,6 +17,7 @@ import { track } from "../lib/analytics";
 import { trackOpenAILead } from "../lib/openai-pixel";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
+import PhotoUpload from "../components/PhotoUpload";
 import { FORM_VERSION, HEARD_ABOUT_OPTIONS, fullAddress, isUsPhone } from "../lib/lead-fields";
 
 type FormData = {
@@ -306,6 +307,7 @@ function LeadForm({
 export default function LandingPage() {
   const { slug } = useParams<{ slug: string }>();
   const [submitted, setSubmitted] = useState(false);
+  const [upload, setUpload] = useState<{ id?: string; token?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const page = slug ? LANDING_PAGES[slug] : null;
@@ -349,6 +351,7 @@ export default function LandingPage() {
       // Pixels fire only on confirmed capture so ad platforms optimize on
       // leads that actually reached us.
       firePixelEvents(data);
+      setUpload({ id: result.id, token: result.upload_token });
       setSubmitted(true);
     } else {
       // A validation message names what to fix; anything else is our failure, not theirs.
@@ -558,6 +561,7 @@ export default function LandingPage() {
                     <Phone size={18} />
                     Call {BUSINESS.phone}
                   </a>
+                  <PhotoUpload leadId={upload.id} token={upload.token} />
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-lg border border-portal-light p-6 sm:p-8">

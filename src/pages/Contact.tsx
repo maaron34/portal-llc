@@ -7,10 +7,12 @@ import { track } from "../lib/analytics";
 import { trackOpenAILead } from "../lib/openai-pixel";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
+import PhotoUpload from "../components/PhotoUpload";
 import { FORM_VERSION, HEARD_ABOUT_OPTIONS, SELECT_ARROW_CLASS, fullAddress, isUsPhone } from "../lib/lead-fields";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [upload, setUpload] = useState<{ id?: string; token?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [heardAboutChoice, setHeardAboutChoice] = useState("");
   const [error, setError] = useState("");
@@ -98,6 +100,7 @@ export default function Contact() {
         }),
       }).catch((err) => console.warn("MailerLite add failed:", err));
 
+      setUpload({ id: result.id, token: result.upload_token });
       setSubmitted(true);
     } else {
       // A validation message names what to fix; anything else is our failure, not theirs.
@@ -143,6 +146,7 @@ export default function Contact() {
                     </a>
                     .
                   </p>
+                  <PhotoUpload leadId={upload.id} token={upload.token} />
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
