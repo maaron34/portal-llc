@@ -230,7 +230,7 @@ export const LANDING_PAGES: Record<string, LandingPageData> = {
   },
   "retaining-walls": {
     slug: "retaining-walls",
-    headline: "Seattle's Most Trusted Retaining Wall\u00A0Contractor",
+    headline: "Seattle Retaining Wall\u00A0Contractor",
     subheadline:
       "Poured concrete walls on real footings, built for Seattle slopes and wet winters. Same crew, owner on site.",
     heroImage: "/images/walls/walls_7_retaining_wall.jpeg",
