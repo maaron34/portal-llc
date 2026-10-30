@@ -15,6 +15,24 @@ import { BUSINESS } from "../data/content";
 const MAX_FILES = 10;
 const MAX_BYTES = 25 * 1024 * 1024;
 
+// Some desktop browsers give an iPhone HEIC photo no type at all; fall back to
+// the extension so it is not refused before it is even sent.
+const BY_EXT: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  heic: "image/heic",
+  heif: "image/heif",
+  pdf: "application/pdf",
+};
+const typeOf = (f: File): string => f.type || BY_EXT[(f.name.split(".").pop() || "").toLowerCase()] || "";
+const allowed = (f: File): boolean => {
+  const t = typeOf(f);
+  return (t.startsWith("image/") || t === "application/pdf") && f.size > 0 && f.size <= MAX_BYTES;
+};
+
 type Status = "idle" | "uploading" | "done" | "partial";
 
 async function post(body: Record<string, unknown>): Promise<Record<string, unknown> | null> {
@@ -26,18 +44,19 @@ async function post(body: Record<string, unknown>): Promise<Record<string, unkno
   return res.ok ? ((await res.json()) as Record<string, unknown>) : null;
 }
 
-async function uploadOne(id: string, t: string, file: File): Promise<boolean> {
-  const meta = { id, t, filename: file.name, content_type: file.type || "application/octet-stream", size: file.size };
+// `slot` is this file's place in the lead's ten upload slots (lead-upload.ts).
+async function uploadOne(id: string, t: string, slot: number, file: File): Promise<boolean> {
+  const meta = { id, t, slot, filename: file.name };
   try {
     const start = await post({ ...meta, step: "start" });
-    if (!start?.upload_url || !start.path) return false;
+    if (!start?.upload_url) return false;
     const put = await fetch(String(start.upload_url), {
       method: "PUT",
-      headers: { "Content-Type": meta.content_type },
+      headers: { "Content-Type": typeOf(file) },
       body: file,
     });
     if (!put.ok) return false;
-    return Boolean(await post({ ...meta, step: "finish", path: start.path }));
+    return Boolean(await post({ ...meta, step: "finish" }));
   } catch {
     return false;
   }
@@ -48,6 +67,9 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [sent, setSent] = useState(0);
+  // Slots used so far, failures included: a slot is written once, so a retry
+  // goes in the next one.
+  const [used, setUsed] = useState(0);
   const [note, setNote] = useState("");
 
   if (!leadId || !token) return null;
@@ -55,8 +77,8 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
   const onPick = async (list: FileList | null) => {
     if (!list || !list.length) return;
     const picked = Array.from(list);
-    const ok = picked.filter((f) => (f.type.startsWith("image/") || f.type === "application/pdf") && f.size <= MAX_BYTES);
-    const room = Math.max(0, MAX_FILES - sent);
+    const ok = picked.filter(allowed);
+    const room = Math.max(0, MAX_FILES - used);
     const queue = ok.slice(0, room);
     const skipped = picked.length - queue.length;
 
@@ -64,9 +86,10 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
     setProgress({ done: 0, total: queue.length });
     let good = 0;
     for (let i = 0; i < queue.length; i++) {
-      if (await uploadOne(leadId, token, queue[i])) good++;
+      if (await uploadOne(leadId, token, used + i, queue[i])) good++;
       setProgress({ done: i + 1, total: queue.length });
     }
+    setUsed((n) => n + queue.length);
     setSent((n) => n + good);
     const failed = queue.length - good + skipped;
     setNote(
@@ -104,7 +127,7 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
         className="hidden"
         onChange={(e) => onPick(e.target.files)}
       />
-      {sent < MAX_FILES && (
+      {used < MAX_FILES && (
         <button
           type="button"
           disabled={status === "uploading"}
