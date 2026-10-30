@@ -129,6 +129,8 @@ export function clip(s: string, max = 100): string {
   return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max / 2)).replace(/[\s,;:.-]+$/, "")}\u2026`;
 }
 
+const HEADER = /\bOn (Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,|\bwrote:|^\s*(Sent|Date):/im;
+
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
 /** Validate the model's answer against the thread it read. Null when unusable. */
@@ -150,7 +152,8 @@ export function parseNext(p: Record<string, unknown>, text: string, now = new Da
   const ev = typeof p.evidence === "string" && p.evidence.trim() && norm(text).includes(norm(p.evidence)) ? p.evidence.trim().slice(0, 160) : null;
   // A booked visit needs its time written in the thread, quoted as evidence; the
   // model put "2pm" on a visit nobody had set (Paolina, 2026-10-30).
-  if (visit && !(ev && CLOCK.test(ev))) visit = null;
+  // An email header's timestamp ("On Wed, Sep 30, 2026 at 9:18 PM ... wrote") is not an agreed time.
+  if (visit && !(ev && CLOCK.test(ev) && !HEADER.test(ev))) visit = null;
   // "Booked" without a date it can show is only a visit being arranged.
   const finalAction: NextAction = action === "visit_booked" && !visit ? "schedule" : action;
   const stage = STAGE_HINTS.find((s) => s === p.suggest_stage) ?? null;
