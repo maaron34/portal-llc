@@ -472,7 +472,7 @@ export default function LandingPage() {
                   {
                     step: "4",
                     title: "We schedule your project",
-                    desc: "Most projects start within 2 weeks. Same crew, owner on site.",
+                    desc: "You get a clear start date up front. Same crew, owner on site.",
                   },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4">
