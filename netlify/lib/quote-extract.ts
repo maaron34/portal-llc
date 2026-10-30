@@ -67,7 +67,12 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
     const marked = lines.slice(start).find((l) => l.trim() && !/^\s*(Sent|To|Cc|Subject|Date):/i.test(strip(l)));
     const want = marked && depth(marked) > d ? d + 1 : d;
     const out: string[] = [];
-    for (const line of lines.slice(start)) {
+    const rest = lines.slice(start);
+    for (let j = 0; j < rest.length; j++) {
+      const line = rest[j];
+      // The next quoted header, possibly wrapped over two lines, is someone else's.
+      const next = rest[j + 1];
+      if (next !== undefined && !/wrote:\s*$/i.test(line) && /wrote:\s*$/i.test(next) && header(`${line} ${strip(next)}`)) break;
       if (header(line) && depth(line) <= want) break;
       if (!line.trim()) {
         out.push("");
@@ -83,12 +88,35 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
   return empty;
 }
 
-/** The date in a quoted-email header ("On Tue, Oct 20, 2026 at 3:12 PM ..."), as ISO, or null. */
-function dateIn(s: string): string | null {
-  const m = s.match(/(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,?\s+)?((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})(?:,?\s+(?:at\s+)?(\d{1,2}:\d{2}\s*[AP]M))?/i);
-  if (!m) return null;
-  const t = Date.parse(`${m[1].replace(",", "")} ${m[2] || "12:00 PM"}`);
-  return Number.isFinite(t) ? new Date(t).toISOString() : null;
+/**
+ * The date in a quoted-email header, as ISO, or null. Handles Gmail ("On Tue,
+ * Oct 20, 2026 at 3:12 PM"), Apple Mail ("On 20 Oct 2026, at 15:12"), and
+ * Outlook's "Sent: Tuesday, October 20, 2026 3:12 PM". The headers carry no
+ * zone, and Chris writes from Seattle, so the time is read as Seattle time.
+ */
+export function dateIn(s: string): string | null {
+  const MON = "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?";
+  const time = "(?:,?\\s+(?:at\\s+)?(\\d{1,2}):(\\d{2})\\s*([AP]M)?)?";
+  const mdy = s.match(new RegExp(`${MON}\\s+(\\d{1,2}),?\\s+(\\d{4})${time}`, "i"));
+  const dmy = s.match(new RegExp(`(\\d{1,2})\\s+${MON},?\\s+(\\d{4})${time}`, "i"));
+  let mon: string, day: number, year: number, hh: number, mm: number, ap: string | undefined;
+  if (mdy) [mon, day, year, hh, mm, ap] = [mdy[1], +mdy[2], +mdy[3], +(mdy[4] ?? 12), +(mdy[5] ?? 0), mdy[6]];
+  else if (dmy) [mon, day, year, hh, mm, ap] = [dmy[2], +dmy[1], +dmy[3], +(dmy[4] ?? 12), +(dmy[5] ?? 0), dmy[6]];
+  else return null;
+  const m = "janfebmaraprmayjunjulaugsepoctnovdec".indexOf(mon.slice(0, 3).toLowerCase()) / 3;
+  if (ap) hh = (hh % 12) + (/p/i.test(ap) ? 12 : 0);
+  const asUtc = Date.UTC(year, m, day, hh, mm);
+  if (!Number.isFinite(asUtc)) return null;
+  return new Date(asUtc - seattleOffsetMinutes(new Date(asUtc)) * 60_000).toISOString();
+}
+
+/** Seattle's offset from UTC in minutes on that date (-420 in summer, -480 in winter). */
+function seattleOffsetMinutes(d: Date): number {
+  const name = new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", timeZoneName: "shortOffset" })
+    .formatToParts(d)
+    .find((p) => p.type === "timeZoneName")?.value;
+  const m = name?.match(/GMT([+-]\d{1,2})(?::(\d{2}))?/);
+  return m ? +m[1] * 60 + Math.sign(+m[1]) * +(m[2] || 0) : -480;
 }
 
 /** Messages to read, newest first: Chris's outbound emails and texts only. */
@@ -232,18 +260,21 @@ export async function latestQuote(entries: CorrespondenceEntry[]): Promise<Quote
         // Dated by when Chris sent it, not by the reply: a late reply to an
         // old email must not outrank a newer price.
         const { words, sentAt } = chrisQuotedPart(e.body);
-        return words ? [{ e, words, at: sentAt || e.at }] : [];
+        // An unreadable date sorts last rather than taking the reply's date.
+        return words ? [{ e, words, at: sentAt || "" }] : [];
       }
       return [];
     })
     .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
+    // Every reply in a thread quotes the same email again; read it once.
+    .filter((c, i, all) => all.findIndex((o) => squash(o.words).slice(0, 400) === squash(c.words).slice(0, 400)) === i)
     .slice(0, MAX_MESSAGES);
   for (const { e, words, at } of candidates) {
     const q = await extractQuote(words);
     // A message that could not be read stops the scan: an older price must not
     // stand in for a newer one nobody has read yet.
     if (q === FAILED) return FAILED;
-    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at, message_id: e.id };
+    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at: at || e.at, message_id: e.id };
   }
   return null;
 }
