@@ -17,7 +17,7 @@
  */
 
 import { mergeRaw, readLead } from "../lib/lead-db";
-import { latestQuote } from "../lib/quote-extract";
+import { FAILED, latestQuote } from "../lib/quote-extract";
 
 export const config = { background: true };
 
@@ -42,6 +42,7 @@ export default async (request: Request): Promise<Response> => {
   if (!lead) return reply({ error: "Lead not found" }, 404);
 
   const found = await latestQuote(Array.isArray(lead.correspondence) ? lead.correspondence : []);
+  if (found === FAILED) return reply({ ok: false, error: "model call failed; quote left as it was" }, 502);
   if (!found) return reply({ ok: true, quoted: false }, 200);
 
   const cur = lead.raw?.quoted_estimate as { message_id?: string; at?: string } | undefined;

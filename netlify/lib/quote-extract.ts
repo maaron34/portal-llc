@@ -60,7 +60,13 @@ Rules:
 - Not a quote: a deposit amount alone, a payment receipt, a price for something other than this customer's job, or a message with no dollar figure. Then {"quoted": false}.
 - Never invent a number that is not in the message.`;
 
-export async function extractQuote(text: string, opts: { timeoutMs?: number } = {}): Promise<Omit<QuotedEstimate, "source" | "at" | "message_id"> | null> {
+/** The model call failed (timeout, HTTP error, unreadable answer): unknown, not "no quote". */
+export const FAILED = "failed" as const;
+
+export async function extractQuote(
+  text: string,
+  opts: { timeoutMs?: number } = {}
+): Promise<Omit<QuotedEstimate, "source" | "at" | "message_id"> | null | typeof FAILED> {
   const key = process.env.OPENROUTER_API_KEY;
   // No dollar figure at all means no quote; skip the model call.
   if (!key || !/\$\s?\d|\d\s?k\b|\d{1,3}(,\d{3})+|\d{3,}|\d\s?(dollars|bucks)\b/i.test(text)) return null;
@@ -83,16 +89,16 @@ export async function extractQuote(text: string, opts: { timeoutMs?: number } = 
     });
     if (!res.ok) {
       console.error("quote-extract OpenRouter error:", res.status, (await res.text()).slice(0, 200));
-      return null;
+      return FAILED;
     }
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content;
     const match = typeof raw === "string" ? raw.match(/\{[\s\S]*\}/) : null;
-    if (!match) return null;
+    if (!match) return FAILED;
     return parseQuote(JSON.parse(match[0]) as Record<string, unknown>, text);
   } catch (err) {
     console.error("quote-extract threw:", err);
-    return null;
+    return FAILED;
   } finally {
     clearTimeout(timeout);
   }
@@ -106,6 +112,11 @@ export async function extractQuote(text: string, opts: { timeoutMs?: number } = 
 export function amountsIn(text: string): Set<number> {
   const out = new Set<number>();
   const re = /(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?\s?(k\b)?/gi;
+  // "$8-12K": the K belongs to both ends.
+  for (const m of text.matchAll(/(\d+(?:\.\d+)?)\s?[-–]\s?\$?(\d+(?:\.\d+)?)\s?k\b/gi)) {
+    out.add(Math.round(Number(m[1]) * 1000));
+    out.add(Math.round(Number(m[2]) * 1000));
+  }
   for (const m of text.matchAll(re)) {
     const n = Number(`${m[1].replace(/,/g, "")}${m[2] ? `.${m[2]}` : ""}`);
     if (Number.isFinite(n)) out.add(Math.round(m[3] ? n * 1000 : n));
@@ -118,6 +129,10 @@ export function amountsIn(text: string): Set<number> {
  * message, so a made-up number is dropped rather than shown to Chris as his
  * own quote.
  */
+const squash = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+/** The sentence the model says it copied is really in the message. */
+const inText = (quote: string, text: string): boolean => Boolean(quote) && squash(text).includes(squash(quote));
+
 export function parseQuote(p: Record<string, unknown>, text: string): Omit<QuotedEstimate, "source" | "at" | "message_id"> | null {
   if (p.quoted !== true) return null;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 && v < 10_000_000 ? Math.round(v) : null);
@@ -132,8 +147,8 @@ export function parseQuote(p: Record<string, unknown>, text: string): Omit<Quote
   return {
     low,
     high,
-    summary: str(p.summary, 80) || (high != null ? `${money(low)}-${money(high)}` : money(low)),
-    quote: str(p.quote, 200),
+    summary: high != null ? `${money(low)}-${money(high)}` : money(low),
+    quote: inText(str(p.quote, 200), text) ? str(p.quote, 200) : "",
   };
 }
 
@@ -141,7 +156,7 @@ export function parseQuote(p: Record<string, unknown>, text: string): Omit<Quote
  * The newest quote in Chris's messages, reading at most MAX_MESSAGES of his
  * emails and texts newest first. Null when none of them carries a price.
  */
-export async function latestQuote(entries: CorrespondenceEntry[]): Promise<QuotedEstimate | null> {
+export async function latestQuote(entries: CorrespondenceEntry[]): Promise<QuotedEstimate | null | typeof FAILED> {
   const mine = entries
     .filter((e) => e.direction === "out" && (e.type === "email" || e.type === "text") && (e.body || "").trim())
     .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
@@ -149,6 +164,9 @@ export async function latestQuote(entries: CorrespondenceEntry[]): Promise<Quote
   for (const e of mine) {
     const words = ownWords(e.body);
     const q = await extractQuote(words);
+    // A message that could not be read stops the scan: an older price must not
+    // stand in for a newer one nobody has read yet.
+    if (q === FAILED) return FAILED;
     if (q) return { ...q, source: e.type === "text" ? "text" : "email", at: e.at, message_id: e.id };
   }
   return null;
