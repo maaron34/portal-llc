@@ -108,7 +108,17 @@ export function requestPrint(message: string | null | undefined): string {
   return `${m.length}:${(h >>> 0).toString(36)}`;
 }
 
-const CLOCK = /\b\d{1,2}(:\d{2})?\s*(am|pm|a\.m\.|p\.m\.)|\b\d{1,2}:\d{2}\b|\bnoon\b/i;
+const HOUR_WORD = "(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)";
+const CLOCK = new RegExp(
+  [
+    "\\b\\d{1,2}(:\\d{2})?\\s*(am|pm|a\\.m\\.|p\\.m\\.)",
+    "\\b\\d{1,2}:\\d{2}\\b",
+    "\\bnoon\\b",
+    `\\b${HOUR_WORD}(\\s*(thirty|fifteen|forty-five))?\\s*(o'?clock|am|pm|in the (morning|afternoon|evening))`,
+    "\\b\\d{1,2}\\s*(o'?clock|in the (morning|afternoon|evening))",
+  ].join("|"),
+  "i"
+);
 
 /** At most max characters, cut at a word, never mid-word. */
 export function clip(s: string, max = 100): string {
