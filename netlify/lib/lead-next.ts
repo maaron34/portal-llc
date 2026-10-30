@@ -116,6 +116,8 @@ const CLOCK = new RegExp(
     "\\bnoon\\b",
     `\\b${HOUR_WORD}(\\s*(thirty|fifteen|forty-five))?\\s*(o'?clock|am|pm|in the (morning|afternoon|evening))`,
     "\\b\\d{1,2}\\s*(o'?clock|in the (morning|afternoon|evening))",
+    // "at four thirty", "around ten"
+    `\\b(at|around|by)\\s+(${HOUR_WORD}|\\d{1,2})\\b`,
   ].join("|"),
   "i"
 );
