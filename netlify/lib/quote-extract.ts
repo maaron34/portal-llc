@@ -95,7 +95,10 @@ export async function extractQuote(
     const raw = data?.choices?.[0]?.message?.content;
     const match = typeof raw === "string" ? raw.match(/\{[\s\S]*\}/) : null;
     if (!match) return FAILED;
-    return parseQuote(JSON.parse(match[0]) as Record<string, unknown>, text);
+    const answer = JSON.parse(match[0]) as Record<string, unknown>;
+    // The model saw a quote but its figure is not in the message: unread, not
+    // "no quote", so an older price is not shown in its place.
+    return parseQuote(answer, text) ?? (answer.quoted === true ? FAILED : null);
   } catch (err) {
     console.error("quote-extract threw:", err);
     return FAILED;
