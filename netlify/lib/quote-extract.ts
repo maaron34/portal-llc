@@ -49,7 +49,7 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
 
   for (let i = 0; i < lines.length; i++) {
     // Gmail wraps a long "On ... wrote:" header over two lines.
-    const wrapped = i + 1 < lines.length && !/wrote:\s*$/i.test(lines[i]) && /wrote:\s*$/i.test(lines[i + 1]);
+    const wrapped = i + 1 < lines.length && /^\s*On\s/i.test(strip(lines[i])) && !/wrote:\s*$/i.test(lines[i]) && /wrote:\s*$/i.test(lines[i + 1]);
     const head = wrapped ? `${lines[i]} ${strip(lines[i + 1])}` : lines[i];
     if (!header(head) || !isChris(head)) continue;
 
@@ -66,7 +66,7 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
     // the customer writing between his lines, never his words.
     // Any line one level deeper means his block is marked, even when the
     // customer typed a line of their own right under the header.
-    const blockEnd = lines.slice(start).findIndex((l) => header(l) && depth(l) <= d);
+    const blockEnd = lines.slice(start).findIndex((l, k, all) => header(l) || (/^\s*On\s/i.test(strip(l)) && /wrote:\s*$/i.test(all[k + 1] || "")));
     const block = blockEnd < 0 ? lines.slice(start) : lines.slice(start, start + blockEnd);
     const want = block.some((l) => l.trim() && depth(l) > d) ? d + 1 : d;
     const out: string[] = [];
@@ -75,7 +75,7 @@ export function chrisQuotedPart(body: string): { words: string; sentAt: string |
       const line = rest[j];
       // The next quoted header, possibly wrapped over two lines, is someone else's.
       const next = rest[j + 1];
-      if (next !== undefined && !/wrote:\s*$/i.test(line) && /wrote:\s*$/i.test(next) && header(`${line} ${strip(next)}`)) break;
+      if (next !== undefined && /^\s*On\s/i.test(strip(line)) && !/wrote:\s*$/i.test(line) && /wrote:\s*$/i.test(next)) break;
       if (header(line) && depth(line) <= want) break;
       if (!line.trim()) {
         out.push("");
