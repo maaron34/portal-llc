@@ -29,6 +29,36 @@ export type QuotedEstimate = {
   message_id: string;
 };
 
+/**
+ * Chris's earlier email as quoted inside a customer's reply. Until late
+ * October 2026 his sent mail was not captured, so for most leads the only copy
+ * of his quote is the history under the customer's answer:
+ *   On Tue, Oct 20, 2026 at 3:12 PM Chris Hildebrand <chris@buildwithportal.com> wrote:
+ *   > Our quote for this scope of work is $14,850.
+ * Returns his quoted words (quote markers removed) up to the next quoted
+ * header, which belongs to someone else. Empty when the reply quotes no email
+ * from Chris.
+ */
+export function chrisQuotedPart(body: string): string {
+  const lines = (body || "").replace(/\r\n/g, "\n").split("\n");
+  const header = (l: string) => /^(>\s*)*(On\s.{4,200}wrote:|From:\s.+)\s*$/i.test(l.trim());
+  const isChris = (l: string) => /chris\s+hildebrand|chris@buildwithportal\.com|portal concrete/i.test(l);
+  const out: string[] = [];
+  let inChris = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Gmail wraps a long "On ... wrote:" header over two lines.
+    const joined = i + 1 < lines.length && !/wrote:\s*$/i.test(line) && /wrote:\s*$/i.test(lines[i + 1]) ? `${line} ${lines[i + 1]}` : line;
+    if (header(joined) || header(line)) {
+      if (inChris && out.length) break;
+      inChris = isChris(joined);
+      continue;
+    }
+    if (inChris) out.push(line.replace(/^(\s*>\s?)+/, ""));
+  }
+  return out.join("\n").trim().slice(0, 4000);
+}
+
 /** Messages to read, newest first: Chris's outbound emails and texts only. */
 export const MAX_MESSAGES = 6;
 
@@ -160,12 +190,21 @@ export function parseQuote(p: Record<string, unknown>, text: string): Omit<Quote
  * emails and texts newest first. Null when none of them carries a price.
  */
 export async function latestQuote(entries: CorrespondenceEntry[]): Promise<QuotedEstimate | null | typeof FAILED> {
-  const mine = entries
-    .filter((e) => e.direction === "out" && (e.type === "email" || e.type === "text") && (e.body || "").trim())
-    .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
+  // Chris's own messages, plus his earlier emails as quoted in customers'
+  // replies, newest first.
+  const candidates = entries
+    .flatMap((e) => {
+      if (!(e.body || "").trim()) return [];
+      if (e.direction === "out" && (e.type === "email" || e.type === "text")) return [{ e, words: ownWords(e.body) }];
+      if (e.direction === "in" && e.type === "email") {
+        const words = chrisQuotedPart(e.body);
+        return words ? [{ e, words }] : [];
+      }
+      return [];
+    })
+    .sort((a, b) => (b.e.at || "").localeCompare(a.e.at || ""))
     .slice(0, MAX_MESSAGES);
-  for (const e of mine) {
-    const words = ownWords(e.body);
+  for (const { e, words } of candidates) {
     const q = await extractQuote(words);
     // A message that could not be read stops the scan: an older price must not
     // stand in for a newer one nobody has read yet.
