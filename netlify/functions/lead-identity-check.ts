@@ -24,6 +24,6 @@ export default async (request: Request): Promise<Response> => {
   const loc = await locateChecked((lead.address || "").trim() || rawStr(lead.raw, "city"));
   const area = loc.area;
   const street = /\d+\s+\S+/.test(lead.address || "");
-  const scam = await checkScam(text, lead.phone, street, street && loc.checked ? Boolean(area) : null);
+  const scam = await checkScam(text, lead.phone, street, street && loc.checked ? Boolean(area) : null, { email: lead.email, files: Array.isArray(lead.raw?.files) ? lead.raw.files.length : 0 });
   return json({ text: text.slice(0, 300), found, area, scam, would_fill: found ? identityPatch(lead, found) : {}, match: match && { verdict: match.verdict, reason: match.reason, other: { id: match.other.id, name: match.other.name, channel: match.other.channel } } }, 200);
 };
