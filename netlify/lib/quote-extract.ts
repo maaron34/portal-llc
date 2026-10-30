@@ -98,30 +98,41 @@ export async function extractQuote(text: string, opts: { timeoutMs?: number } = 
   }
 }
 
-const digitsIn = (s: string) => s.replace(/[^\d]/g, "");
+/**
+ * Every amount written in the message, as whole numbers: "$23,700" -> 23700,
+ * "$15.5K" -> 15500, "15000 dollars" -> 15000. Each figure is read whole, so a
+ * wrong 5000 never matches inside 15000.
+ */
+export function amountsIn(text: string): Set<number> {
+  const out = new Set<number>();
+  const re = /(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?\s?(k\b)?/gi;
+  for (const m of text.matchAll(re)) {
+    const n = Number(`${m[1].replace(/,/g, "")}${m[2] ? `.${m[2]}` : ""}`);
+    if (Number.isFinite(n)) out.add(Math.round(m[3] ? n * 1000 : n));
+  }
+  return out;
+}
 
 /**
- * Validate the model's answer. The low figure must actually appear in the
- * message (as digits, or as "15k"/"15K" for 15000), so a made-up number is
- * dropped rather than shown to Chris as his own quote.
+ * Validate the model's answer. Both figures must actually be written in the
+ * message, so a made-up number is dropped rather than shown to Chris as his
+ * own quote.
  */
 export function parseQuote(p: Record<string, unknown>, text: string): Omit<QuotedEstimate, "source" | "at" | "message_id"> | null {
   if (p.quoted !== true) return null;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 && v < 10_000_000 ? Math.round(v) : null);
   const low = num(p.low);
   if (low == null) return null;
-  const high = num(p.high);
-  const flat = digitsIn(text);
-  // "15K", "15.5k": compare the thousands form, decimal point escaped.
-  const k = String(low / 1000).replace(".", "\\.");
-  const thousands = low % 100 === 0 ? new RegExp(`\\b${k}(\\.0)?\\s?k\\b`, "i") : null;
-  if (!flat.includes(String(low)) && !(thousands && thousands.test(text))) return null;
+  const written = amountsIn(text);
+  if (!written.has(low)) return null;
+  const rawHigh = num(p.high);
+  const high = rawHigh != null && rawHigh > low && written.has(rawHigh) ? rawHigh : null;
   const str = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : "");
   const money = (n: number) => `$${n.toLocaleString("en-US")}`;
   return {
     low,
-    high: high != null && high > low ? high : null,
-    summary: str(p.summary, 80) || (high != null && high > low ? `${money(low)}-${money(high)}` : money(low)),
+    high,
+    summary: str(p.summary, 80) || (high != null ? `${money(low)}-${money(high)}` : money(low)),
     quote: str(p.quote, 200),
   };
 }
