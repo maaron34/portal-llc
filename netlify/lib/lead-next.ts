@@ -46,7 +46,7 @@ export function realEntries(entries: CorrespondenceEntry[]): CorrespondenceEntry
 export const MAX_MESSAGES = 8;
 
 const seattle = (iso: string): string =>
-  new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
 /** The thread as the model reads it: oldest first, newest words only, dated in Seattle time. */
 export function transcript(lead: Pick<LeadRow, "created_at" | "message" | "stage" | "name" | "raw">, entries: CorrespondenceEntry[], now = new Date()): string {

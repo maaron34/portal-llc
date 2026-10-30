@@ -346,6 +346,8 @@ async function capture(request: Request): Promise<Response> {
   const existing = !junk && phone ? await findLeadByPhone(secret, phone) : null;
   if (existing) {
     await mergeIntoLead(secret, existing, payload);
+    // The merge rewrites the request text, not the timeline, so ask for a fresh next step here.
+    await queueNext(origin, existing.id);
     // A form submission still emails Chris even though no new lead was created:
     // someone filling in the form is asking for a reply, and the whole point of
     // merging is that he sees it against the context he already has. A merged
@@ -411,6 +413,7 @@ async function capture(request: Request): Promise<Response> {
         if (found?.id) {
           if (junk || found.raw?.junk) return json({ ok: true, id: found.id, duplicate: true }, 200);
           await mergeIntoLead(secret, found, payload);
+          await queueNext(origin, found.id);
           // A lead created seconds ago lost a race with another capture path
           // (a cron insert and this form in the same moment); its "new lead"
           // email is already on its way and carries the same person.
