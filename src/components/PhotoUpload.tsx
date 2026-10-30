@@ -44,9 +44,10 @@ async function post(body: Record<string, unknown>): Promise<Record<string, unkno
   return res.ok ? ((await res.json()) as Record<string, unknown>) : null;
 }
 
-// `slot` is this file's place in the lead's ten upload slots (lead-upload.ts).
-async function uploadOne(id: string, t: string, slot: number, file: File): Promise<boolean> {
-  const meta = { id, t, slot, filename: file.name };
+// The server picks the slot (one of the lead's ten, lead-upload.ts) and the
+// finish call names it back.
+async function uploadOne(id: string, t: string, file: File): Promise<boolean> {
+  const meta = { id, t, filename: file.name };
   try {
     const start = await post({ ...meta, step: "start" });
     if (!start?.upload_url) return false;
@@ -56,7 +57,7 @@ async function uploadOne(id: string, t: string, slot: number, file: File): Promi
       body: file,
     });
     if (!put.ok) return false;
-    return Boolean(await post({ ...meta, step: "finish" }));
+    return Boolean(await post({ ...meta, step: "finish", slot: start.slot }));
   } catch {
     return false;
   }
@@ -67,9 +68,6 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [sent, setSent] = useState(0);
-  // Slots used so far, failures included: a slot is written once, so a retry
-  // goes in the next one.
-  const [used, setUsed] = useState(0);
   const [note, setNote] = useState("");
 
   if (!leadId || !token) return null;
@@ -78,7 +76,7 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
     if (!list || !list.length) return;
     const picked = Array.from(list);
     const ok = picked.filter(allowed);
-    const room = Math.max(0, MAX_FILES - used);
+    const room = Math.max(0, MAX_FILES - sent);
     const queue = ok.slice(0, room);
     const skipped = picked.length - queue.length;
 
@@ -86,10 +84,9 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
     setProgress({ done: 0, total: queue.length });
     let good = 0;
     for (let i = 0; i < queue.length; i++) {
-      if (await uploadOne(leadId, token, used + i, queue[i])) good++;
+      if (await uploadOne(leadId, token, queue[i])) good++;
       setProgress({ done: i + 1, total: queue.length });
     }
-    setUsed((n) => n + queue.length);
     setSent((n) => n + good);
     const failed = queue.length - good + skipped;
     setNote(
@@ -107,7 +104,7 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
         <p className="flex items-start gap-2 text-portal-dark">
           <CheckCircle size={20} className="mt-0.5 shrink-0 text-green-600" />
           <span>
-            Got {sent === 1 ? "it" : `all ${sent}`}. Chris will see {sent === 1 ? "it" : "them"} with your request.
+            Got {sent === 1 ? "it" : sent === 2 ? "both" : `all ${sent}`}. Chris will see {sent === 1 ? "it" : "them"} with your request.
           </span>
         </p>
       ) : (
@@ -127,7 +124,7 @@ export default function PhotoUpload({ leadId, token }: { leadId?: string; token?
         className="hidden"
         onChange={(e) => onPick(e.target.files)}
       />
-      {used < MAX_FILES && (
+      {sent < MAX_FILES && (
         <button
           type="button"
           disabled={status === "uploading"}

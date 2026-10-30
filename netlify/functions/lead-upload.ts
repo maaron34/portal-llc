@@ -7,8 +7,9 @@
  *
  * Two steps per file, because Netlify caps a request body at 6 MB and a phone
  * photo or a plan set can be bigger:
- *   1. { step: "start", id, t, slot } returns { upload_url }: a one-time
- *      Supabase upload link for that slot. The browser PUTs the bytes there.
+ *   1. { step: "start", id, t } returns { upload_url, slot }: a one-time
+ *      Supabase upload link for the lead's next free slot. The browser PUTs
+ *      the bytes there.
  *   2. { step: "finish", id, t, slot, filename } checks what storage actually
  *      holds (type, size) and records the file on the lead.
  *
@@ -84,6 +85,18 @@ async function objectInfo(secret: string, path: string): Promise<{ size: number;
   return Number.isFinite(size) ? { size, type } : null;
 }
 
+// Slots already written for this lead. A returning customer whose second
+// submission merged into the same lead starts from where the first one left off.
+async function usedSlots(secret: string, id: string): Promise<Set<number>> {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
+    method: "POST",
+    headers: { ...auth(secret), "Content-Type": "application/json" },
+    body: JSON.stringify({ prefix: `${id}/web/`, limit: 100 }),
+  });
+  const rows = r.ok ? ((await r.json()) as { name?: string }[]) : [];
+  return new Set(rows.map((o) => Number(o.name)).filter((n) => Number.isInteger(n)));
+}
+
 async function removeObject(secret: string, path: string): Promise<void> {
   await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, { method: "DELETE", headers: auth(secret) }).catch(() => {});
 }
@@ -102,24 +115,25 @@ export default async (request: Request): Promise<Response> => {
 
   const id = body.id && UUID.test(body.id) ? body.id : "";
   if (!id || !verifyUploadToken(id, body.t)) return json({ error: "This upload link has expired." }, 403);
-  const slot = Number(body.slot);
-  if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_FILES) {
-    return json({ error: `Up to ${MAX_FILES} files per request.` }, 429);
-  }
-  const path = slotPath(id, slot);
 
   if (body.step === "start") {
-    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/${BUCKET}/${path}`, {
+    const used = await usedSlots(secret, id);
+    const slot = Array.from({ length: MAX_FILES }, (_, i) => i).find((i) => !used.has(i));
+    if (slot === undefined) return json({ error: `Up to ${MAX_FILES} files per request.` }, 429);
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/${BUCKET}/${slotPath(id, slot)}`, {
       method: "POST",
       headers: auth(secret),
     });
     if (!r.ok) return json({ error: "Could not create upload link" }, 502);
     const d = (await r.json()) as { url?: string };
     if (!d.url) return json({ error: "Could not create upload link" }, 502);
-    return json({ ok: true, upload_url: `${SUPABASE_URL}/storage/v1${d.url}` }, 200);
+    return json({ ok: true, upload_url: `${SUPABASE_URL}/storage/v1${d.url}`, slot }, 200);
   }
 
   if (body.step === "finish") {
+    const slot = Number(body.slot);
+    if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_FILES) return json({ error: "Bad slot" }, 400);
+    const path = slotPath(id, slot);
     const info = await objectInfo(secret, path);
     if (!info) return json({ error: "File not found in storage" }, 404);
     if (!allowedType(info.type) || info.size <= 0 || info.size > MAX_BYTES) {
@@ -127,47 +141,70 @@ export default async (request: Request): Promise<Response> => {
       return json({ error: "Photos and PDFs up to 25 MB only." }, 400);
     }
 
-    const lead = await findLead(secret, id);
-    if (!lead) return json({ error: "Lead not found" }, 404);
-    const photos = Array.isArray(lead.photos) ? lead.photos : [];
-    const raw = (lead.raw && typeof lead.raw === "object" ? lead.raw : {}) as Record<string, unknown>;
-    const files = Array.isArray(raw.files) ? (raw.files as LeadFile[]) : [];
-    if (photos.some((u) => u.includes(path)) || files.some((f) => f?.path === path)) {
-      return json({ ok: true, deduped: true }, 200);
-    }
     const url = await signedUrl(secret, path);
     if (!url) return json({ error: "File not found in storage" }, 404);
 
-    // Photos are their own column. Files go through merge_raw, which replaces
-    // only the `files` key, so the notes notify-lead is writing to raw at the
-    // same moment (draft reply, scam check) are never overwritten.
-    let saved: boolean;
-    if (GRID_TYPES.has(info.type)) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}`, {
-        method: "PATCH",
-        headers: { ...auth(secret), "Content-Type": "application/json" },
-        body: JSON.stringify({ photos: [...photos, url] }),
-      });
-      saved = res.ok;
-    } else {
-      saved = await mergeRaw(secret, lead.id, {
-        files: [
-          ...files,
-          {
-            url,
-            path,
-            name: (body.filename || "file").slice(0, 160),
-            content_type: info.type,
-            size: info.size,
-            added_at: new Date().toISOString(),
-            from: "website form",
-          },
-        ],
-      });
+    // Two tries: notify-lead can fold this lead into an older one between the
+    // read and the write, and a write to the deleted row matches nothing. The
+    // second try re-resolves the survivor. Success means the file is on a lead.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const lead = await findLead(secret, id);
+      if (!lead) return json({ error: "Lead not found" }, 404);
+      if (await attach(secret, lead, path, url, info, body.filename)) return json({ ok: true }, 200);
     }
-    if (!saved) return json({ error: "Could not save the file on your request" }, 502);
-    return json({ ok: true }, 200);
+    return json({ error: "Could not save the file on your request" }, 502);
   }
 
   return json({ error: 'step must be "start" or "finish"' }, 400);
 };
+
+const hasFile = (lead: LeadRow, path: string): boolean => {
+  const photos = Array.isArray(lead.photos) ? lead.photos : [];
+  const files = Array.isArray(lead.raw?.files) ? (lead.raw!.files as LeadFile[]) : [];
+  return photos.some((u) => u.includes(`${path}?`)) || files.some((f) => f?.path === path);
+};
+
+// Photos are their own column. Files go through merge_raw, which replaces only
+// the `files` key, so the notes notify-lead writes to raw at the same moment
+// (draft reply, scam check) are never overwritten. Either way, re-read after
+// and report only what is actually on the lead.
+async function attach(
+  secret: string,
+  lead: LeadRow,
+  path: string,
+  url: string,
+  info: { size: number; type: string },
+  filename?: string
+): Promise<boolean> {
+  if (hasFile(lead, path)) return true;
+  const photos = Array.isArray(lead.photos) ? lead.photos : [];
+  const raw = (lead.raw && typeof lead.raw === "object" ? lead.raw : {}) as Record<string, unknown>;
+  const files = Array.isArray(raw.files) ? (raw.files as LeadFile[]) : [];
+  if (GRID_TYPES.has(info.type)) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}`, {
+      method: "PATCH",
+      headers: { ...auth(secret), "Content-Type": "application/json" },
+      body: JSON.stringify({ photos: [...photos, url] }),
+    });
+    if (!res.ok) return false;
+  } else {
+    const ok = await mergeRaw(secret, lead.id, {
+      files: [
+        ...files,
+        {
+          url,
+          path,
+          name: (filename || "file").slice(0, 160),
+          content_type: info.type,
+          size: info.size,
+          added_at: new Date().toISOString(),
+          from: "website form",
+        },
+      ],
+    });
+    if (!ok) return false;
+  }
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}&select=id,photos,raw&limit=1`, { headers: auth(secret) });
+  const rows = r.ok ? ((await r.json()) as LeadRow[]) : [];
+  return rows.length > 0 && hasFile(rows[0], path);
+}
