@@ -39,24 +39,56 @@ export type QuotedEstimate = {
  * header, which belongs to someone else. Empty when the reply quotes no email
  * from Chris.
  */
-export function chrisQuotedPart(body: string): string {
+export function chrisQuotedPart(body: string): { words: string; sentAt: string | null } {
   const lines = (body || "").replace(/\r\n/g, "\n").split("\n");
-  const header = (l: string) => /^(>\s*)*(On\s.{4,200}wrote:|From:\s.+)\s*$/i.test(l.trim());
+  const depth = (l: string) => (l.match(/^(\s*>)*/)?.[0].match(/>/g) || []).length;
+  const strip = (l: string) => l.replace(/^(\s*>\s?)+/, "");
+  const header = (l: string) => /^(On\s.{4,200}wrote:|From:\s.+)\s*$/i.test(strip(l).trim());
   const isChris = (l: string) => /chris\s+hildebrand|chris@buildwithportal\.com|portal concrete/i.test(l);
-  const out: string[] = [];
-  let inChris = false;
+  const empty = { words: "", sentAt: null };
+
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
     // Gmail wraps a long "On ... wrote:" header over two lines.
-    const joined = i + 1 < lines.length && !/wrote:\s*$/i.test(line) && /wrote:\s*$/i.test(lines[i + 1]) ? `${line} ${lines[i + 1]}` : line;
-    if (header(joined) || header(line)) {
-      if (inChris && out.length) break;
-      inChris = isChris(joined);
-      continue;
+    const wrapped = i + 1 < lines.length && !/wrote:\s*$/i.test(lines[i]) && /wrote:\s*$/i.test(lines[i + 1]);
+    const head = wrapped ? `${lines[i]} ${strip(lines[i + 1])}` : lines[i];
+    if (!header(head) || !isChris(head)) continue;
+
+    const start = wrapped ? i + 2 : i + 1;
+    const d = depth(lines[i]);
+    let sentAt = dateIn(strip(head));
+    // Outlook puts the date on its own "Sent:" line under "From:".
+    if (!sentAt && /^\s*From:/i.test(strip(head))) {
+      const sent = lines.slice(start, start + 4).map(strip).find((l) => /^\s*(Sent|Date):/i.test(l));
+      if (sent) sentAt = dateIn(sent.replace(/^\s*(Sent|Date):\s*/i, ""));
     }
-    if (inChris) out.push(line.replace(/^(\s*>\s?)+/, ""));
+    // Gmail quotes his email one level deeper than the header ("> ..."); an
+    // Outlook top-post copies it unmarked. Lines shallower than his block are
+    // the customer writing between his lines, never his words.
+    const marked = lines.slice(start).find((l) => l.trim() && !/^\s*(Sent|To|Cc|Subject|Date):/i.test(strip(l)));
+    const want = marked && depth(marked) > d ? d + 1 : d;
+    const out: string[] = [];
+    for (const line of lines.slice(start)) {
+      if (header(line) && depth(line) <= want) break;
+      if (!line.trim()) {
+        out.push("");
+        continue;
+      }
+      if (depth(line) < want) continue;
+      if (header(line)) break;
+      out.push(strip(line));
+    }
+    const words = out.join("\n").trim().slice(0, 4000);
+    return words ? { words, sentAt } : empty;
   }
-  return out.join("\n").trim().slice(0, 4000);
+  return empty;
+}
+
+/** The date in a quoted-email header ("On Tue, Oct 20, 2026 at 3:12 PM ..."), as ISO, or null. */
+function dateIn(s: string): string | null {
+  const m = s.match(/(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,?\s+)?((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})(?:,?\s+(?:at\s+)?(\d{1,2}:\d{2}\s*[AP]M))?/i);
+  if (!m) return null;
+  const t = Date.parse(`${m[1].replace(",", "")} ${m[2] || "12:00 PM"}`);
+  return Number.isFinite(t) ? new Date(t).toISOString() : null;
 }
 
 /** Messages to read, newest first: Chris's outbound emails and texts only. */
@@ -195,21 +227,23 @@ export async function latestQuote(entries: CorrespondenceEntry[]): Promise<Quote
   const candidates = entries
     .flatMap((e) => {
       if (!(e.body || "").trim()) return [];
-      if (e.direction === "out" && (e.type === "email" || e.type === "text")) return [{ e, words: ownWords(e.body) }];
+      if (e.direction === "out" && (e.type === "email" || e.type === "text")) return [{ e, words: ownWords(e.body), at: e.at }];
       if (e.direction === "in" && e.type === "email") {
-        const words = chrisQuotedPart(e.body);
-        return words ? [{ e, words }] : [];
+        // Dated by when Chris sent it, not by the reply: a late reply to an
+        // old email must not outrank a newer price.
+        const { words, sentAt } = chrisQuotedPart(e.body);
+        return words ? [{ e, words, at: sentAt || e.at }] : [];
       }
       return [];
     })
-    .sort((a, b) => (b.e.at || "").localeCompare(a.e.at || ""))
+    .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
     .slice(0, MAX_MESSAGES);
-  for (const { e, words } of candidates) {
+  for (const { e, words, at } of candidates) {
     const q = await extractQuote(words);
     // A message that could not be read stops the scan: an older price must not
     // stand in for a newer one nobody has read yet.
     if (q === FAILED) return FAILED;
-    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at: e.at, message_id: e.id };
+    if (q) return { ...q, source: e.type === "text" ? "text" : "email", at, message_id: e.id };
   }
   return null;
 }
