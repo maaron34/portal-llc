@@ -201,7 +201,7 @@ export default async (request: Request): Promise<Response> => {
           // A street address that both geocoders answered for and neither could
           // place is itself a red flag; an outage or timeout is not.
           const mapped = street && checked ? Boolean(area) : null;
-          scam = await checkScam(inboundText(lead), lead.phone, street, mapped).catch(() => null);
+          scam = await checkScam(inboundText(lead), lead.phone, street, mapped, { email: lead.email, files: Array.isArray(lead.raw?.files) ? lead.raw.files.length : 0 }).catch(() => null);
           if (scam) await mergeRaw(secret, id, { scam_check: { ...scam, at: now.toISOString() } });
         }
       }

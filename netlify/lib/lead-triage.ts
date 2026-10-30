@@ -118,13 +118,20 @@ const SCAM_SYSTEM =
   "(\"next week\") with no street address or a vague job; asks to pay by check, cashier's check, " +
   "wire, or through a third party or 'my contractor/assistant'; wants Chris to pay someone else or " +
   "refund an overpayment; a job described in generic terms with no real detail (\"I have a project, " +
-  "send your price\"); an out-of-state or overseas sender for a job in Seattle; asks for Chris's " +
+  "send your price\"); an out-of-state or overseas private individual for a job in Seattle; asks for Chris's " +
   "license or insurance before saying anything about the job; a 'scope of work', 'project spec', " +
   "'bid package' or 'requirements' said to be 'available for your review here', 'at the link' or " +
   "'attached' while the message itself describes no job (that is a phishing lure, and it counts as " +
   "unmistakable when the greeting is also generic, like 'Hello,' with no name); an address that " +
-  "cannot be found on a map. Real homeowners are often brief, so " +
-  "brevity alone is NOT a red flag, and a vendor pitch is not a scam (another system handles those). " +
+  "cannot be found on a map. Chris also gets real bid requests from general contractors and " +
+  "other trades, and those are legitimate business, not scams: a company asking for a concrete " +
+  "quote on a project, with plans and specs, prevailing wage, public works, an RFP or a bid date. " +
+  "A full business signature (person's name and title, company name, office phone, street address) " +
+  "with an email at that company's own domain counts strongly against a scam. A company based " +
+  "elsewhere in the US is NOT a red flag for a job in Seattle. Documents " +
+  "that actually arrived as attachments (the count is given) are real files, not a lure; the lure is " +
+  "a link to view the documents or a claimed attachment that never arrived. Real homeowners are " +
+  "often brief, so brevity alone is NOT a red flag, and a vendor pitch is not a scam (another system handles those). " +
   "Flag as a likely scam only when two or more red flags are present, or one is unmistakable (asks " +
   "Chris to pay or refund money, or a check overpayment). Respond with JSON only: " +
   '{"scam": true|false, "reasons": ["<plain short reason>", ...]}';
@@ -135,7 +142,13 @@ const SCAM_SYSTEM =
  * one, which is how form bots fill required fields ("348 Matthew Islands Suite
  * 152, Port Lisabury" passed every required-field check on 2026-10-09).
  */
-export async function checkScam(text: string, phone: string | null | undefined, hasStreet: boolean, mapped: boolean | null = null): Promise<ScamCheck | null> {
+export async function checkScam(
+  text: string,
+  phone: string | null | undefined,
+  hasStreet: boolean,
+  mapped: boolean | null = null,
+  extra: { email?: string | null; files?: number } = {}
+): Promise<ScamCheck | null> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key || !text.trim()) return null;
   const controller = new AbortController();
@@ -153,7 +166,8 @@ export async function checkScam(text: string, phone: string | null | undefined, 
           {
             role: "user",
             content:
-              `Phone: ${phone || "none"}\nStreet address given: ${hasStreet ? "yes" : "no"}\n` +
+              `Phone: ${phone || "none"}\nEmail: ${extra.email || "none"}\nDocuments attached: ${extra.files ?? 0}\n` +
+              `Street address given: ${hasStreet ? "yes" : "no"}\n` +
               `Address found on a map: ${mapped == null ? "not checked" : mapped ? "yes" : "no"}\nMessages:\n${text.slice(0, 5000)}`,
           },
         ],
