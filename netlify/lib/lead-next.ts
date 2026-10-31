@@ -17,9 +17,9 @@ import { ownWords, seattleOffsetMinutes } from "./quote-extract";
 
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
 
-export const ACTIONS = ["call_back", "reply", "schedule", "estimate", "visit_booked", "waiting", "closed"] as const;
+export const ACTIONS = ["call_back", "reply", "schedule", "schedule_job", "estimate", "visit_booked", "collect_payment", "waiting", "closed"] as const;
 export type NextAction = (typeof ACTIONS)[number];
-export const STAGE_HINTS = ["signed", "booked", "lost"] as const;
+export const STAGE_HINTS = ["signed", "booked", "completed", "lost"] as const;
 
 export type LeadNext = {
   action: NextAction;
@@ -59,6 +59,21 @@ export function transcript(lead: Pick<LeadRow, "created_at" | "message" | "stage
   lines.push(`Lead: ${lead.name || "unknown"}, came in ${seattle(lead.created_at)}, CRM stage "${lead.stage}"`);
   const quoted = (lead.raw?.quoted_estimate as { summary?: unknown } | undefined)?.summary;
   if (typeof quoted === "string") lines.push(`Price Chris quoted: ${quoted}`);
+  const contract = lead.raw?.pandadoc_amount;
+  if (typeof contract === "number" && contract > 0) lines.push(`Signed contract price (PandaDoc, before tax): $${contract.toLocaleString("en-US")}`);
+  // QuickBooks payments, so the model can tell a deposit from payment in full.
+  const pays = (lead.raw?.customer as { payments?: { date?: unknown; amount?: unknown }[] } | undefined)?.payments;
+  if (Array.isArray(pays) && pays.length) {
+    const list = pays
+      .filter((x) => typeof x?.amount === "number")
+      .map((x) => `$${(x.amount as number).toLocaleString("en-US", { maximumFractionDigits: 2 })} on ${String(x.date)}`);
+    if (list.length) lines.push(`Payments received (QuickBooks, include tax): ${list.join(", ")}`);
+  }
+  const invs = lead.raw?.invoices as { number?: unknown; date?: unknown; total?: unknown; balance?: unknown }[] | undefined;
+  if (Array.isArray(invs) && invs.length) {
+    const list = invs.map((x) => `#${String(x.number)} on ${String(x.date)}: $${Number(x.total).toLocaleString("en-US")} (still owed $${Number(x.balance).toLocaleString("en-US")})`);
+    lines.push(`QuickBooks invoices: ${list.join("; ")}`);
+  }
   if (lead.message) {
     // A repeat form submission is appended to the end of the request, so keep the end.
     const m = lead.message.replace(/\s+/g, " ").trim();
@@ -79,22 +94,24 @@ export function transcript(lead: Pick<LeadRow, "created_at" | "message" | "stage
 const SYSTEM = `You help Chris, owner of a small concrete contractor in Seattle (one crew), see the next step on each customer lead. You read the lead and its recent messages and say what happens next.
 
 Reply with JSON only:
-{"action": "...", "next_step": "...", "visit_at": "YYYY-MM-DDTHH:MM" | null, "evidence": "..." | null, "suggest_stage": "signed" | "booked" | "lost" | null}
+{"action": "...", "next_step": "...", "visit_at": "YYYY-MM-DDTHH:MM" | null, "evidence": "..." | null, "suggest_stage": "signed" | "booked" | "completed" | "lost" | null}
 
 action, exactly one:
 - "call_back": the customer asked Chris to call them (voicemail or message says call me back, give me a call) and he has not called since.
 - "reply": the customer asked a question or sent something and is waiting on Chris's written answer; also a new request Chris has not answered yet.
-- "schedule": a site visit is being arranged but no time is settled (the customer offered times, or asked when he can come).
+- "schedule": a site visit (to look at the job and price it) is being arranged but no time is settled.
+- "schedule_job": the job is agreed (signed, or deposit paid) and the work or pour date needs setting or confirming.
 - "estimate": Chris has what he needs (visited, or has photos/plans) and owes a price or a revised price.
 - "visit_booked": Chris and the customer agreed a specific day AND clock time for him to come look at the job (a site visit or walk-through), and it has not happened yet. A pour, a work day or a start date is not a visit. "I'll try to stop by Friday" or "aiming for tomorrow afternoon" with no agreed time is "schedule", not booked.
+- "collect_payment": the work is finished or invoiced and Chris is still owed money (final payment, balance, an invoice not yet paid). Chris's terms are a 50% deposit and the balance on completion.
 - "waiting": Chris is waiting on the customer: photos, dimensions, drawings, an address, or their decision on a quote.
-- "closed": nothing left to do: Chris declined the job, the customer said no or went elsewhere, or the job is finished and paid.
+- "closed": nothing left to do: Chris declined the job, the customer said no or went elsewhere, or the job is finished AND paid in full.
 
 next_step: one plain sentence, 80 characters at most (hard limit), what Chris should know or do, with the specific detail. Examples: "Can meet Mon or Tue before 3pm. Book the site visit." "Asked you to call back about a retaining wall." "Waiting on photos of the stairs." "Deciding on the $14,000 shed pad quote." "Visit Fri Oct 30 at 4:30pm." Use the customer's details, not generic words. No em dashes.
 visit_at: only with "visit_booked": the agreed time in Seattle local time, resolved to a full date using the message dates and today's date. Never invent a time that is not written in the messages. Otherwise null.
 If a customer offered times that have all passed, say so ("Offered times have passed. Ask for new ones.").
 evidence: the few words from one message your answer rests on, copied exactly (under 120 characters), or null. For "visit_booked" it must include the agreed time as written ("tomorrow around 4:30").
-suggest_stage: "signed" or "booked" when the messages show the job is agreed or underway (deposit, start date, pour, invoice) but the CRM stage is still new/contacted/quoted; "lost" when Chris declined or the customer said no; else null.
+suggest_stage: "signed" or "booked" when the messages show the job is agreed or underway (deposit, start date, pour) but the CRM stage is behind; "completed" when the messages show the work is finished; "lost" when Chris declined or the customer said no; else null.
 
 Read the newest messages most carefully: a later message overrides an earlier one. If the last word is the customer's and asks for something, the action is Chris's. Never invent a date, time or price that is not in the messages.`;
 
