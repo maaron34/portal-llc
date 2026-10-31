@@ -113,6 +113,11 @@ If a customer offered times that have all passed, say so ("Offered times have pa
 evidence: the few words from one message your answer rests on, copied exactly (under 120 characters), or null. For "visit_booked" it must include the agreed time as written ("tomorrow around 4:30").
 suggest_stage: "signed" or "booked" when the messages show the job is agreed or underway (deposit, start date, pour) but the CRM stage is behind; "completed" when the messages show the work is finished; "lost" when Chris declined or the customer said no; else null.
 
+Rules that are easy to get wrong:
+- A site visit that happened means Chris owes an estimate ("estimate"), unless he already sent a price. A site visit is not a signed job; never suggest "signed" or "booked" for it.
+- "lost" only when someone said no: Chris declined, or the customer said they hired someone else, cancelled, or do not want the work. A customer postponing ("next spring") is "waiting". A visit Chris missed, or a question he never answered, is his move, not lost.
+- "signed"/"booked" only when the customer accepted a price, signed, paid a deposit, or a work date is set.
+
 Read the newest messages most carefully: a later message overrides an earlier one. If the last word is the customer's and asks for something, the action is Chris's. Never invent a date, time or price that is not in the messages.`;
 
 export const FAILED = "failed" as const;
