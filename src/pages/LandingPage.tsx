@@ -360,9 +360,11 @@ export default function LandingPage() {
     setSubmitting(false);
   };
 
-  // Show first 3 reviews in the grid, use the rest in the sidebar callout rotation
-  const gridReviews = page.reviews.slice(0, 3);
-  const extraReviews = page.reviews.slice(3);
+  // reviews[0] is quoted in the form-side callout, so the grid starts at the
+  // next one. A second row only shows when it fills all three columns.
+  const gridReviews = page.reviews.slice(1, 4);
+  const nextRow = page.reviews.slice(4, 7);
+  const extraReviews = nextRow.length === 3 ? nextRow : [];
 
   return (
     <>
