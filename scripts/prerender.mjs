@@ -50,8 +50,19 @@ function getRoutes() {
     const path = (m[1] || "/").replace(/\/+$/, "") || "/";
     return path === "" ? "/" : path;
   });
+  // Ad landing pages (/lp/:slug) stay out of the sitemap on purpose, but ad
+  // platforms still crawl them. Unprerendered, every one served the homepage
+  // shell, so ChatGPT Ads flagged them with landing page crawl issues.
+  routes.push(...getLandingPageRoutes());
   // Deduplicate, just in case
   return [...new Set(routes)];
+}
+
+function getLandingPageRoutes() {
+  const src = readFileSync(join(projectRoot, "src", "data", "landing-pages.ts"), "utf-8");
+  const slugs = [...src.matchAll(/slug: "([a-z0-9-]+)"/g)].map((m) => m[1]);
+  if (slugs.length === 0) throw new Error("no landing page slugs found in src/data/landing-pages.ts");
+  return slugs.map((s) => `/lp/${s}`);
 }
 
 // ---- Vite preview server lifecycle ----
@@ -219,7 +230,7 @@ async function main() {
   console.log("[prerender] starting");
 
   const routes = getRoutes();
-  console.log(`[prerender] ${routes.length} routes from sitemap.xml`);
+  console.log(`[prerender] ${routes.length} routes (sitemap.xml + ad landing pages)`);
 
   console.log("[prerender] starting vite preview server...");
   const server = await startPreviewServer();
