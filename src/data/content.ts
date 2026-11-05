@@ -647,12 +647,14 @@ export const BUSINESS = {
   license: "PORTAL*803D4",
   // Counted from REVIEWS rather than typed in. The hardcoded "100" quietly
   // conflated two different numbers: the reviews we hold across every platform
-  // and the count on Google alone. Google shows 91, so "100+ five-star reviews,
-  // 4.9 average on Google" read as a claim that does not survive a check, and
-  // directories do check.
+  // and the count on Google alone. Google showed 91 at the time, so "100+
+  // five-star reviews, 4.9 average on Google" read as a claim that did not
+  // survive a check, and directories do check.
   reviewCount: REVIEWS.length,
   googleReviewCount: REVIEWS.filter((r) => r.source === "Google").length,
-  rating: 4.9,
+  rating: 5,
+  // JavaScript prints the number 5.0 as "5", and Google shows "5.0".
+  ratingLabel: "5.0",
   foundedYear: FOUNDED_YEAR,
   yearsInBusiness: yearsSince(FOUNDED_YEAR),
   founderYearsExperience: yearsSince(FOUNDER_CAREER_START),

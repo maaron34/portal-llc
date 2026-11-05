@@ -507,7 +507,7 @@ export default function LandingPage() {
                     />
                   ))}
                   <span className="ml-2 text-sm font-semibold text-portal-dark">
-                    {BUSINESS.rating}/5 from {BUSINESS.reviewCount}+ reviews
+                    {BUSINESS.ratingLabel}/5 from {BUSINESS.reviewCount}+ reviews
                   </span>
                 </div>
                 <p className="text-portal-gray text-sm italic">
