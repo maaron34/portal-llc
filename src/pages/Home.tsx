@@ -302,7 +302,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-portal-mid mb-6">
-              {BUSINESS.rating} average on Google
+              {BUSINESS.ratingLabel} average on Google
             </p>
             <p className="text-portal-mid italic max-w-md mx-auto">
               "{SECTION_QUOTES[2].text}"{" "}
