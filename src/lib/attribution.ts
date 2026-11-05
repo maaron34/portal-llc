@@ -6,8 +6,15 @@
 // visitor then submits from /contact). Exposes a flat, non-empty payload to
 // merge into submit-lead captures (so the Supabase row and Chris's lead email
 // show the source) and, later, the Make webhook.
+//
+// sessionStorage is per tab, and the ad pages link to the main site in a new
+// tab. So a tagged click (UTM or click ID) is also kept in localStorage for 30
+// days, or the lead reads as Direct. Referrer-only visits stay per tab, so an
+// old organic visit never outranks a later ad click.
 
 const STORAGE_KEY = "portal_attribution";
+const AD_CLICK_KEY = "portal_ad_click";
+const AD_CLICK_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 const UTM_KEYS = [
   "utm_source",
@@ -47,6 +54,39 @@ function hasAttributionSignal(attr: Attribution): boolean {
   );
 }
 
+function hasTaggedClick(attr: Attribution): boolean {
+  return UTM_KEYS.some((key) => attr[key]);
+}
+
+/** The saved ad click, unless it is missing, unreadable or over 30 days old. */
+function readAdClick(): Attribution | null {
+  try {
+    const raw = localStorage.getItem(AD_CLICK_KEY);
+    if (!raw) return null;
+    const attr = JSON.parse(raw) as Attribution;
+    const capturedAt = attr.captured_at ? Date.parse(attr.captured_at) : NaN;
+    if (Number.isNaN(capturedAt) || Date.now() - capturedAt > AD_CLICK_TTL_MS) {
+      localStorage.removeItem(AD_CLICK_KEY);
+      return null;
+    }
+    return attr;
+  } catch {
+    return null;
+  }
+}
+
+/** First ad click wins for 30 days, matching the first-touch rule below. */
+function saveAdClick(): void {
+  try {
+    const attr = readFromUrl();
+    if (!hasTaggedClick(attr) || readAdClick()) return;
+    attr.captured_at = new Date().toISOString();
+    localStorage.setItem(AD_CLICK_KEY, JSON.stringify(attr));
+  } catch {
+    // localStorage blocked: the per-tab capture below still runs.
+  }
+}
+
 /**
  * Capture first-touch attribution. Call once on app mount.
  * First touch wins: if a prior capture already carries a real signal (UTM,
@@ -56,6 +96,7 @@ function hasAttributionSignal(attr: Attribution): boolean {
  */
 export function captureAttribution(): void {
   if (typeof window === "undefined") return;
+  saveAdClick();
   try {
     const existing = sessionStorage.getItem(STORAGE_KEY);
     if (existing && hasAttributionSignal(JSON.parse(existing) as Attribution)) return;
@@ -69,6 +110,8 @@ export function captureAttribution(): void {
 
 function getAttribution(): Attribution {
   if (typeof window === "undefined") return {};
+  const adClick = readAdClick();
+  if (adClick) return adClick;
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Attribution;
