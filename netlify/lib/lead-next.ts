@@ -88,6 +88,14 @@ export function transcript(lead: Pick<LeadRow, "created_at" | "message" | "stage
     const words = e.type === "call" ? e.body : ownWords(e.body || "").replace(/\s+/g, " ").slice(0, 700);
     lines.push(`[${seattle(e.at)}] ${who} (${kind}): ${words || "(no text)"}`);
   }
+  // Said outright, because the model has read Chris's answer as still owed: Dan
+  // Bertolet's card said "Reply" for 6 days after Chris sent the price and
+  // answered both of Dan's questions (2026-11-01).
+  const last = recent.at(-1);
+  if (last && last.direction === "out" && last.type !== "call") {
+    lines.push("");
+    lines.push(`The last message is Chris's (${seattle(last.at)}). The customer has not written since.`);
+  }
   return lines.join("\n");
 }
 
@@ -117,6 +125,8 @@ Rules that are easy to get wrong:
 - A site visit that happened means Chris owes an estimate ("estimate"), unless he already sent a price. A site visit is not a signed job; never suggest "signed" or "booked" for it.
 - "lost" only when someone said no: Chris declined, or the customer said they hired someone else, cancelled, or do not want the work. A customer postponing ("next spring") is "waiting". A visit Chris missed, or a question he never answered, is his move, not lost.
 - "signed"/"booked" only when the customer accepted a price, signed, paid a deposit, or a work date is set.
+
+- When the last message is Chris's and it answers the customer (a price, an answer to their question, a question back to them), the action is "waiting", even if an older customer message asked something. Use "reply" or "estimate" only when the customer wrote after Chris, or Chris's last message promised something he has not sent yet ("I'll send the numbers tomorrow").
 
 Read the newest messages most carefully: a later message overrides an earlier one. If the last word is the customer's and asks for something, the action is Chris's. Never invent a date, time or price that is not in the messages.`;
 
