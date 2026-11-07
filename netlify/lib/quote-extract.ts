@@ -147,6 +147,7 @@ Reply with JSON only:
 
 Rules:
 - A quote is a dollar figure Chris gives for the customer's job: a bid, an estimate, a ballpark, a range, or options with prices. "$15K" is 15000.
+- Line items for one job ("footing $2,200, mounting $1,400"): low is their total, high is null, and summary lists the items ("$2,200 footing + $1,400 mounting").
 - A single figure: low is that number, high is null. A range: low and high. Several options: low is the cheapest, high the most expensive. "$20,000+" or "over $20K": low 20000, high null.
 - summary: under 60 characters, the price as written plus what it is for if he says ("$8,000-$12,000, back patio"; "Option 1 $13,100 / Option 2 $9,800"). Use a plain hyphen for ranges.
 - quote: Chris's sentence that contains the price, copied exactly, under 160 characters.
@@ -229,13 +230,26 @@ const squash = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 /** The sentence the model says it copied is really in the message. */
 const inText = (quote: string, text: string): boolean => Boolean(quote) && squash(text).includes(squash(quote));
 
+/** True when `total` is the sum of two to four different amounts written in the message. */
+export function isSumOf(total: number, written: Set<number>): boolean {
+  const parts = [...written].filter((n) => n >= 50 && n < total).sort((a, b) => b - a).slice(0, 12);
+  const walk = (i: number, left: number, used: number): boolean => {
+    if (left === 0) return used >= 2;
+    if (used === 4 || i >= parts.length) return false;
+    return (parts[i] <= left && walk(i + 1, left - parts[i], used + 1)) || walk(i + 1, left, used);
+  };
+  return walk(0, total, 0);
+}
+
 export function parseQuote(p: Record<string, unknown>, text: string): Omit<QuotedEstimate, "source" | "at" | "message_id"> | null {
   if (p.quoted !== true) return null;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 && v < 10_000_000 ? Math.round(v) : null);
   const low = num(p.low);
   if (low == null) return null;
   const written = amountsIn(text);
-  if (!written.has(low)) return null;
+  // Line items the model added up ("footing $2,200" + "mounting $1,400" = 3600,
+  // Dan Bertolet, 2026-11-01) count when every part is written in the message.
+  if (!written.has(low) && !isSumOf(low, written)) return null;
   const rawHigh = num(p.high);
   const high = rawHigh != null && rawHigh > low && written.has(rawHigh) ? rawHigh : null;
   const str = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : "");
