@@ -31,11 +31,12 @@
 
 import { digits10, validEmail } from "./lead-links";
 import { normalizeName, type CorrespondenceEntry, type LeadRow } from "./lead-db";
+import { isPortalEmail, isPortalLead, isPortalName, isPortalPhone } from "./portal-self";
 
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 
-export type Identity = { name?: string; street?: string; city?: string; email?: string };
+export type Identity = { name?: string; street?: string; city?: string; email?: string; phone?: string };
 
 const SYSTEM =
   "You read messages a homeowner sent to Chris, a Seattle concrete contractor, " +
@@ -94,8 +95,9 @@ export async function extractIdentity(text: string, opts: { timeoutMs?: number }
       city: str(p.city, 60),
       email: validEmail(str(p.email, 254)),
     };
-    // A "name" that is really Chris or the business is noise.
-    if (out.name && /\b(chris|portal)\b/i.test(out.name) && out.name.split(/\s+/).length <= 2) out.name = undefined;
+    // Chris's or Portal's own details are never the customer's (portal-self.ts).
+    if (isPortalName(out.name)) out.name = undefined;
+    if (isPortalEmail(out.email)) out.email = undefined;
     return out.name || out.street || out.city || out.email ? out : null;
   } catch (err) {
     console.error("lead-identity threw:", err);
@@ -105,11 +107,70 @@ export async function extractIdentity(text: string, opts: { timeoutMs?: number }
   }
 }
 
+/**
+ * The customer's own words in one message: everything above the first quoted
+ * reply or forwarded header. Andy Herrick's email quoted a neighbor's thread
+ * that carried Perry Brown's number; only the lines Andy wrote are his.
+ */
+export function ownWords(body: string): string {
+  const text = (body || "").replace(/\r\n?/g, "\n");
+  const cuts = [
+    /\n[^\n]*\bOn [^\n]{0,160}(\n[^\n]{0,160})?\bwrote:/i, // Gmail / Apple Mail reply header, may wrap
+    /\n-{2,}\s*(Original Message|Forwarded message)/i,
+    /\nBegin forwarded message:/i,
+    /\n_{5,}/, // Outlook separator
+    /\nFrom:\s[^\n]*\n(Sent|Date):/i, // Outlook header block
+  ];
+  let end = text.length;
+  for (const re of cuts) {
+    const m = re.exec("\n" + text);
+    if (m && m.index < end) end = Math.max(0, m.index);
+  }
+  return text
+    .slice(0, end)
+    .split("\n")
+    .filter((l) => !/^\s*>/.test(l))
+    .join("\n");
+}
+
+const PHONE_RE = /(?:\+?1[\s.-]?)?\(?\b(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})\b/g;
+
+/**
+ * Every phone number the customer wrote in their own words (form message,
+ * texts, emails), as 10 digits. Matt Altman signed his email "-Matt
+ * 206-790-5601"; his texts were already on file under that number, and without
+ * reading it the CRM kept two records and missed Chris's emailed bid. Portal's
+ * own numbers never count. Greg Mathison signed with a cell and an office line,
+ * so there can be more than one.
+ */
+export function ownPhones(lead: Pick<LeadRow, "message" | "correspondence">): string[] {
+  const bodies = (lead.correspondence || [])
+    .filter((e: CorrespondenceEntry) => e.direction === "in" && e.type !== "call" && (e.body || "").trim())
+    .map((e) => e.body);
+  if ((lead.message || "").trim()) bodies.unshift(lead.message!);
+  const found = new Set<string>();
+  for (const b of bodies) {
+    for (const m of ownWords(b).matchAll(PHONE_RE)) {
+      const d = digits10(m[1] + m[2] + m[3]);
+      if (d && !isPortalPhone(d) && !/^(\d)\1+$/.test(d)) found.add(d);
+    }
+  }
+  return [...found];
+}
+
+/** The number to save on the lead: only when the customer gave exactly one. */
+export function ownPhone(lead: Pick<LeadRow, "message" | "correspondence">): string | undefined {
+  const all = ownPhones(lead);
+  return all.length === 1 ? all[0] : undefined;
+}
+
 /** The column patch that fills blanks only. Empty when nothing new was learned. */
-export function identityPatch(lead: Pick<LeadRow, "name" | "email" | "address">, found: Identity): Record<string, string> {
+export function identityPatch(lead: Pick<LeadRow, "name" | "email" | "address"> & { phone?: string | null }, found: Identity): Record<string, string> {
   const patch: Record<string, string> = {};
-  if (found.name && !(lead.name || "").trim()) patch.name = found.name;
-  if (found.email && !(lead.email || "").trim()) patch.email = found.email;
+  if (found.name && !isPortalName(found.name) && !(lead.name || "").trim()) patch.name = found.name;
+  if (found.email && !isPortalEmail(found.email) && !(lead.email || "").trim()) patch.email = found.email;
+  const phone = digits10(found.phone);
+  if (phone && !isPortalPhone(phone) && !digits10(lead.phone)) patch.phone = "+1" + phone;
   // A city alone ("Seattle", from a voicemail) is not an address; it fills the
   // address field with something that looks checked and is not.
   if (!(lead.address || "").trim() && found.street) {
@@ -148,12 +209,19 @@ export async function loadCandidates(secret: string, excludeId: string): Promise
 
 /**
  * Pure: the best match for `lead` among `rows`, or null. "sure" beats "maybe";
- * among equals the oldest row wins, since it holds the history.
+ * among equals the oldest row wins, since it holds the history. `typedPhones`
+ * are numbers the customer wrote in their own words (ownPhones): a lead already
+ * on file under one of them is the same person. `signedName` is the name the
+ * model read from their own words (extractIdentity).
  */
-export function findMatch(lead: MatchRow, rows: MatchRow[]): Match | null {
+export function findMatch(lead: MatchRow, rows: MatchRow[], typedPhones: string[] = [], signedName?: string): Match | null {
   const phone = digits10(lead.phone);
   const email = (validEmail(lead.email) || "").toLowerCase();
-  const name = normalizeName(lead.name);
+  // "The Harts" signed "Brad Hart": the name they sign with counts when the
+  // record's own name is not a full name of a person.
+  const own = normalizeName(lead.name);
+  const signed = isPortalName(signedName) ? "" : normalizeName(signedName);
+  const name = own.split(" ").length >= 2 && !/^the /.test(own) ? own : signed || own;
   // A first name alone ("Mike") never matches: too many Mikes.
   const fullName = name.split(" ").length >= 2 && name.replace(/\s/g, "").length >= 5 ? name : "";
 
@@ -164,12 +232,24 @@ export function findMatch(lead: MatchRow, rows: MatchRow[]): Match | null {
     else if (m.verdict === best.verdict && m.other.created_at < best.other.created_at) best = m;
   };
 
+  // A lead that is really Chris (a forward from his own address) matches nothing,
+  // and Portal's own phone, email and name never link two customers.
+  if (isPortalLead(lead)) return null;
+
   for (const r of rows) {
+    if (isPortalLead(r)) continue;
     const rPhone = digits10(r.phone);
     const rEmail = (validEmail(r.email) || "").toLowerCase();
     const rName = normalizeName(r.name);
     if (phone && rPhone && phone === rPhone) {
       consider({ verdict: "sure", other: r, reason: "same phone number" });
+      continue;
+    }
+    if (rPhone && typedPhones.includes(rPhone)) {
+      // A lead that already has a different phone of its own may be a property
+      // manager writing the owner's number: Chris decides (Merge button).
+      if (phone && phone !== rPhone) consider({ verdict: "maybe", other: r, reason: "they wrote this lead's phone number, but have their own" });
+      else consider({ verdict: "sure", other: r, reason: "they wrote this lead's phone number" });
       continue;
     }
     if (email && rEmail && email === rEmail) {
