@@ -246,7 +246,10 @@ export function findMatch(lead: MatchRow, rows: MatchRow[], typedPhones: string[
       continue;
     }
     if (rPhone && typedPhones.includes(rPhone)) {
-      consider({ verdict: "sure", other: r, reason: "they wrote this lead's phone number" });
+      // A lead that already has a different phone of its own may be a property
+      // manager writing the owner's number: Chris decides (Merge button).
+      if (phone && phone !== rPhone) consider({ verdict: "maybe", other: r, reason: "they wrote this lead's phone number, but have their own" });
+      else consider({ verdict: "sure", other: r, reason: "they wrote this lead's phone number" });
       continue;
     }
     if (email && rEmail && email === rEmail) {
