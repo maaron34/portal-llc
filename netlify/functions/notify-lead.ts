@@ -29,7 +29,7 @@
 
 import { draftReply, isPhoneChannel, type DraftResult } from "../lib/draft-reply";
 import { mergeRaw, patchLead, readLead, rawStr, type CorrespondenceEntry, inboundBodies } from "../lib/lead-db";
-import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, type Match } from "../lib/lead-identity";
+import { extractIdentity, findMatch, identityPatch, inboundText, loadCandidates, ownPhone, ownPhones, type Match } from "../lib/lead-identity";
 import { checkScam, locateChecked, outOfAreaReply, type Area, type ScamCheck } from "../lib/lead-triage";
 import { emailChris, fallbackTopic, renderLeadEmail, type LeadPayload, type NotifyKind } from "../lib/lead-notify";
 
@@ -139,7 +139,11 @@ export default async (request: Request): Promise<Response> => {
     // Best effort throughout: a failure here must never cost the lead email.
     let duplicate: Match["other"] | null = null;
     if (lead && id && kind !== "merged") {
-      const found = await extractIdentity(inboundText(lead)).catch(() => null);
+      const extracted = await extractIdentity(inboundText(lead)).catch(() => null);
+      // A phone number the customer typed (an email signature, a form message)
+      // is read by code, not the model: it is what links an email to their texts.
+      const typedPhone = ownPhone(lead);
+      const found = extracted || typedPhone ? { ...(extracted || {}), ...(typedPhone ? { phone: typedPhone } : {}) } : null;
       if (found) {
         const fill = identityPatch(lead, found);
         if (Object.keys(fill).length && (await patchLead(secret, id, fill))) {
@@ -154,7 +158,7 @@ export default async (request: Request): Promise<Response> => {
           (lead.raw as Record<string, unknown>).city = found.city;
         }
       }
-      const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, id));
+      const match = findMatch({ ...lead, raw: lead.raw as { junk?: unknown } }, await loadCandidates(secret, id), ownPhones(lead), extracted?.name);
       if (match?.verdict === "sure") {
         const survivor = await autoMerge(secret, id, match);
         if (survivor) {
