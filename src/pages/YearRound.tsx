@@ -10,7 +10,7 @@ export default function YearRound() {
 
       {/* Hero */}
       <section className="relative pt-20">
-        <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden bg-portal-dark">
+        <div className="h-72 sm:h-auto sm:aspect-[4/1] relative overflow-hidden bg-portal-dark">
           <img
             src="/images/winter/tent-setup.jpg"
             alt="Portal tent structure for winter concrete pouring"

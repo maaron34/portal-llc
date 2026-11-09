@@ -73,7 +73,7 @@ export default function NeighborhoodPage() {
 
       {/* Hero */}
       <section className="relative pt-20">
-        <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden">
+        <div className="h-72 sm:h-auto sm:aspect-[4/1] relative overflow-hidden">
           <img
             src={neighborhood.heroImage}
             alt={`Concrete work by Portal in ${neighborhood.name}, Seattle`}
