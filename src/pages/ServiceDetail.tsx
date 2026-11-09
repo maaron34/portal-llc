@@ -23,7 +23,7 @@ export default function ServiceDetail() {
 
       {/* Hero */}
       <section className="relative pt-20">
-        <div className="aspect-[3/1] sm:aspect-[4/1] relative overflow-hidden">
+        <div className="h-72 sm:h-auto sm:aspect-[4/1] relative overflow-hidden">
           <img
             src={service.heroImage}
             alt={service.title}
