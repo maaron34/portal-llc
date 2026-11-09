@@ -193,6 +193,37 @@ export function parseNext(p: Record<string, unknown>, text: string, now = new Da
   return { action: finalAction, next_step: clip(step), visit_at: visit, evidence: ev, suggest_stage: stage };
 }
 
+// Chris's last message promises something he has not sent yet.
+const PROMISE = /\b(i'?ll|i will|i'?m going to|we'?ll|we will|will (send|get|have|put|follow)|sending (you|over)|to follow)\b/i;
+const OWED_BY_CHRIS: NextAction[] = ["reply", "estimate", "call_back"];
+
+/**
+ * The model is told that Chris's answer, sent last, means the lead waits on the
+ * customer, and it still says otherwise: Dan Bertolet (2026-11-01) and Tormay B
+ * (2026-11-08, "Create detailed estimate" the night Chris wrote "keep me posted
+ * on the schedule"). So code enforces it: when the newest real entry is Chris's
+ * written message and it promises nothing, "reply", "estimate" and "call_back"
+ * become "waiting". A call is not enforced, since Chris may owe a follow-up from it.
+ */
+export function enforceWaiting(
+  parsed: Omit<LeadNext, "based_on" | "at" | "model">,
+  entries: CorrespondenceEntry[],
+  name: string | null | undefined
+): Omit<LeadNext, "based_on" | "at" | "model"> {
+  if (!OWED_BY_CHRIS.includes(parsed.action)) return parsed;
+  const last = realEntries(entries).at(-1);
+  if (!last || last.direction !== "out" || last.type === "call" || last.type === "note") return parsed;
+  if (PROMISE.test(ownWords(last.body || ""))) return parsed;
+  const first = (name || "").trim().split(/\s+/)[0];
+  const day = new Date(last.at).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" });
+  return {
+    ...parsed,
+    action: "waiting",
+    next_step: clip(`You answered ${day}. Waiting on ${first && first.length > 1 ? first : "the customer"}.`),
+    suggest_stage: parsed.suggest_stage,
+  };
+}
+
 export async function readNext(
   lead: Pick<LeadRow, "created_at" | "message" | "stage" | "name" | "raw" | "correspondence">,
   opts: { timeoutMs?: number; now?: Date } = {}
@@ -227,7 +258,8 @@ export async function readNext(
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content;
     const match = typeof raw === "string" ? raw.match(/\{[\s\S]*\}/) : null;
-    const parsed = match ? parseNext(JSON.parse(match[0]) as Record<string, unknown>, text, now) : null;
+    const read = match ? parseNext(JSON.parse(match[0]) as Record<string, unknown>, text, now) : null;
+    const parsed = read ? enforceWaiting(read, entries, lead.name) : null;
     if (!parsed) {
       // The answer is the only clue to a failure, and it holds no secrets.
       console.error("lead-next unusable answer:", String(raw).slice(0, 400));
