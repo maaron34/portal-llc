@@ -185,7 +185,7 @@ export const SERVICES: Service[] = [
     services: [
       "Concrete crack repair",
       "Surface restoration",
-      "Settling and leveling fixes",
+      "Replacing settled or sunken sections",
       "Stair and walkway reconditioning",
       "Color matching and staining",
       "Protective sealing",

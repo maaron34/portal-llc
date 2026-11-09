@@ -140,7 +140,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       {
         question: "Do you handle pre-1940 foundation repair?",
         answer:
-          "Yes. Crack sealing, partial reinforcement, and settling fixes are common on Capitol Hill. We coordinate with structural engineers when scope requires it. Full underpinning is a specialty job we'd refer to a partner; everything short of that we handle in-house.",
+          "Yes. Crack sealing and partial reinforcement are common on Capitol Hill, and when a slab has settled, we replace it. We coordinate with structural engineers when scope requires it. Full underpinning, slab lifting, and drainage work are specialty jobs we refer to partners.",
       },
       {
         question: "How do you access tight Capitol Hill yards?",
@@ -199,7 +199,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     metaDescription:
       "Concrete contractor serving Magnolia and Discovery Park area. Foundation repair on older homes, hillside driveways, retaining walls, and patios. Licensed, bonded, 100+ five-star reviews across Seattle.",
     localContext:
-      "Magnolia's mix of older homes and post-WWII bungalows means a lot of the concrete work here is foundation-adjacent: repair, crack sealing, drainage improvements, and slab replacements for settled garages. Lot sizes are generous compared to Ballard or Capitol Hill, which gives us more room to work.",
+      "Magnolia's mix of older homes and post-WWII bungalows means a lot of the concrete work here is foundation-adjacent: repair, crack sealing, and slab replacements for settled garages. Lot sizes are generous compared to Ballard or Capitol Hill, which gives us more room to work.",
     commonProjects: [
       "Foundation crack repair and reinforcement on pre-1960 homes",
       "Garage slab replacement on settled or cracked floors",
@@ -213,7 +213,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       {
         question: "Our 1955 home has a settling foundation. Can you help?",
         answer:
-          "Yes. Foundation settling is one of the most common things we see in older Magnolia homes. Repair scope ranges from crack sealing and drainage improvements to partial reinforcement. We'll walk the perimeter with you at the estimate and tell you what we think is going on before quoting anything.",
+          "Yes. Foundation settling is one of the most common things we see in older Magnolia homes. We handle crack sealing, partial reinforcement, and replacing slabs that have settled. If water is causing the problem, we'll tell you and point you to a drainage specialist. We'll walk the perimeter with you at the estimate and tell you what we think is going on before quoting anything.",
       },
       {
         question: "Do you do long driveways on Magnolia's larger lots?",
@@ -223,7 +223,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       {
         question: "Can you do garage slab replacement?",
         answer:
-          "Yes. Garage slabs are usually 3-5 working days: demo the old slab and haul it out day one, set base and forms day two, pour day three. We handle any drainage updates the existing slab didn't have.",
+          "Yes. Garage slabs are usually 3-5 working days: demo the old slab and haul it out day one, set base and forms day two, pour day three. We slope the new slab so water runs out of the garage, even if the old one didn't.",
       },
     ],
     approximateLat: 47.6437,
