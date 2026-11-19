@@ -1,0 +1,71 @@
+/* Portal - generated from tokens.json by scripts/build-tokens-css.mjs. Do not edit by hand. */
+:root, [data-theme="light"] {
+  --portal-charcoal: #2d2d2d;
+  --portal-dark: #1a1a1a;
+  --portal-gray: #4a4a4a;
+  --portal-mid: #6b6b6b;
+  --portal-light: #e8e5e0;
+  --portal-cream: #f5f3ef;
+  --portal-warm: #d4cfc7;
+  --portal-accent: #3d7a5f;
+  --portal-accent-dark: #2d5f49;
+  --portal-white: #ffffff;
+  --portal-accent-light: #7fb89c;
+  --portal-star: #fbbf24;
+  --portal-scrim: rgba(26, 26, 26, 0.85);
+  --portal-error: #dc2626;
+  --surface: var(--portal-white);
+  --surface-alt: var(--portal-cream);
+  --ink: var(--portal-dark);
+  --ink-body: var(--portal-charcoal);
+  --ink-soft: var(--portal-gray);
+  --ink-muted: var(--portal-mid);
+  --line: var(--portal-light);
+  --control-outline: rgba(26, 26, 26, 0.2);
+  --accent-fill: var(--portal-accent);
+  --accent-fill-pressed: var(--portal-accent-dark);
+  --on-accent: var(--portal-white);
+  --accent-ink: var(--portal-accent);
+}
+[data-theme="dark"] {
+  --surface: var(--portal-dark);
+  --surface-alt: var(--portal-charcoal);
+  --ink: var(--portal-white);
+  --ink-body: var(--portal-light);
+  --ink-soft: var(--portal-light);
+  --ink-muted: var(--portal-warm);
+  --line: var(--portal-gray);
+  --control-outline: rgba(255, 255, 255, 0.32);
+  --accent-ink: var(--portal-accent-light);
+  color-scheme: dark;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+  --space-20: 80px;
+  --space-28: 112px;
+  --ad-panel-pad: 44px;
+  --video-safe-top: 270px;
+  --video-safe-bottom: 672px;
+  --video-safe-left: 70px;
+  --video-safe-right: 150px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-tag-video: 10px;
+  --radius-lg: 12px;
+  --radius-caption: 18px;
+  --radius-pill: 999px;
+  --duration-reveal: 0.7s;
+  --duration-spiral: 20s;
+  --duration-transition: 0.4s;
+  --duration-caption-fade: 0.35s;
+  --opacity-watermark: 0.06;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
