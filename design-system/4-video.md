@@ -25,7 +25,7 @@ Portal videos are vertical sequences of real job photos, 10 to 15 seconds long, 
 ## End card
 
 - Give it 3.4 seconds on `portal-charcoal`. The first 0.4 seconds overlap the transition in, so it is fully on screen for 3.0 seconds.
-- Stack, 46px apart: the white logo at 520px wide, the headline in `video-endcard-head`, one or two proof lines in `video-endcard-line` (`portal-light`), the CtaBadge in `video-cta`, and the URL in `video-url` (`portal-warm`).
+- Stack, 46px apart: the white logo at 520px wide, the headline in `video-endcard-head`, five `portal-star` stars (64px, `space-1` apart) directly above the Google rating line, one or two proof lines in `video-endcard-line` (`portal-light`), the CtaBadge in `video-cta`, and the URL in `video-url` (`portal-warm`).
 - Center the stack between y 270 and y 1248. Center it left to right on the frame with 150px clear on both sides, so it looks centered and still stays off the right-side buttons.
 - The November 2026 batch centered the stack on the full frame height, which puts the badge and URL inside Meta's bottom 35%. Center on the safe zone from now on.
 

@@ -2,7 +2,8 @@ Five filled stars beside the Google rating line.
 
 ## Use it for
 - Near the top of web pages, in landing page heroes and in email headers.
-- In ads, the proof line runs as text only (`ad-proof`), without the stars.
+- In static ads, the proof line runs as text only (`ad-proof`), without the stars.
+- On video end cards, five stars sit directly above the Google rating line (see Video).
 
 ## The consumer provides
 - The rating text, copied from the claims table in Voice and claims.
