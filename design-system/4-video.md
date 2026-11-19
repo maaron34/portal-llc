@@ -17,6 +17,7 @@ Portal videos are vertical sequences of real job photos, 10 to 15 seconds long, 
 - Zoom each photo slowly by 8%. Zoom out instead on the last photo before the end card.
 - For before/after, show the BEFORE scene, then wipe left to the AFTER photo from the same angle over `duration-transition`.
 - Set captions in `video-caption`, white, in a `portal-scrim` box with `radius-caption`, at the top left of the safe zone. Keep each caption to two lines.
+- Never leave one word alone on the last line of a caption, end card headline or proof line. When text runs to two lines, give the lines a similar number of words, and set the break by hand. Example: "Front steps rebuilt / in concrete" and never "Front steps rebuilt in / concrete".
 - Fade each caption in over `duration-caption-fade`, starting 0.25 seconds into the scene.
 - Use one caption per scene at most. Some scenes can run with only a tag.
 - Set tags in `video-tag`: BEFORE on `portal-scrim`, AFTER on `accent-fill`, corners `radius-tag-video`.

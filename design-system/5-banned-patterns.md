@@ -19,6 +19,7 @@ These patterns make work look generic or machine-made. People notice them even w
 - Blue, purple, neon or a second accent color.
 - A second typeface added for personality, or a font that imitates the logo.
 - All-caps labels with wide letter spacing anywhere except the BEFORE and AFTER tags.
+- One word alone on the last line of a heading, caption or button, and two-line text with lopsided lines. Break lines by hand so both lines carry a similar number of words. This applies to pages, ads, videos and emails.
 
 ## Images
 

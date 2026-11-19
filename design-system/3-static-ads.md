@@ -22,6 +22,7 @@ Deliver each ad as a PNG and a JPG (quality 90). Make a clean version of each si
 - Use one headline and one sub line. No lists, no prices, no second call to action.
 - When the headline is the rating itself, drop the proof line from the footer.
 - Never let a line break inside a hyphenated word such as year-round. Use a non-breaking hyphen (U+2011) in headlines.
+- Never leave one word alone on the last line of a headline or sub line. When text runs to two lines, give the lines a similar number of words. Set the break by hand instead of letting the text wrap on its own. Example: "Seattle winter? / We pour year-round." and never "Seattle winter? We pour year- / round."
 
 ## Copy pattern
 
