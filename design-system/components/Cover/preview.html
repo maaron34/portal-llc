@@ -1,0 +1,32 @@
+<!-- @dsCard height=288 -->
+<div class="pt-root cv">
+  <style>
+    .cv { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--surface); }
+    .cv svg { position: absolute; inset: 0; }
+    .cv .b-ink { fill: var(--ink-body); }
+    .cv .b-green { fill: var(--portal-accent); }
+    .cv .b-warm { fill: var(--portal-warm); }
+    .cv .b-gray { fill: var(--portal-gray); }
+    .cv .cut { fill: none; stroke: var(--surface); stroke-width: 4; stroke-linecap: square; }
+    .cv .txt { position: absolute; left: 40px; bottom: 32px; max-width: 440px; display: flex; flex-direction: column; gap: 16px; }
+    .cv .name { margin: 0; font: 900 120px/0.92 var(--font-sans, "Inter", sans-serif); letter-spacing: -0.02em; color: var(--ink); }
+    .cv .tag { margin: 0; font: 400 14px/1.4 var(--font-sans, "Inter", sans-serif); color: var(--ink-muted); }
+  </style>
+  <svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <!--
+      blocks: ink-body 252x168, portal-warm 192x168, portal-accent 96x108, portal-gray 336x108 (fixed values, so the dark theme keeps four distinct slabs)
+      arrangement: two rows of poured slabs with space-3 (12px) joints, offset like a slab driveway, bleeding off the top, right and bottom edges; green stays the smallest slab because the brand spends it sparingly
+      pattern: broom finish, the texture Portal puts on walks and steps, as six cut lines across the big slab at a space-6 (24px) pitch
+      scales: joints space-3; line pitch space-6; square slab corners as poured; cut stroke 4px
+    -->
+    <rect class="b-ink" x="504" y="0" width="252" height="168"/>
+    <rect class="b-warm" x="768" y="0" width="192" height="168"/>
+    <rect class="b-green" x="504" y="180" width="96" height="108"/>
+    <rect class="b-gray" x="612" y="180" width="348" height="108"/>
+    <path class="cut" d="M528 24H732M528 48H732M528 72H732M528 96H732M528 120H732M528 144H732"/>
+  </svg>
+  <div class="txt">
+    <p class="name">Portal</p>
+    <p class="tag">Driveways, patios, steps and walls across Seattle.</p>
+  </div>
+</div>
