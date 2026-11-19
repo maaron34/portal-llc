@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Exclude the design system docs and previews so their text does not generate
+   unused utilities in the site CSS. */
+@source not "../design-system";
+
 @theme {
   --color-portal-charcoal: #2d2d2d;
   --color-portal-dark: #1a1a1a;
