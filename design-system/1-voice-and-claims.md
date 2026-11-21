@@ -21,7 +21,7 @@ Use these wordings exactly. They were sourced for the ad batch of 2026-11-17 and
 | Claim | Exact wording | Source |
 | --- | --- | --- |
 | Rating | 5.0 stars from 100 Google reviews | Google profile count recorded on 2026-11-05 |
-| Experience | 35+ years experience | Chris's career, stated across the website |
+| Experience | Owner Chris has 35+ years in construction | Chris's career (website: "Founded by Chris Hildebrand with 35+ years in construction"). Attribute it to Chris, so it never reads as the company's age. Never "35+ years in concrete". |
 | Credentials | Licensed, bonded and insured | Website |
 | License | WA contractor license PORTAL*803D4 | Website |
 | Offer | Free estimate | Website |

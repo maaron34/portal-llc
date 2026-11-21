@@ -22,10 +22,11 @@ Deliver each ad as a PNG and a JPG (quality 90). Make a clean version of each si
 - Use one headline and one sub line. No lists, no prices, no second call to action.
 - When the headline is the rating itself, drop the proof line from the footer.
 - Never let a line break inside a hyphenated word such as year-round. Use a non-breaking hyphen (U+2011) in headlines.
+- Never leave one word alone on the last line of a headline or sub line. When text runs to two lines, give the lines a similar number of words. Set the break by hand instead of letting the text wrap on its own. Example: "Seattle winter? / We pour year-round." and never "Seattle winter? We pour year- / round."
 
 ## Copy pattern
 
-The headline names the problem or the job. The sub line says what Portal does about it.
+The headline names the problem or the job. The sub line says what Portal does about it. A bare proof point (a rating, a number of years) never stands alone as the headline; lead with the job and put the proof under it.
 
 | Headline | Sub line |
 | --- | --- |
@@ -33,7 +34,8 @@ The headline names the problem or the job. The sub line says what Portal does ab
 | Old steps out. New steps in. | Front steps rebuilt in concrete. |
 | Seattle winter? We pour year-round. | We tent the pour to keep the rain off. |
 | Concrete retaining walls | For Seattle's sloped yards. |
-| 35+ years experience | Licensed, bonded and insured. Based in West Seattle. |
+| Got a concrete job? | 5.0 stars from 100 Google reviews. |
+| Need a concrete contractor? | Family-owned. Owner Chris has 35+ years in construction. Licensed, bonded and insured. |
 
 ## Before an ad goes live
 
