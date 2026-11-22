@@ -32,12 +32,15 @@ Portal videos are vertical sequences of real job photos, 10 to 15 seconds long, 
 
 ## Review video
 
-A review video shows real Google quotes, word for word, one per scene, 3 to 6 seconds each, then the end card.
+A review video shows real Google quotes, word for word, one per scene, 3 to 6 seconds each, then an end card.
 
-- Put the text on `portal-charcoal` in the top of the safe zone: x 70 to 930, y 270 to 1050, centered vertically in that box.
-- Stack, 30px apart: five `portal-star` stars at 66px, the quote upright (not italic) in 800 weight at line height 1.13, then the attribution at 42px, 600 weight, `portal-light`: the reviewer's name, "Google review" and "Photo shows another Portal job" (75% opacity) when the photo is not the reviewer's job.
-- Start the quote at 118px under 45 characters, 100px under 80, 92px under 105 and 86px at 105 or more. Step it down 2px at a time only until the stack fits the box, never below 60px. Cut the quote at a sentence end with an ellipsis before going smaller.
-- Fill y 1080 to 1920 with a finished-job photo that matches what the quote talks about (a driveway quote over a driveway). Zoom it slowly by 10%, alternating in and out between scenes. The text stays still.
+- Open on the shortest, strongest quote. Short quotes set big hook people faster than long ones.
+- Set the text on `portal-charcoal` starting at y 200, at x 70 to 930 (x 70 to 1020 for a quote broken by hand). This sits 70px above Meta's top line on purpose, to avoid empty space above short quotes; the top 200px still stays clear.
+- Stack, 30px apart: five `portal-star` stars at 66px, the quote upright (not italic) in 800 weight at line height 1.1, then the attribution at 42px, 600 weight, `portal-light`: the reviewer's name and "Google review".
+- Start the quote at 110px under 45 characters, 100px under 80, 92px under 105 and 86px at 105 or more. Step it down 2px at a time only until no text sits below y 1180, never below 60px.
+- End the charcoal panel 80px below the last line of text. A finished-job photo fills the frame from there to the bottom, so the split moves with each quote and no scene has an empty block.
+- Match the photo to what the quote talks about (a driveway quote over a driveway). Zoom it slowly by 10%, alternating in and out between scenes. The text stays still.
+- The end card uses the same split: logo, headline, stars and rating line, CtaBadge and URL centered from y 200, then the job photo 90px below the URL.
 - Cross-fade scenes over 0.4 seconds.
 
 ## Sound
