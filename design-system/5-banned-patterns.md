@@ -15,7 +15,7 @@ These patterns make work look generic or machine-made. People notice them even w
 
 ## Color and type
 
-- Gradients of any kind, except the bottom gradient on a ServiceTile.
+- Gradients of any kind, except the bottom gradient on a ServiceTile and the 200px fade above the photo band on a video end card.
 - Blue, purple, neon or a second accent color.
 - A second typeface added for personality, or a font that imitates the logo.
 - All-caps labels with wide letter spacing anywhere except the BEFORE and AFTER tags.
