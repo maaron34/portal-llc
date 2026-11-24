@@ -50,9 +50,9 @@ type Body = {
 };
 
 type LeadFile = { path?: string };
-type LeadRow = { id: string; photos?: string[] | null; raw?: Record<string, unknown> | null };
+export type LeadRow = { id: string; photos?: string[] | null; raw?: Record<string, unknown> | null };
 
-async function signedUrl(secret: string, path: string): Promise<string | null> {
+export async function signedUrl(secret: string, path: string): Promise<string | null> {
   const r = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${BUCKET}/${path}`, {
     method: "POST",
     headers: { ...auth(secret), "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ async function signedUrl(secret: string, path: string): Promise<string | null> {
 
 // The lead the token was issued for, or the older lead notify-lead folded it
 // into a moment after submit (it records raw.auto_merged_from on the survivor).
-async function findLead(secret: string, id: string): Promise<LeadRow | null> {
+export async function findLead(secret: string, id: string): Promise<LeadRow | null> {
   const sel = "select=id,photos,raw";
   for (const q of [`id=eq.${id}`, `raw->>auto_merged_from=eq.${id}`]) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?${q}&${sel}&limit=1`, { headers: auth(secret) });
@@ -87,7 +87,7 @@ async function objectInfo(secret: string, path: string): Promise<{ size: number;
 
 // Slots already written for this lead. A returning customer whose second
 // submission merged into the same lead starts from where the first one left off.
-async function usedSlots(secret: string, id: string): Promise<Set<number>> {
+export async function usedSlots(secret: string, id: string): Promise<Set<number>> {
   const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
     method: "POST",
     headers: { ...auth(secret), "Content-Type": "application/json" },
@@ -168,7 +168,7 @@ const hasFile = (lead: LeadRow, path: string): boolean => {
 // the `files` key, so the notes notify-lead writes to raw at the same moment
 // (draft reply, scam check) are never overwritten. Either way, re-read after
 // and report only what is actually on the lead.
-async function attach(
+export async function attach(
   secret: string,
   lead: LeadRow,
   path: string,
