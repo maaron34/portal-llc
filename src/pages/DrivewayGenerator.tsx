@@ -371,7 +371,13 @@ export default function DrivewayGenerator() {
           await sleep(1500 * (attempt + 1));
           continue;
         }
-        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; job?: string; t?: string; error?: string; reason?: LimitReason; photo_on_lead?: boolean };
+        const d = (await res.json().catch(() => null)) as { ok?: boolean; job?: string; t?: string; error?: string; reason?: LimitReason; photo_on_lead?: boolean } | null;
+        if (!d || (res.ok && !(d.job && d.t))) {
+          // The server answered but the answer did not arrive whole. It may have started the picture.
+          unsure = true;
+          await sleep(1500 * (attempt + 1));
+          continue;
+        }
         if (res.ok && d.job && d.t) {
           saved.current = { ...s, job: d.job, t: d.t, photoOnLead: d.photo_on_lead === true };
           save(saved.current);

@@ -38,7 +38,7 @@ A homeowner adds a photo of their old concrete, says what it is, leaves a name a
 - A double tap, a refresh, or a re-send carries the same request key and gets the same job.
 - The worker claims a job before it calls the model, so a message delivered twice runs once.
 - A request over a limit makes no job and no call. The homeowner's photo still goes on the lead.
-- A job made just before midnight and run just after is counted against the new day, or closed without a call if that day is full.
+- A job made just before midnight and picked up just after is counted against the new day, or closed without a call if that day is full. The day a call belongs to is settled the instant before it is sent, so a call sent in the last moment before midnight finishes a minute into the next day and still counts for the day it was sent.
 - A lead holds at most 15 generator photos (its 10 upload slots and 5 more), so a refused request cannot be used to fill storage.
 - Set a monthly budget on the OpenAI project as a second lock.
 

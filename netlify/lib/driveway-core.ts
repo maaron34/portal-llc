@@ -260,6 +260,13 @@ const gateSummary = (g: GateResult) => ({
 
 /** Run one job to its end. Safe to call twice: the second call finds nothing to claim. */
 export async function runJob(jobId: string, deps: Deps): Promise<{ ran: boolean; outcome?: Outcome }> {
+  // Read the photo BEFORE taking the job, so nothing slow sits between the
+  // claim (which settles which day the call is counted on) and the call itself.
+  const waiting = await deps.store.getJob(jobId);
+  if (!waiting || waiting.status !== "queued") return { ran: false };
+  const photo = await deps.store.readObject(waiting.input_path);
+  const decoded = photo ? decodeJpeg(photo) : null;
+
   const job = await deps.store.claimJob(jobId, deps.limits.dailyCap);
   if (!job) return { ran: false };
   const attempts: Record<string, unknown>[] = [];
@@ -279,8 +286,6 @@ export async function runJob(jobId: string, deps: Deps): Promise<{ ran: boolean;
   };
   try {
     if (!deps.editor || !isJobType(job.job_type)) return await fail("error");
-    const photo = await deps.store.readObject(job.input_path);
-    const decoded = photo ? decodeJpeg(photo) : null;
     if (!photo || !decoded) return await fail("error");
     const before = toGray(decoded);
     const size = requestSize(job.width, job.height);

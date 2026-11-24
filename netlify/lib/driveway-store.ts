@@ -55,31 +55,21 @@ async function putObject(secret: string, path: string, bytes: Uint8Array): Promi
 /** Photos a lead may hold beyond its ten upload slots. */
 const MAX_EXTRA_PHOTOS = 5;
 
-/** Object names directly under a prefix, or null when the listing failed. */
-async function listPrefix(secret: string, prefix: string): Promise<string[] | null> {
-  try {
-    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
-      method: "POST",
-      headers: headers(secret),
-      body: JSON.stringify({ prefix, limit: 200 }),
-    });
-    if (!r.ok) return null;
-    return ((await r.json()) as { name?: string }[]).map((o) => String(o.name || ""));
-  } catch {
-    return null;
-  }
-}
-
 /**
  * List a stored object on the lead as a named file (raw.files), once. Uses the
  * driveway_attach_file database function, which appends in a single statement,
  * so two pictures finishing together for one lead are both kept.
  */
 async function attachFile(secret: string, leadId: string, path: string, name: string, size: number): Promise<boolean> {
-  const url = await longSignedUrl(secret, path);
-  if (!url) return false;
-  const file = { url, path, name, content_type: "image/jpeg", size, added_at: new Date().toISOString(), from: PRODUCT_NAME };
-  return (await rpc<boolean>(secret, "driveway_attach_file", { p_lead: leadId, p_file: file })) === true;
+  // Three tries: the bytes are already stored (and, for a result, paid for), so only the listing is repeated.
+  for (let i = 0; i < 3; i++) {
+    const url = await longSignedUrl(secret, path);
+    const file = { url, path, name, content_type: "image/jpeg", size, added_at: new Date().toISOString(), from: PRODUCT_NAME };
+    if (url && (await rpc<boolean>(secret, "driveway_attach_file", { p_lead: leadId, p_file: file })) === true) return true;
+    await new Promise((r) => setTimeout(r, 500 * (i + 1)));
+  }
+  console.error(`driveway: stored ${path} but could not list it on the lead`);
+  return false;
 }
 
 export function supabaseStore(secret: string): Store {
@@ -111,13 +101,16 @@ export function supabaseStore(secret: string): Store {
         return { path, onLead };
       }
       // All ten slots are full. A few more photos are kept for their jobs and
-      // listed on the lead as named files; past that the lead takes no more.
-      const extra = await listPrefix(secret, `${leadId}/driveway/`);
-      if (extra === null) return null;
-      if (extra.filter((n) => n.startsWith("in-")).length >= MAX_EXTRA_PHOTOS) return "full";
-      const path = `${leadId}/driveway/in-${crypto.randomUUID()}.jpg`;
-      if ((await putObject(secret, path, bytes)) !== "ok") return null;
-      return { path, onLead: await attachFile(secret, leadId, path, "photo.jpg", bytes.length) };
+      // listed on the lead as named files, in fixed places that can each be
+      // written once; past that the lead takes no more.
+      for (let n = 0; n < MAX_EXTRA_PHOTOS; n++) {
+        const path = `${leadId}/driveway/in-${n}.jpg`;
+        const put = await putObject(secret, path, bytes);
+        if (put === "taken") continue;
+        if (put === "error") return null;
+        return { path, onLead: await attachFile(secret, leadId, path, "photo.jpg", bytes.length) };
+      }
+      return "full";
     },
 
     async startJob(a: StartArgs, limits: Limits): Promise<StartResult> {
