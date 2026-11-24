@@ -1,5 +1,5 @@
 /**
- * Local mock for the Driveway Generator. A Vite dev-server plugin, loaded only
+ * Local mock for the Concrete Generator. A Vite dev-server plugin, loaded only
  * when DRIVEWAY_MOCK is set (npm run dev:driveway-mock). It answers the page's
  * three server calls from memory, with a fake image editor.
  *

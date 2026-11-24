@@ -1,5 +1,5 @@
 /**
- * Walk the Driveway Generator in a real browser at phone width, against the
+ * Walk the Concrete Generator in a real browser at phone width, against the
  * local mock (npm run dev:driveway-mock). No outside calls, no cost.
  *
  *   node scripts/driveway-mock-e2e.mjs <base url> <screenshot folder> [off]
@@ -15,7 +15,7 @@ import { join } from "node:path";
 const [base = "http://localhost:5199", out = "./dgreal", offMode] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 const PHOTO = "public/images/before-after/before-stairs.jpeg"; // a 4032 x 3024 phone photo
-const URL_ = `${base}/driveway-generator`;
+const URL_ = `${base}/concrete-generator`;
 let failed = 0;
 const check = (name, ok, extra = "") => {
   if (!ok) failed++;
@@ -105,7 +105,7 @@ await shot("05-working");
 let s = await state();
 check("double tap made one job and reserved one call", s.jobs.length === 1 && s.calls_reserved === 1, `jobs ${s.jobs.length}, calls ${s.calls_reserved}`);
 check("photo was shrunk to 1536 x 1152 (multiples of 16)", s.jobs[0].width === 1536 && s.jobs[0].height === 1152, `${s.jobs[0].width} x ${s.jobs[0].height}`);
-check("lead is marked with the product name", String(s.submissions.at(-1).source).startsWith("Driveway Generator"), s.submissions.at(-1).source);
+check("lead is marked with the product name", String(s.submissions.at(-1).source).startsWith("Concrete Generator"), s.submissions.at(-1).source);
 
 // Refresh in the middle of the wait.
 await page.reload();

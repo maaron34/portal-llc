@@ -1,4 +1,4 @@
--- Driveway Generator: jobs, the daily counter, and the three atomic steps that
+-- Concrete Generator: jobs, the daily counter, and the three atomic steps that
 -- protect the image budget. Run once in the Supabase SQL editor for the Portal
 -- project BEFORE setting DRIVEWAY_GENERATOR_ENABLED. Safe to run twice.
 --
@@ -46,10 +46,11 @@ create table if not exists public.driveway_days (
 
 alter table public.driveway_jobs enable row level security;
 alter table public.driveway_days enable row level security;
+revoke all on public.driveway_jobs, public.driveway_days from anon, authenticated;
 
 -- Portal's day turns over at midnight in Seattle.
 create or replace function public.driveway_today() returns date
-language sql stable as $$ select (now() at time zone 'America/Los_Angeles')::date $$;
+language sql stable set search_path = '' as $$ select (now() at time zone 'America/Los_Angeles')::date $$;
 
 -- Start a job. One transaction: all starts queue behind one lock (traffic is a
 -- few dozen a day), so the limit checks and the insert cannot interleave.

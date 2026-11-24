@@ -1,5 +1,5 @@
 /**
- * Wires the Driveway Generator's handlers to the real services, from
+ * Wires the Concrete Generator's handlers to the real services, from
  * environment variables. Imported only by the three Netlify functions.
  */
 

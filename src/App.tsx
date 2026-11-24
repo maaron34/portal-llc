@@ -117,7 +117,7 @@ function AppRoutes() {
         {/* Landing pages - no header/footer navigation */}
         <Route path="/lp/:slug" element={<LandingPage />} />
 
-        {/* Driveway Generator: unlisted, noindex, off unless DRIVEWAY_GENERATOR_ENABLED is set */}
+        {/* Concrete Generator: unlisted, noindex, off unless DRIVEWAY_GENERATOR_ENABLED is set */}
         <Route
           path={GENERATOR_PATH}
           element={

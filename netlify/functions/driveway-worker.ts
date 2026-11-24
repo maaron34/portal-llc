@@ -1,5 +1,5 @@
 /**
- * Driveway Generator, step 2 of 3 on the server: make the picture.
+ * Concrete Generator, step 2 of 3 on the server: make the picture.
  *
  * A Netlify Background Function (answers 202 at once, may run 15 minutes),
  * because one image edit takes about a minute and a normal function is cut off

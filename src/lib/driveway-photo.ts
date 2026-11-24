@@ -1,5 +1,5 @@
 /**
- * Get a phone photo ready for the Driveway Generator, in the browser, before
+ * Get a phone photo ready for the Concrete Generator, in the browser, before
  * anything is uploaded: turn it upright, shrink it to about 1536 px on the long
  * side, and save it as a JPEG whose width and height are both multiples of 16.
  *

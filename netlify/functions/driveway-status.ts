@@ -1,5 +1,5 @@
 /**
- * Driveway Generator, step 3 of 3 on the server: the page polls this while it
+ * Concrete Generator, step 3 of 3 on the server: the page polls this while it
  * waits. POST { job, t } answers { status: "working" | "done" | "failed" };
  * "done" carries two links to the private before and after pictures, each good
  * for 15 minutes. POST { lead_id, t, key } finds the job again for a page that

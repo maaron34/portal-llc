@@ -1,5 +1,5 @@
 /**
- * Pixel work for the Driveway Generator, in plain JavaScript so it runs inside
+ * Pixel work for the Concrete Generator, in plain JavaScript so it runs inside
  * a Netlify function with no native module: read a JPEG, check it, resize it,
  * write a JPEG. jpeg-js is the only dependency.
  *

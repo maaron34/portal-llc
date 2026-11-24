@@ -1,10 +1,13 @@
-# Driveway Generator
+# Concrete Generator 2000
 
 A homeowner adds a photo of their old concrete, says what it is, leaves a name and mobile number, waits about a minute, and sees their own photo with new plain gray concrete in a before/after slider. Then "Get a free estimate".
 
-- Page: `/driveway-generator` (`src/pages/DrivewayGenerator.tsx`). Not linked from the site, not in the sitemap, marked noindex.
+- Page: `/concrete-generator` (`src/pages/DrivewayGenerator.tsx`). Not linked from the site, not in the sitemap, marked noindex.
 - Server: `netlify/functions/driveway-start.ts`, `driveway-worker.ts` (background), `driveway-status.ts`. The logic is in `netlify/lib/driveway-core.ts`.
 - Product name: one constant, `PRODUCT_NAME` in `src/lib/driveway-shared.ts`.
+- Files, tables and environment variables keep the working name `driveway`.
+- No ad pixel counts a generator lead.
+- On a Netlify preview address, submissions are test leads: stored as junk (`raw.junk_reason` = `generator test`), no email to Chris, no merge into a real lead.
 - Off until `DRIVEWAY_GENERATOR_ENABLED` is set.
 
 ## Turn it on
@@ -14,6 +17,8 @@ A homeowner adds a photo of their old concrete, says what it is, leaves a name a
 3. Add `DRIVEWAY_GENERATOR_ENABLED` = `1`.
 4. Deploy. Environment variable changes take effect on the next deploy.
 5. To turn it off, remove `DRIVEWAY_GENERATOR_ENABLED` and deploy. The page then shows "The generator is switched off right now".
+
+For a private test, give both new variables to the Deploy Previews context only. The live site then stays off, and test submissions stay out of Chris's leads.
 
 ## Environment variables
 
@@ -69,7 +74,7 @@ What these numbers do not show:
 npm run dev:driveway-mock
 ```
 
-Open `http://localhost:5173/driveway-generator`. The mock makes no outside calls. The last four digits of the phone number pick the outcome: `0101` moved twice, `0102` daily cap, `0103` model error, `0104` one retry, `0105` phone limit, anything else a picture. `node scripts/driveway-mock-e2e.mjs http://localhost:5173 <folder>` walks every screen at phone width and saves screenshots.
+Open `http://localhost:5173/concrete-generator`. The mock makes no outside calls. The last four digits of the phone number pick the outcome: `0101` moved twice, `0102` daily cap, `0103` model error, `0104` one retry, `0105` phone limit, anything else a picture. `node scripts/driveway-mock-e2e.mjs http://localhost:5173 <folder>` walks every screen at phone width and saves screenshots.
 
 ## One real picture through the site's own code
 

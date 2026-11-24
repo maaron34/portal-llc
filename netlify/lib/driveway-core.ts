@@ -1,5 +1,5 @@
 /**
- * The Driveway Generator's server logic: start a job, run it, report on it.
+ * The Concrete Generator's server logic: start a job, run it, report on it.
  * The three Netlify functions (driveway-start, driveway-worker,
  * driveway-status) are thin wrappers around the handlers here, and the tests
  * and the local mock drive the same handlers with an in-memory store.

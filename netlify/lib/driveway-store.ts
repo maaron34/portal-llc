@@ -1,5 +1,5 @@
 /**
- * The Driveway Generator's Supabase store. Jobs and the daily counter live in
+ * The Concrete Generator's Supabase store. Jobs and the daily counter live in
  * Postgres (supabase/driveway-generator.sql), so they survive function
  * restarts and the three money-critical steps run as single atomic database
  * functions. Photos and results live in the same private `lead-photos` bucket

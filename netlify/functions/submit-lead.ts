@@ -19,6 +19,7 @@
 
 import { emailChris, type LeadPayload } from "../lib/lead-notify";
 import { digits10, uploadToken } from "../lib/lead-links";
+import { isGeneratorTest } from "../../src/lib/driveway-shared";
 
 const SUPABASE_URL = "https://tldsueyauxlctrywnfed.supabase.co";
 
@@ -318,6 +319,25 @@ async function capture(request: Request): Promise<Response> {
     ].filter((m): m is string => Boolean(m));
     const list = missing.length > 1 ? `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}` : missing[0];
     if (missing.length) return json({ error: `Please add ${list}.` }, 400);
+  }
+
+  // The Concrete Generator on a preview address: keep the row so the test can
+  // run end to end, but as junk, with no email, no merge and no next-step read.
+  if (isGeneratorTest(payload.source, new URL(request.url).hostname)) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+      method: "POST",
+      headers: { apikey: secret, Authorization: `Bearer ${secret}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({
+        name: `TEST ${name}`.trim(),
+        phone,
+        message: payload.message || null,
+        channel: "website",
+        raw: { ...payload, junk: true, junk_reason: "generator test" },
+      }),
+    });
+    if (!res.ok) return json({ error: "Supabase insert failed", status: res.status }, 502);
+    const rows = (await res.json()) as { id: string }[];
+    return json({ ok: true, id: rows[0]?.id, test: true }, 200);
   }
 
   // Website-form submissions aren't pre-screened, so filter out vendor pitches

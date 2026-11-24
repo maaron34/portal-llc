@@ -4,13 +4,12 @@ import { track } from "../lib/analytics";
 import { attributionPayload } from "../lib/attribution";
 import { submitLead } from "../lib/lead-capture";
 import { isUsPhone } from "../lib/lead-fields";
-import { trackOpenAILead } from "../lib/openai-pixel";
 import { PHOTO_MESSAGES, preparePhoto, type PreparedPhoto } from "../lib/driveway-photo";
 import { JOB_TYPES, PRODUCT_NAME, isJobType, type JobType } from "../lib/driveway-shared";
 import "./driveway-generator.css";
 
 /**
- * The Driveway Generator: a homeowner adds a photo of their old concrete, says
+ * The Concrete Generator: a homeowner adds a photo of their old concrete, says
  * what it is, leaves a name and number, waits about a minute, and sees their own
  * photo with new plain gray concrete in a before/after slider.
  *
@@ -47,7 +46,6 @@ const save = (v: Saved | null): void => {
   }
 };
 
-const LIVE_HOST = "buildwithportal.com";
 const START = "/.netlify/functions/driveway-start";
 const STATUS = "/.netlify/functions/driveway-status";
 const POLL_MS = 2500;
@@ -342,11 +340,8 @@ export default function DrivewayGenerator() {
       // 1. The lead, through the same door as every other form.
       const lead = await submitLead(leadFields(`${PRODUCT_NAME}: ${jobType.toLowerCase()}. Their photo is attached.`));
       if (!lead.ok) return setError(lead.error || `Something went wrong. Please call us at ${BUSINESS.phone}.`);
-      // Ad pixels count a lead only on the live site, never from a preview, a test or localhost.
-      if (window.location.hostname === LIVE_HOST && !navigator.webdriver) {
-        if (window.fbq) window.fbq("track", "Lead");
-        trackOpenAILead();
-      }
+      // No ad pixel counts this as a lead (Michael, 2026-11-24): many people here only want a picture,
+      // and the ads would start looking for more of them.
       track("driveway_generator_lead", { job_type: jobType });
       if (!lead.id || !lead.upload_token) return setView("failed");
 
