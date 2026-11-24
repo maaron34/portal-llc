@@ -33,8 +33,7 @@ import { checkGeometry, type GateResult } from "./driveway-gate";
 import { checkPhoto, decodeJpeg, fitToSize, requestSize, toGray } from "./driveway-image";
 import { isJobType, type Editor, type JobType } from "./driveway-openai";
 
-/** Michael may rename the product. This is the one place the server spells it. */
-export const PRODUCT_NAME = "Driveway Generator";
+export { PRODUCT_NAME } from "../../src/lib/driveway-shared";
 
 export type JobStatus = "queued" | "working" | "done" | "failed";
 /** Why a job ended: ok, the picture moved twice, the model failed, or it ran out of time. */

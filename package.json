@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck:functions": "tsc -p tsconfig.netlify.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:driveway-mock": "DRIVEWAY_MOCK=1 vite"
   },
   "dependencies": {
     "jpeg-js": "^0.4.4",

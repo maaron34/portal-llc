@@ -19,9 +19,9 @@
 import { PNG } from "pngjs";
 import { encodeJpeg } from "./driveway-image";
 
-export const JOB_TYPES = ["Driveway", "Front steps", "Patio", "Walkway", "Retaining wall"] as const;
-export type JobType = (typeof JOB_TYPES)[number];
-export const isJobType = (v: unknown): v is JobType => typeof v === "string" && (JOB_TYPES as readonly string[]).includes(v);
+import { JOB_TYPES, isJobType, type JobType } from "../../src/lib/driveway-shared";
+
+export { JOB_TYPES, isJobType, type JobType };
 
 /**
  * Finish is always plain gray concrete. No pavers, stamping, color or exposed
@@ -109,7 +109,7 @@ export function openAiEditor(cfg: OpenAiConfig): Editor {
       form.set("quality", cfg.quality);
       form.set("n", "1");
       if (cfg.outputFormat) form.set("output_format", cfg.outputFormat);
-      form.set("image", new Blob([req.photo as BlobPart], { type: "image/jpeg" }), "photo.jpg");
+      form.set("image", new Blob([req.photo.slice().buffer], { type: "image/jpeg" }), "photo.jpg");
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), cfg.timeoutMs);
