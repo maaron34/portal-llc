@@ -98,14 +98,32 @@ begin
 end $$;
 
 -- The worker takes a job. Only one caller ever gets the row back.
-create or replace function public.driveway_claim(p_job uuid) returns jsonb
+--
+-- A job's first call was counted on the day the job was made. If the worker
+-- only gets to it after midnight, that call would land on a day that never
+-- counted it, so the job is counted again against the new day here, and is
+-- closed without a call when the new day is already full.
+create or replace function public.driveway_claim(p_job uuid, p_daily_cap integer) returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare v_job driveway_jobs;
+declare
+  v_today date := driveway_today();
+  v_job driveway_jobs;
 begin
-  update driveway_jobs set status = 'working', claimed_at = now(), updated_at = now()
-  where id = p_job and status = 'queued'
-  returning * into v_job;
+  select * into v_job from driveway_jobs where id = p_job and status = 'queued' for update;
   if not found then return null; end if;
+
+  if v_job.day <> v_today then
+    insert into driveway_days (day) values (v_today) on conflict (day) do nothing;
+    update driveway_days set calls = calls + 1 where day = v_today and calls < p_daily_cap;
+    if not found then
+      update driveway_jobs set status = 'failed', outcome = 'timeout', updated_at = now() where id = p_job;
+      return null;
+    end if;
+  end if;
+
+  update driveway_jobs set status = 'working', claimed_at = now(), updated_at = now(), day = v_today
+  where id = p_job
+  returning * into v_job;
   return to_jsonb(v_job);
 end $$;
 
@@ -128,11 +146,30 @@ begin
   return true;
 end $$;
 
+-- Add one named file to a lead's raw.files, once. A single statement, so two
+-- pictures finishing for the same lead at the same moment both end up listed.
+-- This is the only thing here that writes to the existing leads table, and it
+-- only ever appends to raw.files.
+create or replace function public.driveway_attach_file(p_lead uuid, p_file jsonb) returns boolean
+language plpgsql security definer set search_path = public as $$
+begin
+  update leads
+  set raw = jsonb_set(coalesce(raw, '{}'::jsonb), '{files}', coalesce(raw -> 'files', '[]'::jsonb) || jsonb_build_array(p_file))
+  where id = p_lead
+    and not coalesce(raw -> 'files', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('path', p_file ->> 'path'));
+  return exists (
+    select 1 from leads
+    where id = p_lead and coalesce(raw -> 'files', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('path', p_file ->> 'path'))
+  );
+end $$;
+
 revoke all on function public.driveway_start(uuid, uuid, text, text, text, integer, integer, text, integer, integer, integer) from public, anon, authenticated;
-revoke all on function public.driveway_claim(uuid) from public, anon, authenticated;
+revoke all on function public.driveway_claim(uuid, integer) from public, anon, authenticated;
+revoke all on function public.driveway_attach_file(uuid, jsonb) from public, anon, authenticated;
 revoke all on function public.driveway_reserve_retry(uuid, integer) from public, anon, authenticated;
 grant execute on function public.driveway_start(uuid, uuid, text, text, text, integer, integer, text, integer, integer, integer) to service_role;
-grant execute on function public.driveway_claim(uuid) to service_role;
+grant execute on function public.driveway_claim(uuid, integer) to service_role;
+grant execute on function public.driveway_attach_file(uuid, jsonb) to service_role;
 grant execute on function public.driveway_reserve_retry(uuid, integer) to service_role;
 
 -- Handy checks:

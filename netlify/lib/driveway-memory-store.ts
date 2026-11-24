@@ -53,10 +53,11 @@ export function memoryStore(now: () => number = Date.now): MemoryStore {
     async savePhoto(leadId, bytes) {
       const lead = leads.get(leadId);
       if (!lead) return null;
+      if (lead.photos.length >= 10) return "full";
       const path = `${leadId}/web/${lead.photos.length}`;
       objects.set(path, bytes);
       lead.photos.push(path);
-      return path;
+      return { path, onLead: true };
     },
     async startJob(a: StartArgs, limits: Limits): Promise<StartResult> {
       // No await between the checks and the insert: one JavaScript turn, the
@@ -89,9 +90,18 @@ export function memoryStore(now: () => number = Date.now): MemoryStore {
       jobs.set(job.id, job);
       return { ok: true, job: view(job), existing: false };
     },
-    async claimJob(id) {
+    async claimJob(id, cap) {
       const j = jobs.get(id);
       if (!j || j.status !== "queued") return null;
+      // Waited past midnight: count it against the new day, or close it if that day is full.
+      if (j.day !== today()) {
+        if (!reserve(cap)) {
+          j.status = "failed";
+          j.outcome = "timeout";
+          return null;
+        }
+        j.day = today();
+      }
       j.status = "working";
       j.claimed_at = new Date(now()).toISOString();
       return view(j);

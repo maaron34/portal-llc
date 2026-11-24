@@ -28,7 +28,7 @@ type Estimate = "idle" | "sending" | "sent" | "error";
 type Result = { before: string; after: string; width: number; height: number; jobType: string };
 
 /** What a reload needs to pick the wait back up. Per tab, gone when the tab closes. */
-type Saved = { leadId: string; uploadToken: string; key: string; jobType: JobType; name: string; phone: string; job?: string; t?: string };
+type Saved = { leadId: string; uploadToken: string; key: string; jobType: JobType; name: string; phone: string; job?: string; t?: string; photoOnLead?: boolean };
 const SAVE_KEY = "portal_driveway_generator";
 const loadSaved = (): Saved | null => {
   try {
@@ -214,6 +214,7 @@ export default function DrivewayGenerator() {
         setJobType(s.jobType);
         setName(s.name);
         setPhone(s.phone);
+        setPhotoOnFile(s.photoOnLead === true);
         setView("working");
       } else {
         setView("photo");
@@ -264,12 +265,9 @@ export default function DrivewayGenerator() {
           if (!live) return;
           if (res.status === 403 || res.status === 404) break;
           const d = res.ok ? ((await res.json()) as Record<string, unknown>) : null;
-          if (d && typeof d.job === "string" && typeof d.t === "string") {
-            setPhotoOnFile(true);
-            if (s.job !== d.job || s.t !== d.t) {
-              saved.current = { ...s, job: d.job, t: d.t };
-              save(saved.current);
-            }
+          if (d && typeof d.job === "string" && typeof d.t === "string" && (s.job !== d.job || s.t !== d.t)) {
+            saved.current = { ...s, job: d.job, t: d.t };
+            save(saved.current);
           }
           if (d?.status === "done") return showResult(d);
           if (d?.status === "failed") break;
@@ -289,17 +287,32 @@ export default function DrivewayGenerator() {
     };
   }, [view, showResult]);
 
+  const pick = useRef(0);
   const pickPhoto = async (file: File | undefined) => {
     if (!file) return;
+    // If a second photo is chosen while the first is still opening, only the latest one counts.
+    const mine = ++pick.current;
     setError("");
     setReading(true);
     const r = await preparePhoto(file);
+    if (mine !== pick.current) {
+      if (r.ok) URL.revokeObjectURL(r.photo.url);
+      return;
+    }
     setReading(false);
     if (!r.ok) return setError(PHOTO_MESSAGES[r.problem]);
     if (photoRef.current) URL.revokeObjectURL(photoRef.current.url);
     photoRef.current = r.photo;
     setPhoto(r.photo);
   };
+
+  useEffect(
+    () => () => {
+      pick.current++;
+      if (photoRef.current) URL.revokeObjectURL(photoRef.current.url);
+    },
+    []
+  );
 
   const next = () => {
     if (!photo) return setError("Add a photo first.");
@@ -341,6 +354,8 @@ export default function DrivewayGenerator() {
       const s: Saved = { leadId: lead.id, uploadToken: lead.upload_token, key: newKey(), jobType, name: name.trim(), phone: phone.trim() };
       saved.current = s;
       save(s);
+      // Did the server possibly take the request even though no answer came back?
+      let unsure = false;
       for (let attempt = 0; attempt < 3; attempt++) {
         const form = new FormData();
         form.set("lead_id", s.leadId);
@@ -352,18 +367,19 @@ export default function DrivewayGenerator() {
         try {
           res = await fetch(START, { method: "POST", body: form });
         } catch {
+          unsure = true;
           await sleep(1500 * (attempt + 1));
           continue;
         }
-        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; job?: string; t?: string; error?: string; reason?: LimitReason };
+        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; job?: string; t?: string; error?: string; reason?: LimitReason; photo_on_lead?: boolean };
         if (res.ok && d.job && d.t) {
-          saved.current = { ...s, job: d.job, t: d.t };
+          saved.current = { ...s, job: d.job, t: d.t, photoOnLead: d.photo_on_lead === true };
           save(saved.current);
-          setPhotoOnFile(true);
+          setPhotoOnFile(d.photo_on_lead === true);
           return setView("working");
         }
         if (res.status === 429) {
-          setPhotoOnFile(true);
+          setPhotoOnFile(d.photo_on_lead === true);
           setLimit(d.reason || "cap");
           save(null);
           return setView("limit");
@@ -375,11 +391,16 @@ export default function DrivewayGenerator() {
           return setView("photo");
         }
         if (res.status >= 500) {
+          unsure = true;
           await sleep(1500 * (attempt + 1));
           continue;
         }
+        unsure = false;
         break;
       }
+      // A picture may be on its way even though we never heard back. Keep the
+      // request and let the wait screen look for it; it gives up by itself if there is none.
+      if (unsure) return setView("working");
       save(null);
       setView("failed");
     } finally {
@@ -498,7 +519,7 @@ export default function DrivewayGenerator() {
             <div className="dg-screen">
               <h2>Show us the concrete you want redone</h2>
               <label className="dg-drop">
-                <input type="file" accept="image/*" aria-label="Add a photo" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+                <input type="file" accept="image/*" aria-label="Add a photo" disabled={reading} onChange={(e) => pickPhoto(e.target.files?.[0])} />
                 {photo && <img className="dg-thumb" src={photo.url} alt="Your photo" />}
                 <span className="dg-big">{reading ? "Opening your photo" : photo ? "Photo added" : "Add a photo"}</span>
                 <span className="dg-small">{photo ? "Tap to choose a different one" : "From your camera or your photos"}</span>
@@ -588,7 +609,7 @@ export default function DrivewayGenerator() {
           {view === "limit" && (
             <div className="dg-screen">
               <h2>{limit === "cap" ? "The generator is full for today" : "That is all the pictures for today"}</h2>
-              <p>Chris has your photo and can still give you a free estimate.</p>
+              <p>{photoOnFile ? "Chris has your photo and can still give you a free estimate." : "Chris can still give you a free estimate."}</p>
               {estimateBlock}
             </div>
           )}

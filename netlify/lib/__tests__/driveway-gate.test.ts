@@ -64,8 +64,11 @@ describe("geometry gate", () => {
     for (const name of MOVED) expect(run("stairs-photo.jpg", g(name)).pass, name).toBe(false);
   });
 
-  it("passes a photo compared with itself", () => {
-    for (const p of ["photo1.jpg", "photo2.jpg", "photo3.jpg", "photo4.jpg", "stairs-photo.jpg"]) expect(run(p, g(p)).pass, p).toBe(true);
+  it("rejects a result that is the photo handed back unedited, and for that reason only", () => {
+    for (const p of ["photo1.jpg", "photo2.jpg", "photo3.jpg", "photo4.jpg", "stairs-photo.jpg"]) {
+      const r = run(p, g(p));
+      expect(r.reasons, p).toEqual(["unchanged"]);
+    }
   });
 
   it("fails closed when there is nothing to compare", () => {

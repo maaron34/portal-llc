@@ -9,7 +9,7 @@ A homeowner adds a photo of their old concrete, says what it is, leaves a name a
 
 ## Turn it on
 
-1. Run `supabase/driveway-generator.sql` once in the Supabase SQL editor for the Portal project. It adds two tables and three functions and changes nothing that exists.
+1. Run `supabase/driveway-generator.sql` once in the Supabase SQL editor for the Portal project. It adds two tables and five functions. It changes no existing table; one function appends a file entry to a lead's `raw.files`.
 2. In Netlify, add `OPENAI_IMAGE_API_KEY` to the site's environment variables. Scope it to Functions.
 3. Add `DRIVEWAY_GENERATOR_ENABLED` = `1`.
 4. Deploy. Environment variable changes take effect on the next deploy.
@@ -38,6 +38,8 @@ A homeowner adds a photo of their old concrete, says what it is, leaves a name a
 - A double tap, a refresh, or a re-send carries the same request key and gets the same job.
 - The worker claims a job before it calls the model, so a message delivered twice runs once.
 - A request over a limit makes no job and no call. The homeowner's photo still goes on the lead.
+- A job made just before midnight and run just after is counted against the new day, or closed without a call if that day is full.
+- A lead holds at most 15 generator photos (its 10 upload slots and 5 more), so a refused request cannot be used to fill storage.
 - Set a monthly budget on the OpenAI project as a second lock.
 
 ## The geometry gate
@@ -50,7 +52,7 @@ Measured on 2026-11-24 with `npm test` (fixtures in `netlify/lib/__tests__/fixtu
 | --- | --- | --- |
 | Real edits that kept the frame (4 photos, 2 models, 2 prompts) | 10 | 10 passed. False rejects: 0 of 10. |
 | Real edits that reframed or came back in the wrong shape | 3 | 3 rejected. False accepts: 0 of 3. |
-| A photo compared with itself | 5 | 5 passed. |
+| The photo handed back with nothing replaced | 5 | 5 rejected as "unchanged". |
 | The 10 good edits, then moved on purpose past the tolerance (10 kinds of move) | 100 | 100 rejected. False accepts: 0 of 100. |
 
 Moves past the tolerance: a shift of 0.4% of the long side or more (6 px at 1536), a zoom of 1% or more, a 2% squeeze, a rotation of half a degree or more. Smaller moves are a gray zone: a 2 px shift passed 9 of 10 times, a 4 px shift 0 of 10, a 0.5% zoom 7 of 10, a quarter-degree turn 8 of 10.

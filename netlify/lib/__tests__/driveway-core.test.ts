@@ -156,9 +156,24 @@ describe("status flow", () => {
   it("closes out a job whose worker died mid-call", async () => {
     const w = world();
     const s = await start(w, w.lead());
-    await w.store.claimJob(String(s.body.job));
+    await w.store.claimJob(String(s.body.job), 40);
     w.clock.t += 8 * 60_000;
     expect((await status(w, { job: s.body.job, t: s.body.t })).body.status).toBe("failed");
+  });
+
+  it("reports what is true when the worker takes the job in the same instant status gives up on it", async () => {
+    const w = world({ kickFails: true });
+    const s = await start(w, w.lead());
+    const job = String(s.body.job);
+    w.clock.t += 5 * 60_000;
+    // The worker claims between status reading the row and status closing it out.
+    const expire = w.store.expireJob.bind(w.store);
+    w.store.expireJob = async (id, from) => {
+      await w.store.claimJob(id, 40);
+      return expire(id, from);
+    };
+    expect((await status(w, { job, t: s.body.t })).body.status).toBe("working");
+    expect(w.store.jobs.get(job)!.status).toBe("working");
   });
 
   it("finds the job again after a reload, by lead and request key", async () => {
@@ -222,6 +237,25 @@ describe("validation", () => {
     expect(w.store.callsReserved()).toBe(0);
     expect(w.store.objects.size).toBe(0);
   });
+  it("refuses a file whose header says JPEG but which does not open, before storing it or reserving a call", async () => {
+    const w = world();
+    // A real header and frame size, then nothing.
+    const liar = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x01, 0xe0, 0x02, 0x80, 0x03, 0x01, 0x22]);
+    const r = await start(w, w.lead(), { photo: liar });
+    expect(r.status).toBe(400);
+    expect(w.store.objects.size).toBe(0);
+    expect(w.store.callsReserved()).toBe(0);
+  });
+
+  it("stops storing photos for a lead that is full, whatever the limits say", async () => {
+    const w = world({ limits: { dailyCap: 0 } });
+    const lead = w.lead();
+    for (let i = 0; i < 10; i++) expect((await start(w, lead)).body).toMatchObject({ reason: "cap", photo_on_lead: true });
+    const over = await start(w, lead);
+    expect(over.body).toEqual({ error: "limit", reason: "phone", photo_on_lead: false });
+    expect(w.store.objects.size).toBe(10);
+  });
+
   it("refuses an oversized body before reading it", async () => {
     const w = world();
     const res = await handleStart(new Request("https://example.test/s", { method: "POST", headers: { "content-length": String(9 * 1024 * 1024), "content-type": "multipart/form-data; boundary=x" }, body: "x" }), w.deps);
@@ -252,7 +286,7 @@ describe("limits", () => {
     for (let i = 0; i < 3; i++) expect((await start(w, lead, { ip: `198.51.100.${i}` })).status).toBe(200);
     const fourth = await start(w, lead, { ip: "198.51.100.99" });
     expect(fourth.status).toBe(429);
-    expect(fourth.body).toEqual({ error: "limit", reason: "phone" });
+    expect(fourth.body).toEqual({ error: "limit", reason: "phone", photo_on_lead: true });
     // The same number written another way is the same number.
     const again = w.lead("+1 206.555.0142");
     expect((await start(w, again)).body.reason).toBe("phone");
@@ -286,6 +320,19 @@ describe("limits", () => {
     expect(w.editor.calls).toBeLessThanOrEqual(40);
   }, 60_000);
 
+  it("a job that waits past midnight is counted against the new day, and is closed unrun when that day is full", async () => {
+    const w = world({ limits: { dailyCap: 1 } });
+    const late = await start(w, w.lead()); // reserved on day one, not yet run
+    w.clock.t += 24 * 60 * 60 * 1000;
+    const next = await start(w, w.lead(), { ip: "198.51.100.3" }); // day two's only call
+    expect(next.status).toBe(200);
+    expect(await runJob(String(next.body.job), w.deps)).toEqual({ ran: true, outcome: "ok" });
+    expect(await runJob(String(late.body.job), w.deps)).toEqual({ ran: false });
+    expect(w.editor.calls).toBe(1);
+    expect(w.store.jobs.get(String(late.body.job))).toMatchObject({ status: "failed", outcome: "timeout" });
+    expect(Math.max(...w.store.days.values())).toBe(1);
+  });
+
   it("retries draw from the same cap as first tries", async () => {
     const w = world({ mode: "moved", limits: { dailyCap: 5, perIpPerDay: 1000 } });
     const a = await start(w, w.lead());
@@ -302,7 +349,7 @@ describe("limits", () => {
   it("keeps the homeowner's photo on the lead even when no picture can be made", async () => {
     const w = world({ limits: { dailyCap: 0 } });
     const lead = w.lead();
-    expect((await start(w, lead)).body).toEqual({ error: "limit", reason: "cap" });
+    expect((await start(w, lead)).body).toEqual({ error: "limit", reason: "cap", photo_on_lead: true });
     expect(w.store.leads.get(lead)!.photos).toHaveLength(1);
     expect(w.store.leads.get(lead)!.tag).toMatchObject({ job_type: "Front steps" });
   });
@@ -319,7 +366,7 @@ describe("flag and key", () => {
   });
   it("with the flag on and no API key, makes no job and no call", async () => {
     const w = world({ noEditor: true });
-    expect((await start(w, w.lead())).body).toEqual({ error: "limit", reason: "cap" });
+    expect((await start(w, w.lead())).body).toMatchObject({ error: "limit", reason: "cap" });
     expect(w.store.jobs.size).toBe(0);
   });
 });

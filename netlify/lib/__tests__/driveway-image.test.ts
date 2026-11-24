@@ -28,6 +28,11 @@ describe("photo validation (what the bytes are, not what the browser claims)", (
     expect(checkPhoto(encodeJpeg(solid(2400, 1800), 30))).toEqual({ ok: false, reason: "dimensions" });
     expect(checkPhoto(encodeJpeg(solid(1536, 480)))).toEqual({ ok: false, reason: "dimensions" });
   });
+  it("reads the frame size even from a file that will not open (start opens it before trusting that)", () => {
+    const liar = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x01, 0xe0, 0x02, 0x80, 0x03, 0x01, 0x22]);
+    expect(checkPhoto(liar)).toEqual({ ok: true, width: 640, height: 480 });
+    expect(decodeJpeg(liar)).toBeNull();
+  });
   it("refuses a JPEG header with nothing behind it", () => {
     expect(checkPhoto(new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 2]))).toEqual({ ok: false, reason: "unreadable" });
   });

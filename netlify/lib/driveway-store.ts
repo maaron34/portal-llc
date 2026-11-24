@@ -52,6 +52,36 @@ async function putObject(secret: string, path: string, bytes: Uint8Array): Promi
   }
 }
 
+/** Photos a lead may hold beyond its ten upload slots. */
+const MAX_EXTRA_PHOTOS = 5;
+
+/** Object names directly under a prefix, or null when the listing failed. */
+async function listPrefix(secret: string, prefix: string): Promise<string[] | null> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
+      method: "POST",
+      headers: headers(secret),
+      body: JSON.stringify({ prefix, limit: 200 }),
+    });
+    if (!r.ok) return null;
+    return ((await r.json()) as { name?: string }[]).map((o) => String(o.name || ""));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * List a stored object on the lead as a named file (raw.files), once. Uses the
+ * driveway_attach_file database function, which appends in a single statement,
+ * so two pictures finishing together for one lead are both kept.
+ */
+async function attachFile(secret: string, leadId: string, path: string, name: string, size: number): Promise<boolean> {
+  const url = await longSignedUrl(secret, path);
+  if (!url) return false;
+  const file = { url, path, name, content_type: "image/jpeg", size, added_at: new Date().toISOString(), from: PRODUCT_NAME };
+  return (await rpc<boolean>(secret, "driveway_attach_file", { p_lead: leadId, p_file: file })) === true;
+}
+
 export function supabaseStore(secret: string): Store {
   return {
     async findLead(id) {
@@ -77,12 +107,17 @@ export function supabaseStore(secret: string): Store {
         if (put === "error") return null;
         const url = await longSignedUrl(secret, path);
         const lead = await findUploadLead(secret, leadId);
-        if (url && lead) await attach(secret, lead, path, url, { size: bytes.length, type: "image/jpeg" }, "photo.jpg");
-        return path;
+        const onLead = Boolean(url && lead && (await attach(secret, lead, path, url, { size: bytes.length, type: "image/jpeg" }, "photo.jpg")));
+        return { path, onLead };
       }
-      // All ten slots are full: keep the photo for the job, off the grid.
+      // All ten slots are full. A few more photos are kept for their jobs and
+      // listed on the lead as named files; past that the lead takes no more.
+      const extra = await listPrefix(secret, `${leadId}/driveway/`);
+      if (extra === null) return null;
+      if (extra.filter((n) => n.startsWith("in-")).length >= MAX_EXTRA_PHOTOS) return "full";
       const path = `${leadId}/driveway/in-${crypto.randomUUID()}.jpg`;
-      return (await putObject(secret, path, bytes)) === "ok" ? path : null;
+      if ((await putObject(secret, path, bytes)) !== "ok") return null;
+      return { path, onLead: await attachFile(secret, leadId, path, "photo.jpg", bytes.length) };
     },
 
     async startJob(a: StartArgs, limits: Limits): Promise<StartResult> {
@@ -104,8 +139,8 @@ export function supabaseStore(secret: string): Store {
       return { ok: false, reason: res.reason || "error" };
     },
 
-    async claimJob(id) {
-      return (await rpc<Job | null>(secret, "driveway_claim", { p_job: id })) ?? null;
+    async claimJob(id, dailyCap) {
+      return (await rpc<Job | null>(secret, "driveway_claim", { p_job: id, p_daily_cap: dailyCap })) ?? null;
     },
 
     async reserveRetry(id, dailyCap) {
@@ -148,18 +183,7 @@ export function supabaseStore(secret: string): Store {
       if (put === "error") return null;
       // On the lead as a named file, never in the photo grid: Chris must be able
       // to tell a computer-made concept from a photo the customer took.
-      const url = await longSignedUrl(secret, path);
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}&select=raw&limit=1`, { headers: auth(secret) }).catch(() => null);
-      const rows = r && r.ok ? ((await r.json()) as { raw?: { files?: { path?: string }[] } | null }[]) : [];
-      const files = Array.isArray(rows[0]?.raw?.files) ? rows[0]!.raw!.files! : [];
-      if (url && rows.length && !files.some((f) => f?.path === path)) {
-        await mergeRaw(secret, leadId, {
-          files: [
-            ...files,
-            { url, path, name: `${PRODUCT_NAME} concept picture (AI).jpg`, content_type: "image/jpeg", size: bytes.length, added_at: new Date().toISOString(), from: PRODUCT_NAME },
-          ],
-        });
-      }
+      await attachFile(secret, leadId, path, `${PRODUCT_NAME} concept picture (AI).jpg`, bytes.length);
       return path;
     },
 

@@ -16,7 +16,8 @@
  *
  * A result passes when enough blocks held, few moved, the blocks that held are
  * spread across the frame and not bunched in one corner, and the best-fit shift
- * and zoom across all found blocks are close to none.
+ * and zoom across all found blocks are close to none. One more check catches the
+ * opposite failure: a result that is the photo handed back with nothing replaced.
  *
  * Plain JavaScript, no native code, about a third of a second per pair.
  * Thresholds were set on the fixtures and synthetic cases in
@@ -50,6 +51,8 @@ export type GateOptions = {
   maxScale: number;
   /** Pass allows at most this much rotation or shear, as a slope. */
   maxSkew: number;
+  /** Pass needs at least this share of the picture to look different, or nothing was replaced. */
+  minChanged: number;
   /** The frame is cut 3 by 3; pass needs held blocks in at least this many of the cells that had detail. */
   minCellShare: number;
 };
@@ -68,13 +71,14 @@ export const GATE_DEFAULTS: GateOptions = {
   maxShift: 0.0022,
   maxScale: 0.007,
   maxSkew: 0.0075,
+  minChanged: 0.02,
   minCellShare: 0.6,
 };
 
 export type GateResult = {
   pass: boolean;
   /** Why it failed, in the order checked. Empty when it passed. */
-  reasons: ("too_little_detail" | "held" | "moved" | "shift" | "scale" | "skew" | "coverage")[];
+  reasons: ("too_little_detail" | "held" | "moved" | "shift" | "scale" | "skew" | "coverage" | "unchanged")[];
   detailed: number;
   held: number;
   moved: number;
@@ -90,6 +94,8 @@ export type GateResult = {
   skew: number;
   cells: number;
   cellsHeld: number;
+  /** Share of the picture whose brightness changed clearly. Near zero means the model handed the photo back. */
+  changed: number;
 };
 
 function blur3(g: Gray): Gray {
@@ -162,6 +168,10 @@ export function checkGeometry(photo: Gray, result: Gray, options: Partial<GateOp
   const h = Math.max(o.block * 3, Math.round(photo.height * k));
   const a = blur3(resizeGray(photo, w, h)).data;
   const b = blur3(resizeGray(result, w, h)).data;
+
+  let differs = 0;
+  for (let i = 0; i < a.length; i++) if (Math.abs(a[i] - b[i]) > 20) differs++;
+  const changed = differs / a.length;
 
   const B = o.block, R = o.radius, n = B * B, span = 2 * R + 1;
   const scores = new Float32Array(span * span);
@@ -242,6 +252,7 @@ export function checkGeometry(photo: Gray, result: Gray, options: Partial<GateOp
     skew: Math.max(Math.abs(fx.gy), Math.abs(fy.gx)),
     cells,
     cellsHeld,
+    changed,
   };
   // A blank wall or a blurred photo gives nothing to compare. Fail closed.
   if (detailed < 24) r.reasons.push("too_little_detail");
@@ -251,6 +262,7 @@ export function checkGeometry(photo: Gray, result: Gray, options: Partial<GateOp
   if (Math.abs(r.sx - 1) > o.maxScale || Math.abs(r.sy - 1) > o.maxScale) r.reasons.push("scale");
   if (r.skew > o.maxSkew) r.reasons.push("skew");
   if (cells > 0 && cellsHeld / cells < o.minCellShare) r.reasons.push("coverage");
+  if (changed < o.minChanged) r.reasons.push("unchanged");
   r.pass = r.reasons.length === 0;
   return r;
 }

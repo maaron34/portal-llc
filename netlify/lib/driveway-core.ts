@@ -36,7 +36,7 @@ import { isJobType, type Editor, type JobType } from "./driveway-openai";
 export { PRODUCT_NAME } from "../../src/lib/driveway-shared";
 
 export type JobStatus = "queued" | "working" | "done" | "failed";
-/** Why a job ended: ok, the picture moved twice, the model failed, or it ran out of time. */
+/** Why a job ended: ok, the picture moved (or came back unedited) twice, the model failed, or it ran out of time. */
 export type Outcome = "ok" | "moved" | "error" | "timeout";
 
 export type Job = {
@@ -75,17 +75,21 @@ export interface Store {
   findLead(id: string): Promise<{ id: string; phone: string | null } | null>;
   findJobByKey(idemKey: string): Promise<Job | null>;
   getJob(id: string): Promise<Job | null>;
-  /** Save the homeowner's photo and attach it to the lead like any uploaded photo. Returns its storage path. */
-  savePhoto(leadId: string, bytes: Uint8Array): Promise<string | null>;
+  /**
+   * Save the homeowner's photo and attach it to the lead like any uploaded photo.
+   * onLead says whether it is really listed on the lead. "full" means this lead
+   * has no room left for another photo; null means storage failed.
+   */
+  savePhoto(leadId: string, bytes: Uint8Array): Promise<{ path: string; onLead: boolean } | "full" | null>;
   /** Atomic: dedupe on idemKey, check the limits, reserve one image call, create the job. */
   startJob(args: StartArgs, limits: Limits): Promise<StartResult>;
-  /** Atomic queued -> working. Null when another worker already has it. */
-  claimJob(id: string): Promise<Job | null>;
+  /** Atomic queued -> working. Null when another worker already has it, or the job waited past midnight into a full day. */
+  claimJob(id: string, dailyCap: number): Promise<Job | null>;
   /** Atomic: reserve the job's second and last image call against the day cap. */
   reserveRetry(id: string, dailyCap: number): Promise<boolean>;
   /** End a working job. Does nothing unless the job is still working. */
   finishJob(id: string, patch: { status: "done" | "failed"; outcome: Outcome; result_path?: string; detail?: Record<string, unknown> }): Promise<boolean>;
-  /** End a job stuck in `from` since before `before`. */
+  /** End a job that is still in `from`. Does nothing when it has moved on. */
   expireJob(id: string, from: "queued" | "working"): Promise<void>;
   readObject(path: string): Promise<Uint8Array | null>;
   /** Save the result and attach it to the lead as a named file. Returns its storage path. */
@@ -210,28 +214,33 @@ export async function handleStart(request: Request, deps: Deps, contextIp?: stri
   const bytes = new Uint8Array(await file.arrayBuffer());
   const photo = checkPhoto(bytes);
   if (!photo.ok) return json({ error: PHOTO_ERRORS[photo.reason] }, 400);
+  // The header can lie. Open the picture before it is stored or a call is reserved for it.
+  const opened = decodeJpeg(bytes);
+  if (!opened || opened.width !== photo.width || opened.height !== photo.height) return json({ error: PHOTO_ERRORS.unreadable }, 400);
 
   const phone10 = digits10(lead.phone || "");
   if (!phone10) return json({ error: "Enter a 10-digit mobile number." }, 400);
 
   // The photo goes on the lead before any limit is checked, so Chris has it
   // even when no picture can be made today.
-  const inputPath = await deps.store.savePhoto(lead.id, bytes);
-  if (!inputPath) return json({ error: "storage" }, 502);
+  const saved = await deps.store.savePhoto(lead.id, bytes);
+  if (saved === "full") return json({ error: "limit", reason: "phone", photo_on_lead: false }, 429);
+  if (!saved) return json({ error: "storage" }, 502);
+  const onLead = saved.onLead;
   await deps.store.tagLead(lead.id, { job_type: jobType, at: new Date(now).toISOString() });
 
-  if (!deps.editor) return json({ error: "limit", reason: "cap" }, 429);
+  if (!deps.editor) return json({ error: "limit", reason: "cap", photo_on_lead: onLead }, 429);
   const started = await deps.store.startJob(
-    { idemKey: key, leadId: lead.id, phone10, ipHash: hashIp(deps.secret, clientIp(request, contextIp)), jobType, width: photo.width, height: photo.height, inputPath },
+    { idemKey: key, leadId: lead.id, phone10, ipHash: hashIp(deps.secret, clientIp(request, contextIp)), jobType, width: photo.width, height: photo.height, inputPath: saved.path },
     deps.limits
   );
   if (!started.ok) {
     if (started.reason === "error") return json({ error: "storage" }, 502);
     deps.log(`driveway-start: refused (${started.reason})`);
-    return json({ error: "limit", reason: started.reason }, 429);
+    return json({ error: "limit", reason: started.reason, photo_on_lead: onLead }, 429);
   }
   if (!started.existing && !(await deps.kick(started.job.id))) deps.log(`driveway-start: worker message not sent for ${started.job.id}; status will re-send`);
-  return json({ ok: true, job: started.job.id, t: jobToken(started.job.id, now) }, 200);
+  return json({ ok: true, job: started.job.id, t: jobToken(started.job.id, now), photo_on_lead: onLead }, 200);
 }
 
 // ---- worker -----------------------------------------------------------------
@@ -246,15 +255,25 @@ const gateSummary = (g: GateResult) => ({
   sx: Number(g.sx.toFixed(4)),
   sy: Number(g.sy.toFixed(4)),
   skew: Number(g.skew.toFixed(4)),
+  changed: Number(g.changed.toFixed(3)),
 });
 
 /** Run one job to its end. Safe to call twice: the second call finds nothing to claim. */
 export async function runJob(jobId: string, deps: Deps): Promise<{ ran: boolean; outcome?: Outcome }> {
-  const job = await deps.store.claimJob(jobId);
+  const job = await deps.store.claimJob(jobId, deps.limits.dailyCap);
   if (!job) return { ran: false };
   const attempts: Record<string, unknown>[] = [];
+  // The picture is already paid for by the time this is written, so a failed write is tried again, never re-made.
+  const finish = async (patch: Parameters<Store["finishJob"]>[1]): Promise<boolean> => {
+    for (let i = 0; i < 3; i++) {
+      if (await deps.store.finishJob(job.id, patch)) return true;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+    deps.log(`driveway-worker: ${job.id} could not record its ending (${patch.outcome})`);
+    return false;
+  };
   const fail = async (outcome: Outcome) => {
-    await deps.store.finishJob(job.id, { status: "failed", outcome, detail: { attempts } });
+    await finish({ status: "failed", outcome, detail: { attempts } });
     deps.log(`driveway-worker: ${job.id} failed (${outcome}) after ${attempts.length} call(s)`);
     return { ran: true, outcome };
   };
@@ -293,7 +312,7 @@ export async function runJob(jobId: string, deps: Deps): Promise<{ ran: boolean;
       }
       const path = await deps.store.saveResult(job.lead_id, job.id, fitted.bytes);
       if (!path) return await fail("error");
-      await deps.store.finishJob(job.id, { status: "done", outcome: "ok", result_path: path, detail: { attempts, model: deps.editor.name } });
+      if (!(await finish({ status: "done", outcome: "ok", result_path: path, detail: { attempts, model: deps.editor.name } }))) return { ran: true, outcome: "error" };
       await deps.store.tagLead(job.lead_id, { job_type: job.job_type, job_id: job.id, result: "picture made", at: new Date(deps.now()).toISOString() });
       deps.log(`driveway-worker: ${job.id} done after ${attempts.length} call(s)`);
       return { ran: true, outcome: "ok" };
@@ -357,20 +376,18 @@ export async function handleStatus(request: Request, deps: Deps): Promise<Respon
   if (job.status === "queued") {
     if (age > QUEUED_GIVE_UP_MS) {
       await deps.store.expireJob(job.id, "queued");
-      return json({ status: "failed", job: job.id, t: token }, 200);
+      // The worker may have taken it in the same instant: say what is true now.
+      job = (await deps.store.getJob(job.id)) ?? job;
+    } else {
+      // The worker message can be lost. Re-send it about every 20 seconds; the claim makes extra copies harmless.
+      if (age > QUEUED_RESEND_MS && age % QUEUED_RESEND_MS < 4000) await deps.kick(job.id);
+      return json({ status: "working", job: job.id, t: token }, 200);
     }
-    // The worker message can be lost. Re-send it about every 20 seconds; the claim makes extra copies harmless.
-    if (age > QUEUED_RESEND_MS && age % QUEUED_RESEND_MS < 4000) await deps.kick(job.id);
-    return json({ status: "working", job: job.id, t: token }, 200);
+  } else if (job.status === "working" && now - new Date(job.claimed_at || job.created_at).getTime() > WORKING_GIVE_UP_MS) {
+    await deps.store.expireJob(job.id, "working");
+    job = (await deps.store.getJob(job.id)) ?? job;
   }
-  if (job.status === "working") {
-    const since = now - new Date(job.claimed_at || job.created_at).getTime();
-    if (since > WORKING_GIVE_UP_MS) {
-      await deps.store.expireJob(job.id, "working");
-      return json({ status: "failed", job: job.id, t: token }, 200);
-    }
-    return json({ status: "working", job: job.id, t: token }, 200);
-  }
+  if (job.status === "queued" || job.status === "working") return json({ status: "working", job: job.id, t: token }, 200);
   if (job.status === "done" && job.result_path) {
     const [before, after] = await Promise.all([deps.store.signedUrl(job.input_path, LINK_SECONDS), deps.store.signedUrl(job.result_path, LINK_SECONDS)]);
     if (before && after) return json({ status: "done", job: job.id, t: token, job_type: job.job_type, before_url: before, after_url: after, width: job.width, height: job.height }, 200);
