@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useLayoutEffect } from "react";
+import { Suspense, lazy, useEffect, useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -16,6 +16,10 @@ import LandingPage from "./pages/LandingPage";
 import NeighborhoodPage from "./pages/NeighborhoodPage";
 import Terms from "./pages/Terms";
 import { captureAttribution } from "./lib/attribution";
+import { GENERATOR_PATH } from "./lib/driveway-shared";
+
+// Loaded only when someone opens it, so the rest of the site does not carry it.
+const DrivewayGenerator = lazy(() => import("./pages/DrivewayGenerator"));
 
 function scrollToHashOrTop(hash: string | null) {
   if (hash) {
@@ -112,6 +116,16 @@ function AppRoutes() {
       <Routes>
         {/* Landing pages - no header/footer navigation */}
         <Route path="/lp/:slug" element={<LandingPage />} />
+
+        {/* Concrete Generator: unlisted, noindex, off unless DRIVEWAY_GENERATOR_ENABLED is set */}
+        <Route
+          path={GENERATOR_PATH}
+          element={
+            <Suspense fallback={null}>
+              <DrivewayGenerator />
+            </Suspense>
+          }
+        />
 
         {/* Main site with header/footer */}
         <Route

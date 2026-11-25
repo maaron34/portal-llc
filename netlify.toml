@@ -70,6 +70,14 @@
   to = "/index.html"
   status = 200
 
+# Concrete Generator: an unlisted page. Keep it out of search results even
+# though the SPA serves the same index.html for it.
+[[headers]]
+  for = "/concrete-generator*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
 [[headers]]
   for = "/*"
   [headers.values]

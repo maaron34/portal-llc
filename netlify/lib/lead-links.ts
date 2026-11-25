@@ -24,7 +24,7 @@ export const PORTAL_PHONE_DISPLAY = "(206) 829-6396";
 export const QUO_INBOX_URL = "https://my.quo.com/inbox/PNDcIeIjZ3";
 export const PROD_ORIGIN = "https://buildwithportal.com";
 
-export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "delete" | "notscam" | "upload";
+export type LinkAction = "handled" | "reply" | "text" | "email" | "merge" | "delete" | "notscam" | "upload" | "driveway";
 
 function linkSecret(): string {
   return process.env.LEAD_LINK_SECRET || process.env.SUPABASE_SECRET_KEY || "";

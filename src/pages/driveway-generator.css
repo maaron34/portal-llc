@@ -1,0 +1,66 @@
+/* Concrete Generator. The approved look: one phone-width column on Portal cream,
+   a charcoal "machine" console that holds the robot and every step. Colors are
+   the portal-* tokens (design-system/tokens.json); everything is scoped to .dg. */
+.dg{
+  --dg-machine:#2d2d2d; --dg-machine-2:#1a1a1a; --dg-soft:#d4cfc7; --dg-line:#4a4a4a;
+  --dg-green:#3d7a5f; --dg-green-press:#2d5f49; --dg-green-light:#7fb89c; --dg-lamp:#fbbf24;
+  min-height:100vh;background:#f5f3ef;color:#1a1a1a;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;
+}
+.dg *{box-sizing:border-box}
+.dg [hidden]{display:none!important}
+.dg-page{max-width:520px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:20px}
+.dg-machine{background:var(--dg-machine);color:#fff;border-radius:22px;padding:22px 20px 24px;display:flex;flex-direction:column;gap:18px;border:1px solid var(--dg-line)}
+.dg-name{font-size:32px;font-weight:800;line-height:1.15;color:#fff;text-align:center;text-wrap:balance;margin:0}
+.dg-name small{display:block;font-size:18px;font-weight:500;color:var(--dg-soft);margin-top:6px}
+.dg-robot{display:flex;justify-content:center}
+.dg-robot svg{width:170px;height:auto}
+.dg-screen{background:var(--dg-machine-2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.dg-screen h2{margin:0;font-size:24px;font-weight:700;line-height:1.25;text-align:center;text-wrap:balance;color:#fff}
+.dg-screen p{margin:0;color:var(--dg-soft);text-align:center;text-wrap:balance}
+.dg-screen form{display:flex;flex-direction:column;gap:14px}
+.dg-field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px;color:#fff}
+.dg input[type=text],.dg input[type=tel],.dg select{font:inherit;font-size:17px;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.32);background:#2d2d2d;color:#fff;width:100%}
+.dg select{appearance:none;-webkit-appearance:none;padding-right:44px;background:#2d2d2d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/20px}
+.dg input::placeholder{color:rgba(255,255,255,.45)}
+.dg input:focus-visible,.dg select:focus-visible,.dg button:focus-visible,.dg a:focus-visible,.dg-drop:focus-within{outline:3px solid var(--dg-green-light);outline-offset:2px}
+.dg-drop{border:2px dashed rgba(255,255,255,.32);border-radius:12px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;cursor:pointer;position:relative}
+.dg-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.dg-drop .dg-big{font-weight:800;font-size:18px}
+.dg-drop .dg-small{font-size:14px;color:var(--dg-soft)}
+.dg-thumb{width:100%;max-height:300px;object-fit:contain;border-radius:10px;display:block}
+.dg-btn{font:inherit;font-weight:800;font-size:18px;border:0;border-radius:8px;padding:14px 18px;background:var(--dg-green);color:#fff;cursor:pointer;width:100%;text-align:center;text-decoration:none;display:block}
+.dg-btn:hover{background:var(--dg-green-press)}
+.dg-btn[disabled]{opacity:.45;cursor:not-allowed}
+.dg-link{font:inherit;background:none;border:0;color:var(--dg-green-light);font-weight:700;cursor:pointer;padding:4px 0;text-decoration:underline;align-self:center}
+.dg-err{color:#ff8a8a!important;font-size:14px;text-align:left!important}
+.dg-note{font-size:13px}
+.dg-lights{display:flex;gap:8px;justify-content:center}
+.dg-lights i{width:12px;height:12px;border-radius:50%;background:var(--dg-line)}
+.dg-working .dg-lights i{animation:dg-blink 1s infinite}
+.dg-working .dg-lights i:nth-child(2){animation-delay:.2s}
+.dg-working .dg-lights i:nth-child(3){animation-delay:.4s}
+.dg-working .dg-lights i:nth-child(4){animation-delay:.6s}
+@keyframes dg-blink{0%,100%{background:#4a4a4a}50%{background:#fbbf24}}
+.dg-readout{font-size:20px;font-weight:600;color:#fff;text-align:center;min-height:1.5em}
+.dg-meter{height:14px;background:#2d2d2d;border-radius:999px;overflow:hidden}
+.dg-meter b{display:block;height:100%;background:var(--dg-green);transition:width .9s linear}
+.dg-arm{transform-origin:118px 96px}
+.dg-working .dg-arm{animation:dg-wave .6s ease-in-out infinite alternate}
+@keyframes dg-wave{from{transform:rotate(-12deg)}to{transform:rotate(14deg)}}
+.dg-eye{transition:fill .3s}
+.dg-working .dg-eye{fill:var(--dg-lamp)}
+.dg-ba{position:relative;border-radius:10px;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none;background:#2d2d2d}
+.dg-ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.dg-ba .dg-top{clip-path:inset(0 0 0 var(--cut,50%))}
+.dg-ba .dg-handle{position:absolute;top:0;bottom:0;left:var(--cut,50%);width:3px;background:#fff;transform:translateX(-1px)}
+.dg-ba .dg-handle::after{content:"";position:absolute;top:50%;left:50%;width:48px;height:48px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%231a1a1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 16l-8 8 8 8M30 16l8 8-8 8'/%3E%3C/svg%3E") center/100%;transform:translate(-50%,-50%)}
+.dg-ba .dg-tag{position:absolute;top:10px;font-weight:900;font-size:13px;letter-spacing:.1em;color:#fff;padding:4px 10px;border-radius:6px}
+.dg-ba .dg-tag-b{left:10px;background:rgba(26,26,26,.85)}
+.dg-ba .dg-tag-a{right:10px;background:var(--dg-green)}
+.dg-ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.dg-fine{font-size:13px;border-top:1px solid var(--dg-line);padding-top:12px}
+.dg-steps{display:flex;gap:6px}
+.dg-steps span{flex:1;height:4px;border-radius:2px;background:var(--dg-line)}
+.dg-steps span.dg-on{background:var(--dg-green-light)}
+.dg-screen a.dg-tel{color:var(--dg-green-light);font-weight:700}
+@media (prefers-reduced-motion: reduce){.dg-working .dg-arm,.dg-working .dg-lights i{animation:none}.dg-meter b{transition:none}}
