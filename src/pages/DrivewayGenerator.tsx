@@ -100,7 +100,12 @@ function BeforeAfter({ result, onStale }: { result: Result; onStale: () => void 
   const moved = useRef(false);
   const raf = useRef(0);
 
-  const setCut = (v: number) => box.current?.style.setProperty("--cut", `${v}%`);
+  // A label goes away once the divider reaches its side, so a full picture never carries the other one's name.
+  const setCut = (v: number) => {
+    box.current?.style.setProperty("--cut", `${v}%`);
+    box.current?.classList.toggle("dg-no-b", v < 30);
+    box.current?.classList.toggle("dg-no-a", v > 70);
+  };
   const stop = () => {
     moved.current = true;
     cancelAnimationFrame(raf.current);
@@ -132,7 +137,7 @@ function BeforeAfter({ result, onStale }: { result: Result; onStale: () => void 
     <div
       className="dg-ba"
       ref={box}
-      style={{ aspectRatio: `${result.width} / ${result.height}` }}
+      style={{ aspectRatio: `${result.width} / ${result.height}`, ["--ratio" as string]: result.width / result.height }}
       onPointerEnter={(e) => {
         if (e.pointerType === "mouse") nudge();
       }}
@@ -479,7 +484,7 @@ export default function DrivewayGenerator() {
   return (
     <div className="dg">
       <div className="dg-page">
-        <section className={`dg-machine${view === "working" ? " dg-working" : ""}`} aria-live="polite">
+        <section className={`dg-machine dg-v-${view}${view === "photo" && photo ? " dg-has-photo" : ""}${view === "working" ? " dg-working" : ""}`} aria-live="polite">
           <h1 className="dg-name">
             {PRODUCT_NAME}
             <small>See new concrete on your own photo</small>
