@@ -16,11 +16,11 @@ Portal sounds like Chris explaining a job on site: plain, direct and specific ab
 
 ## Claims you can use
 
-Use these wordings exactly. They were sourced for the ad batch of 2026-11-17 and match the website as of 2026-11-18. Recheck the review count before each new batch, because it changes. The website's "Over N five-star reviews" line counts reviews from every platform; ads and video use the Google count only.
+Use these wordings exactly. They were sourced for the ad batch of 2026-11-17, with the Google count rechecked on 2026-11-21. Recheck the review count before each new batch, because it changes. The website's "Over N five-star reviews" line counts reviews from every platform; ads and video use the Google count only.
 
 | Claim | Exact wording | Source |
 | --- | --- | --- |
-| Rating | 5.0 stars from 100 Google reviews | Google profile count recorded on 2026-11-05 |
+| Rating | 5.0 stars from 103 Google reviews | Google profile, counted 2026-11-21 |
 | Experience | Owner Chris has 35+ years in construction | Chris's career (website: "Founded by Chris Hildebrand with 35+ years in construction"). Attribute it to Chris, so it never reads as the company's age. Never "35+ years in concrete". |
 | Credentials | Licensed, bonded and insured | Website |
 | License | WA contractor license PORTAL*803D4 | Website |
