@@ -26,7 +26,7 @@
 .dg-drop{border:2px dashed rgba(255,255,255,.32);border-radius:12px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;cursor:pointer;position:relative}
 .dg-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .dg-drop .dg-big{font-weight:800;font-size:18px}
-.dg-drop .dg-small{font-size:14px;color:var(--dg-soft)}
+.dg-drop .dg-small{text-wrap:balance;font-size:14px;color:var(--dg-soft)}
 .dg-thumb{width:100%;max-height:300px;object-fit:contain;border-radius:10px;display:block}
 .dg-btn{font:inherit;font-weight:800;font-size:18px;border:0;border-radius:8px;padding:14px 18px;background:var(--dg-green);color:#fff;cursor:pointer;width:100%;text-align:center;text-decoration:none;display:block}
 .dg-btn:hover{background:var(--dg-green-press)}
@@ -64,3 +64,28 @@
 .dg-steps span.dg-on{background:var(--dg-green-light)}
 .dg-screen a.dg-tel{color:var(--dg-green-light);font-weight:700}
 @media (prefers-reduced-motion: reduce){.dg-working .dg-arm,.dg-working .dg-lights i{animation:none}.dg-meter b{transition:none}}
+
+.dg-ba .dg-tag{transition:opacity .15s}
+.dg-no-a .dg-tag-a,.dg-no-b .dg-tag-b{opacity:0}
+
+/* Phones: every step fits on one screen, name on one line, main button above the fold. */
+@media (max-width:560px),(max-height:500px){
+  .dg-page{padding-top:10px;padding-bottom:12px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));min-height:0}
+  .dg-machine{padding:14px 14px 14px;gap:12px;border-radius:18px}
+  .dg-name{font-size:clamp(22px,6.5vw,28px);white-space:nowrap}
+  .dg-name small{font-size:15px;margin-top:2px}
+  .dg-screen{padding:14px;gap:10px}
+  .dg-screen h2{font-size:20px}
+  .dg-screen form{gap:10px}
+  .dg-robot svg{width:88px}
+  .dg-lights{display:none}
+  .dg-working .dg-robot svg{width:150px}
+  .dg-working .dg-lights{display:flex}
+  .dg-drop{padding:14px;gap:6px}
+  .dg-btn{padding:12px 16px}
+  .dg-has-photo .dg-robot,.dg-v-contact .dg-robot,.dg-v-result .dg-robot,.dg-has-photo .dg-name small,.dg-v-contact .dg-name small,.dg-v-result .dg-name small{display:none}
+  .dg-has-photo .dg-thumb{max-height:max(90px,calc(100svh - 446px))}
+  .dg-ba{width:min(100%,max(220px,calc(max(220px,100svh - 372px) * var(--ratio,1))));margin:0 auto}
+  .dg-fine{padding-top:8px}
+}
+@media (max-width:560px) and (max-height:600px){.dg-robot svg{width:56px}}
